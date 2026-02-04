@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR-коды для печати - Город Спорта</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #000;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .bot-name {
+            text-align: center;
+            background: #FFD700;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 0 auto 30px;
+            font-weight: bold;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .qr-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 3px solid #FFD700;
+        }
+
+        .qr-card h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: #000;
+        }
+
+        .qr-card .zone {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .qr-card img {
+            margin: 0 auto;
+            display: block;
+        }
+
+        .qr-card .coins {
+            margin-top: 20px;
+            background: #FFD700;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .qr-card .instruction {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .print-btn {
+            display: block;
+            margin: 30px auto;
+            background: #000;
+            color: #FFD700;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .print-btn:hover {
+            background: #333;
+        }
+
+        .info-box {
+            max-width: 800px;
+            margin: 0 auto 30px;
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #FFD700;
+        }
+
+        .info-box h3 {
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+        }
+
+        .info-box li {
+            margin-bottom: 5px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .qr-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 2px solid #000;
+            }
+
+            .qr-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🏋️ QR-коды для онбординга</h1>
+    <p class="subtitle">Город Спорта</p>
+
+    <div class="center no-print">
+        <div class="bot-name">Бот: @gsvtk_bot</div>
+    </div>
+
+    <div class="info-box no-print">
+        <h3>📋 Инструкция по размещению:</h3>
+        <ul>
+            <li><strong>День 4 (Тренажёрный зал)</strong> — разместить на стене у зеркал или на входе в зал</li>
+            <li><strong>День 6 (SPA-зона)</strong> — разместить в раздевалке SPA или у входа в сауну</li>
+            <li><strong>День 9 (Бассейн)</strong> — разместить у входа в бассейн или в раздевалке</li>
+            <li><strong>День 12 (Секретный)</strong> — спрятать в неожиданном месте (за тренажёром, в уголке и т.д.)</li>
+        </ul>
+    </div>
+
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Распечатать QR-коды</button>
+
+    <div class="qr-grid" id="qr-grid">
+        <div class="qr-card">
+            <h2>День 4</h2>
+            <div class="zone">Разместить в тренажёрном зале</div>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://t.me/gsvtk_bot?start=qr_gym_X7kL9m" alt="QR День 4">
+            <div class="coins">+200 спортиков</div>
+            <div class="instruction">Отсканируй камерой телефона</div>
+        </div>
+
+        <div class="qr-card">
+            <h2>День 6</h2>
+            <div class="zone">Разместить в SPA / сауне</div>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://t.me/gsvtk_bot?start=qr_spa_P2nQ8r" alt="QR День 6">
+            <div class="coins">+200 спортиков</div>
+            <div class="instruction">Отсканируй камерой телефона</div>
+        </div>
+
+        <div class="qr-card">
+            <h2>День 9</h2>
+            <div class="zone">Разместить у бассейна</div>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://t.me/gsvtk_bot?start=qr_pool_K4mW2x" alt="QR День 9">
+            <div class="coins">+200 спортиков</div>
+            <div class="instruction">Отсканируй камерой телефона</div>
+        </div>
+
+        <div class="qr-card">
+            <h2>День 12</h2>
+            <div class="zone">🤫 Спрятать в клубе</div>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://t.me/gsvtk_bot?start=qr_secret_H3jF7s" alt="QR День 12">
+            <div class="coins">+250 спортиков</div>
+            <div class="instruction">Отсканируй камерой телефона</div>
+        </div>
+    </div>
+
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Распечатать QR-коды</button>
+</body>
+</html>

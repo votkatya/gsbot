@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Город Спорта - Онбординг</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .phone-frame {
+            width: 100%;
+            min-height: 100vh;
+            background: #fff;
+            position: relative;
+            max-width: 100%;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: #fff;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Header */
+        .header {
+            background: #000;
+            color: #FFD700;
+            padding: 60px 20px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header-small {
+            padding: 50px 20px 15px;
+        }
+
+        .header-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .coins-display {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #FFD700;
+            border-radius: 20px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #FFD700;
+        }
+
+        .coins-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sportiki-text {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .level-display {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            border-radius: 20px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .level-progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+            height: 6px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .level-progress-fill {
+            background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .level-info {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .logo-small {
+            font-size: 20px;
+            margin-bottom: 0;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #fff;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50px;
+            background: none;
+            border: none;
+            color: #FFD700;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Content */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Welcome Screen */
+        .welcome-hero {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .welcome-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #000;
+        }
+
+        .welcome-text {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .welcome-features {
+            text-align: left;
+            margin: 30px 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 12px;
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-right: 15px;
+        }
+
+        .feature-text {
+            flex: 1;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .feature-desc {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* Dashboard */
+        .progress-card {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            border-radius: 20px;
+            padding: 25px;
+            color: #000;
+            margin-bottom: 20px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .day-counter {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .streak {
+            background: #fff;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .progress-bar-container {
+            background: rgba(255,255,255,0.3);
+            height: 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            background: #fff;
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Task Card */
+        .task-card {
+            background: #fff;
+            border: 2px solid #000;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .task-number {
+            background: #FFD700;
+            color: #000;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .task-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #000;
+        }
+
+        .task-desc {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .task-badge {
+            background: #f0f0f0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Calendar */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .calendar-day {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 140px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .calendar-day.completed {
+            background: #FFD700;
+            border-color: #FFD700;
+        }
+
+        .calendar-day.active {
+            background: #fff;
+            border-color: #000;
+        }
+
+        .calendar-day.locked {
+            background: #f5f5f5;
+            border-color: #e0e0e0;
+            opacity: 0.6;
+        }
+
+        .calendar-day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .calendar-day-number {
+            font-size: 18px;
+            font-weight: 900;
+            color: #000;
+        }
+
+        .calendar-day.locked .calendar-day-number {
+            color: #999;
+        }
+
+        .calendar-status-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .calendar-day.completed .calendar-status-icon {
+            stroke: #000;
+        }
+
+        .calendar-day.active .calendar-status-icon {
+            stroke: #FFD700;
+        }
+
+        .calendar-day.locked .calendar-status-icon {
+            stroke: #999;
+        }
+
+        .calendar-task-title {
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.3;
+            color: #000;
+            flex: 1;
+        }
+
+        .calendar-day.locked .calendar-task-title {
+            color: #999;
+        }
+
+        .calendar-coins-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #FFA500;
+            margin-top: 8px;
+        }
+
+        .calendar-coins-badge i {
+            width: 14px;
+            height: 14px;
+            stroke: #FFA500;
+        }
+
+        .calendar-day.locked .calendar-coins-badge {
+            color: #999;
+        }
+
+        .calendar-day.locked .calendar-coins-badge i {
+            stroke: #999;
+        }
+
+        .calendar-hint {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .gift-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #FF4500;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        .gift-badge i {
+            width: 18px;
+            height: 18px;
+            stroke: #fff;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* Confetti animation */
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #FFD700;
+            z-index: 9999;
+            animation: confetti-fall 3s linear forwards;
+        }
+
+        /* Gift Available Notification */
+        .gift-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            z-index: 10000;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        @keyframes popIn {
+            to {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .gift-notification-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .gift-notification-title {
+            font-size: 28px;
+            font-weight: 900;
+            color: #000;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .gift-notification-text {
+            font-size: 16px;
+            color: #000;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .gift-notification-btn {
+            background: #000;
+            color: #FFD700;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .gift-notification-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            display: none;
+        }
+
+        .notification-overlay.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            background: #000;
+            color: #FFD700;
+            padding: 30px 20px;
+            border-radius: 20px 20px 0 0;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #FFD700;
+            font-size: 28px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-day-number {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .modal-task-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .modal-content {
+            padding: 30px 20px;
+        }
+
+        .modal-task-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .modal-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .modal-status.completed {
+            background: #FFD700;
+            color: #000;
+        }
+
+        .modal-status.active {
+            background: #f0f0f0;
+            color: #000;
+        }
+
+        .modal-status.locked {
+            background: #f5f5f5;
+            color: #999;
+        }
+
+        /* Buttons */
+        .btn {
+            background: #FFD700;
+            color: #000;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #fff;
+            border: 2px solid #000;
+            color: #000;
+            margin-bottom: 10px;
+        }
+
+        .btn-complete {
+            background: #000;
+            color: #FFD700;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            background: #fff;
+            border-top: 1px solid #e0e0e0;
+            padding: 10px 0 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            color: #999;
+            border: none;
+            background: none;
+            font-size: 11px;
+        }
+
+        .nav-item.active {
+            color: #FFD700;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-icon i {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Task Detail */
+        .task-detail-hero {
+            background: linear-gradient(135deg, #000 0%, #333 100%);
+            color: #FFD700;
+            padding: 40px 20px;
+            text-align: center;
+            margin: -20px -20px 20px;
+        }
+
+        .task-detail-number {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .task-detail-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .instruction-list {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .instruction-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 12px;
+        }
+
+        .instruction-number {
+            background: #FFD700;
+            color: #000;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .instruction-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f9f9f9;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: #000;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .achievements {
+            margin-top: 30px;
+        }
+
+        .leaderboard {
+            margin-top: 30px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .leaderboard-item.current-user {
+            background: #FFD700;
+            font-weight: 700;
+        }
+
+        .leaderboard-rank {
+            font-size: 24px;
+            font-weight: 900;
+            color: #FFD700;
+            width: 40px;
+            text-align: center;
+        }
+
+        .leaderboard-item.current-user .leaderboard-rank {
+            color: #000;
+        }
+
+        .leaderboard-rank.top-1 {
+            color: #FFD700;
+        }
+
+        .leaderboard-rank.top-2 {
+            color: #C0C0C0;
+        }
+
+        .leaderboard-rank.top-3 {
+            color: #CD7F32;
+        }
+
+        .leaderboard-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #000;
+            margin: 0 15px;
+        }
+
+        .leaderboard-info {
+            flex: 1;
+        }
+
+        .leaderboard-name {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .leaderboard-tasks {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .leaderboard-coins {
+            font-weight: 700;
+            font-size: 16px;
+            color: #FFD700;
+        }
+
+        .leaderboard-item.current-user .leaderboard-coins {
+            color: #000;
+        }
+
+        /* Shop */
+        .shop-item {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .shop-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .shop-item.affordable {
+            border-color: #FFD700;
+        }
+
+        .shop-item-icon {
+            font-size: 48px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+        }
+
+        .shop-item-info {
+            flex: 1;
+        }
+
+        .shop-item-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #000;
+        }
+
+        .shop-item-desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .shop-item-price {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #FFD700;
+        }
+
+        .shop-item-price i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .shop-item.not-affordable .shop-item-price {
+            color: #999;
+        }
+
+        .shop-buy-btn {
+            background: #FFD700;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .shop-buy-btn:hover {
+            background: #FFA500;
+        }
+
+        .shop-buy-btn:disabled {
+            background: #e0e0e0;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .shop-category {
+            margin-bottom: 30px;
+        }
+
+        .shop-category-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #000;
+        }
+
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .achievement {
+            aspect-ratio: 1;
+            background: #f9f9f9;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .achievement.unlocked {
+            background: #FFD700;
+        }
+
+        .achievement-icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .achievement-name {
+            font-size: 10px;
+            font-weight: 600;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <!-- Welcome Screen -->
+        <div class="screen active" id="welcome">
+            <div class="header">
+                <div class="logo">ГОРОД СПОРТА</div>
+                <div class="subtitle">Твой путь к лучшей версии себя</div>
+            </div>
+            <div class="content">
+                <div class="welcome-hero">
+                    <div class="welcome-icon"><i data-lucide="trophy" style="width: 80px; height: 80px; stroke: #FFD700;"></i></div>
+                    <h1 class="welcome-title">Добро пожаловать!</h1>
+                    <p class="welcome-text">Мы создали для тебя персональный маршрут знакомства с клубом</p>
+                </div>
+
+                <div class="welcome-features">
+                    <div class="feature-item">
+                        <div class="feature-icon"><i data-lucide="calendar-days" style="width: 32px; height: 32px; stroke: #FFD700;"></i></div>
+                        <div class="feature-text">
+                            <div class="feature-title">14 дней онбординга</div>
+                            <div class="feature-desc">Каждый день новое задание</div>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i data-lucide="map" style="width: 32px; height: 32px; stroke: #FFD700;"></i></div>
+                        <div class="feature-text">
+                            <div class="feature-title">Все зоны клуба</div>
+                            <div class="feature-desc">Познакомься с каждым уголком</div>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i data-lucide="target" style="width: 32px; height: 32px; stroke: #FFD700;"></i></div>
+                        <div class="feature-text">
+                            <div class="feature-title">Достижения</div>
+                            <div class="feature-desc">Зарабатывай бейджи за прогресс</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="padding: 20px; max-width: 600px; margin: 0 auto; width: 100%;">
+                <button class="btn" onclick="showScreen('dashboard')">Начать путешествие</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div class="screen" id="dashboard">
+            <div class="header header-small">
+                <div class="logo logo-small">ГОРОД СПОРТА</div>
+                <div class="header-stats">
+                    <div class="coins-display">
+                        <i data-lucide="coins" class="coins-icon"></i>
+                        <span id="coins-count">100</span>
+                    </div>
+                    <div class="level-display">
+                        <i data-lucide="zap" style="width: 16px; height: 16px;"></i>
+                        <span>Новичок</span>
+                    </div>
+                </div>
+                <div class="level-progress-bar">
+                    <div class="level-progress-fill" style="width: 15%"></div>
+                </div>
+                <div class="level-info">15% до уровня "Спортсмен" • <span class="sportiki-text">Спортики за задания</span></div>
+            </div>
+            <div class="content">
+                <div class="progress-card">
+                    <div class="progress-header">
+                        <div class="day-counter"><span id="completed-tasks-count">1</span> из 14 заданий</div>
+                        <div class="streak"><i data-lucide="flame" style="width: 16px; height: 16px; stroke: #ff4500; display: inline-block; vertical-align: middle; margin-right: 4px;"></i><span id="streak-count">1</span> день подряд</div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="main-progress-bar" style="width: 7%"></div>
+                    </div>
+                    <div class="progress-text"><span id="progress-percentage">7</span>% выполнено</div>
+                </div>
+
+                <h2 class="section-title">Твои задания</h2>
+                <div class="calendar-hint">
+                    Нажми на карточку, чтобы прочитать задание • Зарабатывай спортики!
+                </div>
+                <div class="calendar-grid" id="calendar-grid-dashboard">
+                    <!-- Tasks will be rendered here by JavaScript -->
+                </div>
+            </div>
+            <div class="bottom-nav">
+                <button class="nav-item active" onclick="showScreen('dashboard')">
+                    <div class="nav-icon"><i data-lucide="home"></i></div>
+                    <div>Главная</div>
+                </button>
+                <button class="nav-item" onclick="showScreen('progress')">
+                    <div class="nav-icon"><i data-lucide="trophy"></i></div>
+                    <div>Рейтинг</div>
+                </button>
+                <button class="nav-item" onclick="showScreen('shop')">
+                    <div class="nav-icon"><i data-lucide="shopping-bag"></i></div>
+                    <div>Магазин</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Task Detail Screen -->
+        <div class="screen" id="task-detail">
+            <div class="header header-small">
+                <button class="back-btn" onclick="showScreen('dashboard')">←</button>
+                <div class="logo logo-small">ДЕНЬ 1</div>
+            </div>
+            <div class="content">
+                <div class="task-detail-hero">
+                    <div class="task-detail-number">01</div>
+                    <div class="task-detail-title">Заполни анкету</div>
+                </div>
+
+                <h3 class="section-title">Что нужно сделать:</h3>
+                <ul class="instruction-list">
+                    <li class="instruction-item">
+                        <div class="instruction-number">1</div>
+                        <div class="instruction-text">Укажи свой пол, возраст и основные параметры</div>
+                    </li>
+                    <li class="instruction-item">
+                        <div class="instruction-number">2</div>
+                        <div class="instruction-text">Расскажи о своих фитнес-целях и мотивации</div>
+                    </li>
+                    <li class="instruction-item">
+                        <div class="instruction-number">3</div>
+                        <div class="instruction-text">Отметь виды тренировок, которые тебе интересны</div>
+                    </li>
+                    <li class="instruction-item">
+                        <div class="instruction-number">4</div>
+                        <div class="instruction-text">Укажи противопоказания и особенности здоровья</div>
+                    </li>
+                </ul>
+
+                <div style="background: #fff3cd; padding: 15px; border-radius: 12px; margin: 20px 0;">
+                    <strong><i data-lucide="lightbulb" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 6px; stroke: #856404;"></i>Зачем это нужно?</strong>
+                    <p style="font-size: 14px; margin-top: 8px; color: #666;">Эта информация поможет нам подобрать для тебя идеальную программу тренировок и персональные рекомендации</p>
+                </div>
+            </div>
+            <div style="padding: 20px; max-width: 600px; margin: 0 auto; width: 100%;">
+                <button class="btn btn-complete" onclick="completeTask()">Заполнить анкету</button>
+                <button class="btn btn-secondary" onclick="showScreen('dashboard')">Позже</button>
+            </div>
+        </div>
+
+        <!-- Shop Screen -->
+        <div class="screen" id="shop">
+            <div class="header header-small">
+                <div class="logo logo-small">МАГАЗИН</div>
+                <div class="header-stats">
+                    <div class="coins-display">
+                        <i data-lucide="coins" class="coins-icon"></i>
+                        <span id="shop-coins-count">100</span>
+                    </div>
+                </div>
+            </div>
+            <div class="content">
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="calendar-plus" style="width: 48px; height: 48px; stroke: #FFD700;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">+3 дня к карте</div>
+                        <div class="shop-item-desc">Добавь 3 дополнительных дня к своему абонементу</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>500 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('+3 дня к карте', 500)">Недостаточно</button>
+                </div>
+
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="sun" style="width: 48px; height: 48px; stroke: #FFA500;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">Солярий 5 минут</div>
+                        <div class="shop-item-desc">Сеанс в солярии на 5 минут</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>500 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('Солярий 5 минут', 500)">Недостаточно</button>
+                </div>
+
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="droplet" style="width: 48px; height: 48px; stroke: #00BFFF;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">Бутылочка ГС</div>
+                        <div class="shop-item-desc">Фирменная спортивная бутылка Город Спорта</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>600 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('Бутылочка ГС', 600)">Недостаточно</button>
+                </div>
+
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="sun" style="width: 48px; height: 48px; stroke: #FF6347;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">Солярий 15 минут</div>
+                        <div class="shop-item-desc">Сеанс в солярии на 15 минут</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>800 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('Солярий 15 минут', 800)">Недостаточно</button>
+                </div>
+
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="hand" style="width: 48px; height: 48px; stroke: #9370DB;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">Массаж 30 минут</div>
+                        <div class="shop-item-desc">Расслабляющий или спортивный массаж от профессионала</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>1000 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('Массаж 30 минут', 1000)">Недостаточно</button>
+                </div>
+
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="shirt" style="width: 48px; height: 48px; stroke: #000;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">Футболка ГС</div>
+                        <div class="shop-item-desc">Стильная фирменная футболка Город Спорта</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>1000 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('Футболка ГС', 1000)">Недостаточно</button>
+                </div>
+
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="backpack" style="width: 48px; height: 48px; stroke: #2E8B57;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">Рюкзак для обуви ГС</div>
+                        <div class="shop-item-desc">Удобный фирменный рюкзак для спортивной обуви</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>1200 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('Рюкзак для обуви', 1200)">Недостаточно</button>
+                </div>
+
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="ticket" style="width: 48px; height: 48px; stroke: #FF1493;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">Гостевой визит для друга</div>
+                        <div class="shop-item-desc">Пригласи друга бесплатно на целый день в клуб</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>1200 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('Гостевой визит', 1200)">Недостаточно</button>
+                </div>
+
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="dumbbell" style="width: 48px; height: 48px; stroke: #DC143C;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">Коммерческий класс (1 тренировка)</div>
+                        <div class="shop-item-desc">Одна бесплатная тренировка в премиум-зоне клуба</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>1500 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('Коммерческий класс (1)', 1500)">Недостаточно</button>
+                </div>
+
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="book-open" style="width: 48px; height: 48px; stroke: #4B0082;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">Флаер на лекцию в женский клуб</div>
+                        <div class="shop-item-desc">Бесплатный вход на любую платную лекцию в женском клубе</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>1500 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('Флаер на лекцию', 1500)">Недостаточно</button>
+                </div>
+
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="dumbbell" style="width: 48px; height: 48px; stroke: #FF4500;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">Коммерческий класс (3 тренировки)</div>
+                        <div class="shop-item-desc">Три бесплатные тренировки в премиум-зоне клуба</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>2000 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('Коммерческий класс (3)', 2000)">Недостаточно</button>
+                </div>
+
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="badge-percent" style="width: 48px; height: 48px; stroke: #32CD32;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">Скидка 20% на блок персоналок</div>
+                        <div class="shop-item-desc">Скидка 20% на блок из 10 персональных тренировок</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>2500 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('Скидка 20% персоналки', 2500)">Недостаточно</button>
+                </div>
+
+                <div class="shop-item not-affordable">
+                    <div class="shop-item-icon"><i data-lucide="dumbbell" style="width: 48px; height: 48px; stroke: #FFD700;"></i></div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">Коммерческий класс (5 тренировок)</div>
+                        <div class="shop-item-desc">Пять бесплатных тренировок в премиум-зоне клуба</div>
+                        <div class="shop-item-price">
+                            <i data-lucide="coins"></i>
+                            <span>2500 спортиков</span>
+                        </div>
+                    </div>
+                    <button class="shop-buy-btn" disabled onclick="buyItem('Коммерческий класс (5)', 2500)">Недостаточно</button>
+                </div>
+            </div>
+            <div class="bottom-nav">
+                <button class="nav-item" onclick="showScreen('dashboard')">
+                    <div class="nav-icon"><i data-lucide="home"></i></div>
+                    <div>Главная</div>
+                </button>
+                <button class="nav-item" onclick="showScreen('progress')">
+                    <div class="nav-icon"><i data-lucide="trophy"></i></div>
+                    <div>Рейтинг</div>
+                </button>
+                <button class="nav-item active" onclick="showScreen('shop')">
+                    <div class="nav-icon"><i data-lucide="shopping-bag"></i></div>
+                    <div>Магазин</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Screen -->
+        <div class="screen" id="progress">
+            <div class="header header-small">
+                <div class="logo logo-small">РЕЙТИНГ</div>
+            </div>
+            <div class="content">
+                <h2 class="section-title">Достижения</h2>
+                <div class="achievement-grid">
+                    <div class="achievement unlocked">
+                        <div class="achievement-icon">🎯</div>
+                        <div class="achievement-name">Старт</div>
+                    </div>
+                    <div class="achievement">
+                        <div class="achievement-icon">🔥</div>
+                        <div class="achievement-name">3 дня</div>
+                    </div>
+                    <div class="achievement">
+                        <div class="achievement-icon">💪</div>
+                        <div class="achievement-name">Неделя</div>
+                    </div>
+                    <div class="achievement">
+                        <div class="achievement-icon">⚡</div>
+                        <div class="achievement-name">Все зоны</div>
+                    </div>
+                    <div class="achievement">
+                        <div class="achievement-icon">🏆</div>
+                        <div class="achievement-name">Финиш</div>
+                    </div>
+                    <div class="achievement">
+                        <div class="achievement-icon">👑</div>
+                        <div class="achievement-name">Легенда</div>
+                    </div>
+                </div>
+
+                <div class="leaderboard">
+                    <h2 class="section-title">Рейтинг участников</h2>
+                    <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Топ новичков онбординга в этом месяце</p>
+                    
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-rank top-1">1</div>
+                        <div class="leaderboard-avatar">АК</div>
+                        <div class="leaderboard-info">
+                            <div class="leaderboard-name">Александр К.</div>
+                            <div class="leaderboard-tasks">14 заданий • Уровень: Атлет</div>
+                        </div>
+                        <div class="leaderboard-coins">850</div>
+                    </div>
+
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-rank top-2">2</div>
+                        <div class="leaderboard-avatar">МС</div>
+                        <div class="leaderboard-info">
+                            <div class="leaderboard-name">Мария С.</div>
+                            <div class="leaderboard-tasks">12 заданий • Уровень: Спортсмен</div>
+                        </div>
+                        <div class="leaderboard-coins">720</div>
+                    </div>
+
+                    <div class="leaderboard-item current-user">
+                        <div class="leaderboard-rank">3</div>
+                        <div class="leaderboard-avatar">ТЫ</div>
+                        <div class="leaderboard-info">
+                            <div class="leaderboard-name">Ты</div>
+                            <div class="leaderboard-tasks">1 задание • Уровень: Новичок</div>
+                        </div>
+                        <div class="leaderboard-coins">100</div>
+                    </div>
+
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-rank top-3">4</div>
+                        <div class="leaderboard-avatar">ДП</div>
+                        <div class="leaderboard-info">
+                            <div class="leaderboard-name">Дмитрий П.</div>
+                            <div class="leaderboard-tasks">1 задание • Уровень: Новичок</div>
+                        </div>
+                        <div class="leaderboard-coins">100</div>
+                    </div>
+
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-rank">5</div>
+                        <div class="leaderboard-avatar">ЕВ</div>
+                        <div class="leaderboard-info">
+                            <div class="leaderboard-name">Елена В.</div>
+                            <div class="leaderboard-tasks">1 задание • Уровень: Новичок</div>
+                        </div>
+                        <div class="leaderboard-coins">100</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bottom-nav">
+                <button class="nav-item" onclick="showScreen('dashboard')">
+                    <div class="nav-icon"><i data-lucide="home"></i></div>
+                    <div>Главная</div>
+                </button>
+                <button class="nav-item active" onclick="showScreen('progress')">
+                    <div class="nav-icon"><i data-lucide="trophy"></i></div>
+                    <div>Рейтинг</div>
+                </button>
+                <button class="nav-item" onclick="showScreen('shop')">
+                    <div class="nav-icon"><i data-lucide="shopping-bag"></i></div>
+                    <div>Магазин</div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="task-modal" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <div class="modal-day-number">Задание <span id="modal-day-number">1</span></div>
+                <div class="modal-task-title" id="modal-task-title">Анкета</div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-status" id="modal-status">
+                    <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
+                    <span>Выполнено</span>
+                </div>
+                <div id="bonus-reward" style="display: none; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">🎁</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #000; margin-bottom: 5px;">Бонусная награда!</div>
+                    <div id="bonus-text" style="font-size: 14px; color: #000;"></div>
+                </div>
+                <p class="modal-task-desc" id="modal-task-desc">Описание задания</p>
+                <button class="btn" id="modal-action-btn" onclick="closeModal()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gift Available Notification -->
+    <div class="notification-overlay" id="gift-overlay"></div>
+    <div class="gift-notification" id="gift-notification" style="display: none;">
+        <div class="gift-notification-icon"><i data-lucide="gift" style="width: 80px; height: 80px; stroke: #000;"></i></div>
+        <div class="gift-notification-title">Поздравляем!</div>
+        <div class="gift-notification-text">
+            Теперь тебе доступен первый подарок в магазине!
+        </div>
+        <button class="gift-notification-btn" onclick="goToShop()">Перейти в магазин</button>
+    </div>
+
+    <script>
+        // Game state
+        let coins = 100; // Started with 1 completed task
+        let xp = 15;
+        let level = 'Новичок';
+        let streak = 1;
+        let giftNotificationShown = false; // Track if notification was shown
+
+        function showGiftNotification() {
+            if (giftNotificationShown) return; // Only show once
+            
+            const overlay = document.getElementById('gift-overlay');
+            const notification = document.getElementById('gift-notification');
+            
+            overlay.classList.add('active');
+            notification.style.display = 'block';
+            
+            createConfetti();
+            lucide.createIcons(); // Initialize icon in notification
+            giftNotificationShown = true;
+        }
+
+        function goToShop() {
+            const overlay = document.getElementById('gift-overlay');
+            const notification = document.getElementById('gift-notification');
+            
+            overlay.classList.remove('active');
+            notification.style.display = 'none';
+            
+            showScreen('shop');
+        }
+
+        function updateCoinsDisplay() {
+            document.getElementById('coins-count').textContent = coins;
+            const shopCoinsEl = document.getElementById('shop-coins-count');
+            if (shopCoinsEl) {
+                shopCoinsEl.textContent = coins;
+            }
+        }
+
+        function buyItem(itemName, price) {
+            if (coins >= price) {
+                createConfetti();
+                coins -= price;
+                updateCoinsDisplay();
+                
+                setTimeout(() => {
+                    alert('Поздравляем!\n\nТы купил: ' + itemName + '\n\nПодойди на ресепшен клуба, чтобы получить свой приз!');
+                    renderShop();
+                }, 500);
+            } else {
+                alert('Недостаточно спортиков!\n\nНужно: ' + price + '\nУ тебя: ' + coins + '\n\nВыполняй задания, чтобы заработать больше!');
+            }
+        }
+
+        function renderShop() {
+            const shopItems = document.querySelectorAll('.shop-item');
+            const buyButtons = document.querySelectorAll('.shop-buy-btn');
+            
+            shopItems.forEach((item, index) => {
+                const priceText = item.querySelector('.shop-item-price span').textContent;
+                const price = parseInt(priceText);
+                const button = buyButtons[index];
+                
+                if (coins >= price) {
+                    item.classList.add('affordable');
+                    item.classList.remove('not-affordable');
+                    button.disabled = false;
+                    button.textContent = 'Купить';
+                } else {
+                    item.classList.remove('affordable');
+                    item.classList.add('not-affordable');
+                    button.disabled = true;
+                    button.textContent = 'Недостаточно';
+                }
+            });
+            
+            lucide.createIcons();
+        }
+
+        function updateProgress() {
+            const completedTasks = allTasks.filter(task => task.status === 'completed').length;
+            const totalTasks = allTasks.length;
+            const percentage = Math.round((completedTasks / totalTasks) * 100);
+            
+            // Update progress card on main screen
+            document.getElementById('completed-tasks-count').textContent = completedTasks;
+            document.getElementById('progress-percentage').textContent = percentage;
+            document.getElementById('main-progress-bar').style.width = percentage + '%';
+            document.getElementById('streak-count').textContent = streak;
+        }
+
+        // Bonus tasks (random 3 days get gift bonuses) - DISABLED
+        const bonusDays = [];
+        const bonusRewards = [];
+
+        // All tasks data with coins rewards (Progressive strategy: 3000 total)
+        const allTasks = [
+            { day: 1, title: 'Анкета', desc: 'Расскажи о себе: М или Ж, возраст, параметры, цели, что нравится, противопоказания. Эта информация поможет нам подобрать для тебя идеальную программу тренировок.', status: 'completed', coins: 100 },
+            { day: 2, title: 'Установить приложение ГС', desc: 'Скачай мобильное приложение Город Спорта для полного контроля над тренировками. Записывайся на занятия, следи за расписанием и получай персональные рекомендации.', status: 'active', coins: 100 },
+            { day: 3, title: 'Подписаться на соцсети', desc: 'Следи за новостями клуба, специальными акциями и полезными советами от тренеров. Подпишись на наши страницы в Instagram, VK и Telegram.', status: 'active', coins: 150 },
+            { day: 4, title: 'Танита', desc: 'Измерь свои параметры на профессиональном анализаторе состава тела Tanita. Узнай процент жира, мышечной массы и другие важные показатели.', status: 'locked', coins: 200 },
+            { day: 5, title: 'Вводная тренировка в ТЗ', desc: 'Первое знакомство с тренажерным залом. Тренер покажет основное оборудование, объяснит технику выполнения базовых упражнений и составит программу.', status: 'locked', coins: 250 },
+            { day: 6, title: 'Полежать в джакузи', desc: 'Расслабься после тренировки в джакузи. Горячая вода поможет восстановить мышцы и снять напряжение.', status: 'locked', coins: 200 },
+            { day: 7, title: 'Коммерческий класс', desc: 'Познакомься с премиум зоной клуба. Попробуй современное оборудование и насладись комфортной атмосферой.', status: 'locked', coins: 300 },
+            { day: 8, title: 'Написать отзыв', desc: 'Поделись впечатлениями о первой неделе в клубе. Твоё мнение важно для нас и поможет другим новичкам.', status: 'locked', coins: 200 },
+            { day: 9, title: 'Сделай сторис с упоминанием ГС', desc: 'Отметь нас в своих соцсетях и расскажи друзьям о своих успехах. Получи бонус за активность!', status: 'locked', coins: 200 },
+            { day: 10, title: 'Вводная тренировка в бассейн', desc: 'Первое плавание с инструктором. Научись правильной технике, узнай о водных программах и групповых занятиях.', status: 'locked', coins: 250 },
+            { day: 11, title: 'Подарить купон в ГС', desc: 'Пригласи друга в клуб! Подари гостевой купон и тренируйтесь вместе. За приведённого друга получишь бонусы.', status: 'locked', coins: 300 },
+            { day: 12, title: 'Мероприятие', desc: 'Участвуй в клубном событии. Познакомься с другими участниками, получи новые знания и мотивацию.', status: 'locked', coins: 250 },
+            { day: 13, title: 'Анкета ГС', desc: 'Финальная анкета по итогам онбординга. Расскажи о своих результатах, впечатлениях и планах на дальнейшие тренировки.', status: 'locked', coins: 250 },
+            { day: 14, title: 'Коммерческий класс', desc: 'Финальная тренировка онбординга в премиум зоне. Поздравляем с завершением программы!', status: 'locked', coins: 250 }
+        ];
+
+        function unlockNextGroup() {
+            const completedCount = allTasks.filter(task => task.status === 'completed').length;
+            const groupSize = 3;
+            
+            // Calculate which tasks should be unlocked based on completed count
+            const unlockedUpTo = Math.ceil(completedCount / groupSize) * groupSize + groupSize;
+            
+            // Update task statuses
+            allTasks.forEach((task, index) => {
+                if (task.status === 'locked' && index < unlockedUpTo) {
+                    task.status = 'active';
+                }
+            });
+        }
+
+        function createConfetti() {
+            const colors = ['#FFD700', '#FFA500', '#FF4500', '#fff'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        function renderCalendar(containerId = 'calendar-grid') {
+            const grid = document.getElementById(containerId);
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            allTasks.forEach(task => {
+                const tile = document.createElement('div');
+                tile.className = `calendar-day ${task.status}`;
+                tile.onclick = () => openModal(task);
+                
+                let icon = 'clock';
+                if (task.status === 'completed') icon = 'check';
+                if (task.status === 'locked') icon = 'lock';
+                
+                const hasBonus = bonusDays.includes(task.day);
+                
+                tile.innerHTML = `
+                    ${hasBonus ? '<div class="gift-badge"><i data-lucide="gift"></i></div>' : ''}
+                    <div class="calendar-day-header">
+                        <div class="calendar-day-number">Задание ${task.day}</div>
+                        <i data-lucide="${icon}" class="calendar-status-icon"></i>
+                    </div>
+                    <div class="calendar-task-title">${task.title}</div>
+                    <div class="calendar-coins-badge">
+                        <i data-lucide="coins"></i>
+                        <span>+${task.coins}</span>
+                    </div>
+                `;
+                
+                grid.appendChild(tile);
+            });
+            
+            lucide.createIcons();
+        }
+
+        function openModal(task) {
+            document.getElementById('modal-day-number').textContent = task.day;
+            document.getElementById('modal-task-title').textContent = task.title;
+            document.getElementById('modal-task-desc').textContent = task.desc;
+            
+            const statusEl = document.getElementById('modal-status');
+            const actionBtn = document.getElementById('modal-action-btn');
+            const bonusReward = document.getElementById('bonus-reward');
+            
+            // Check if this task has a bonus
+            const bonusIndex = bonusDays.indexOf(task.day);
+            if (bonusIndex !== -1) {
+                bonusReward.style.display = 'block';
+                document.getElementById('bonus-text').textContent = bonusRewards[bonusIndex];
+            } else {
+                bonusReward.style.display = 'none';
+            }
+            
+            statusEl.className = `modal-status ${task.status}`;
+            
+            if (task.status === 'completed') {
+                statusEl.innerHTML = '<i data-lucide="check-circle" style="width: 20px; height: 20px;"></i><span>Выполнено • +' + task.coins + ' спортиков</span>';
+                actionBtn.textContent = 'Закрыть';
+                actionBtn.className = 'btn';
+                actionBtn.onclick = () => closeModal();
+            } else if (task.status === 'active') {
+                statusEl.innerHTML = '<i data-lucide="clock" style="width: 20px; height: 20px;"></i><span>Доступно • Награда: ' + task.coins + ' спортиков</span>';
+                actionBtn.textContent = 'Выполнить задание';
+                actionBtn.className = 'btn';
+                actionBtn.onclick = () => completeTaskFromModal(task);
+            } else {
+                statusEl.innerHTML = '<i data-lucide="lock" style="width: 20px; height: 20px;"></i><span>Заблокировано • Награда: ' + task.coins + ' спортиков</span>';
+                actionBtn.textContent = 'Закрыть';
+                actionBtn.className = 'btn btn-secondary';
+                actionBtn.onclick = () => closeModal();
+            }
+            
+            document.getElementById('task-modal').classList.add('active');
+            lucide.createIcons();
+        }
+
+        function completeTaskFromModal(task) {
+            createConfetti();
+            
+            // Update task status
+            task.status = 'completed';
+            const oldCoins = coins;
+            coins += task.coins;
+            xp += 10;
+            
+            // Check if we need to unlock next group
+            unlockNextGroup();
+            
+            // Update UI
+            updateCoinsDisplay();
+            updateProgress();
+            
+            setTimeout(() => {
+                closeModal();
+                renderCalendar('calendar-grid-dashboard');
+                
+                // Check if new tasks were unlocked
+                const completedCount = allTasks.filter(t => t.status === 'completed').length;
+                if (completedCount % 3 === 0 && completedCount < 14) {
+                    alert('Отлично! +' + task.coins + ' спортиков\n\nРазблокированы новые 3 задания!');
+                } else {
+                    alert('Отлично! +' + task.coins + ' спортиков\n\nПродолжай в том же духе!');
+                }
+                
+                // Check if reached 500 sportiki for first time
+                if (oldCoins < 500 && coins >= 500) {
+                    setTimeout(() => showGiftNotification(), 1000);
+                }
+            }, 1000);
+        }
+
+        function closeModal(event) {
+            if (!event || event.target === event.currentTarget || event.target.classList.contains('modal-close')) {
+                document.getElementById('task-modal').classList.remove('active');
+            }
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            
+            // Render calendar on dashboard
+            if (screenId === 'dashboard') {
+                setTimeout(() => renderCalendar('calendar-grid-dashboard'), 100);
+            } else if (screenId === 'shop') {
+                setTimeout(() => renderShop(), 100);
+            }
+            
+            // Reinitialize icons after screen change
+            lucide.createIcons();
+        }
+
+        function completeTask() {
+            createConfetti();
+            coins += 100;
+            updateCoinsDisplay();
+            
+            setTimeout(() => {
+                alert('Отлично! Анкета заполнена.\n+100 спортиков\n\nВозвращайся завтра за следующим заданием!');
+                showScreen('dashboard');
+                updateProgress();
+            }, 1000);
+        }
+        
+        // Initialize icons on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            unlockNextGroup(); // Set correct initial task states
+            lucide.createIcons();
+            renderCalendar('calendar-grid-dashboard');
+            updateProgress();
+        });
+    </script>
+</body>
+</html>
