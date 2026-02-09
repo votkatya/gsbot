@@ -84,9 +84,12 @@ const Index = () => {
         // Load leaderboard
         const lbData = await api.fetchLeaderboard();
         setLeaderboard(mapLeaderboard(lbData, telegramId!));
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to load data:", err);
-        toast.error("Ошибка загрузки данных");
+        const msg = err?.message || String(err);
+        toast.error("Ошибка: " + msg);
+        // Debug alert for Telegram WebView
+        alert("DEBUG loadData error: " + msg);
       } finally {
         setIsLoading(false);
       }
