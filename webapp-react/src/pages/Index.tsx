@@ -372,7 +372,7 @@ const Index = () => {
           {stage1Tasks.length > 0 && (
             <section className="px-4">
               <h2 className="mb-3 text-lg font-bold text-foreground">
-                🔥 Этап 1: Разминка
+                🔥 Разминка
               </h2>
               <div className="space-y-3">
                 {stage1Tasks.map((task) => (
@@ -391,7 +391,7 @@ const Index = () => {
           {stage2Tasks.length > 0 && (
             <section className="px-4">
               <h2 className="mb-3 text-lg font-bold text-foreground">
-                🎯 Этап 2: Квест по залу
+                🎯 Охота в клубе
               </h2>
               <div className="space-y-3">
                 {stage2Tasks.map((task) => (
@@ -410,7 +410,7 @@ const Index = () => {
           {stage3Tasks.length > 0 && (
             <section className="px-4">
               <h2 className="mb-3 text-lg font-bold text-foreground">
-                🏆 Этап 3: Лояльность
+                🏆 Заминка
               </h2>
               <div className="space-y-3">
                 {stage3Tasks.map((task) => (

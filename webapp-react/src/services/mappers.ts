@@ -11,20 +11,23 @@ interface TaskUIMetadata {
 }
 
 const TASK_UI: Record<number, TaskUIMetadata> = {
-  1: { stage: 1, subtitle: "Расскажи нам о себе", zone: "Профиль", iconName: "User" },
-  2: { stage: 1, subtitle: "Будь всегда на связи", zone: "Онлайн", iconName: "Smartphone" },
-  3: { stage: 1, subtitle: "Следи за новостями", zone: "Соцсети", iconName: "Send" },
-  4: { stage: 2, subtitle: "Найди код в зоне весов", zone: "Тренажерный зал", iconName: "Dumbbell" },
-  5: { stage: 2, subtitle: "Инструктаж с тренером", zone: "Тренажерный зал", iconName: "Activity" },
-  6: { stage: 2, subtitle: "Посети зону отдыха", zone: "SPA", iconName: "Sun" },
-  7: { stage: 2, subtitle: "Сходи на любую практику", zone: "Групповые", iconName: "Users" },
-  8: { stage: 2, subtitle: "Поделись впечатлениями", zone: "Онлайн", iconName: "MessageSquare" },
-  9: { stage: 2, subtitle: "Исследуй аква-зону", zone: "Бассейн", iconName: "Waves" },
-  10: { stage: 2, subtitle: "Пройди инструктаж", zone: "Бассейн", iconName: "Activity" },
-  11: { stage: 3, subtitle: "Вместе веселее", zone: "Рефералка", iconName: "Users" },
-  12: { stage: 2, subtitle: "Спрятан в холле", zone: "Квест", iconName: "Eye" },
-  13: { stage: 3, subtitle: "Помоги нам стать лучше", zone: "Онлайн", iconName: "MessageSquare" },
-  14: { stage: 3, subtitle: "Забери главный приз", zone: "Ресепшн", iconName: "Trophy" },
+  // Блок 1: Разминка
+  1: { stage: 1, subtitle: "Познакомимся?", zone: "Профиль", iconName: "User" },
+  2: { stage: 1, subtitle: "Будь в курсе!", zone: "Онлайн", iconName: "Smartphone" },
+  3: { stage: 1, subtitle: "Давай дружить!", zone: "Соцсети", iconName: "Send" },
+  // Блок 2: Охота в клубе
+  4: { stage: 2, subtitle: "Пройди Таниту", zone: "Тренажерный зал", iconName: "Dumbbell" },
+  5: { stage: 2, subtitle: "Вводная тренировка", zone: "Тренажерный зал", iconName: "Activity" },
+  6: { stage: 2, subtitle: "Полежать в джакузи", zone: "SPA", iconName: "Sun" },
+  7: { stage: 2, subtitle: "Посети коммерческий класс", zone: "Групповые", iconName: "Users" },
+  8: { stage: 2, subtitle: "Вводная тренировка в бассейне", zone: "Бассейн", iconName: "Waves" },
+  9: { stage: 2, subtitle: "Посети мероприятие", zone: "Клуб", iconName: "Star" },
+  10: { stage: 2, subtitle: "Посети коммерческий класс", zone: "Групповые", iconName: "Users" },
+  // Блок 3: Заминка
+  11: { stage: 3, subtitle: "Поделись впечатлением!", zone: "Онлайн", iconName: "MessageSquare" },
+  12: { stage: 3, subtitle: "Расскажи о нас!", zone: "Онлайн", iconName: "Send" },
+  13: { stage: 3, subtitle: "Подарить купон другу", zone: "Рефералка", iconName: "Users" },
+  14: { stage: 3, subtitle: "Пройди тест", zone: "Онлайн", iconName: "Trophy" },
 };
 
 const DEFAULT_TASK_UI: TaskUIMetadata = {
