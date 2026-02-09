@@ -25,6 +25,12 @@ interface TelegramWebApp {
     hide: () => void;
     onClick: (callback: () => void) => void;
   };
+  showScanQrPopup: (
+    params: { text?: string },
+    callback?: (text: string) => true | void
+  ) => void;
+  closeScanQrPopup: () => void;
+  version: string;
   colorScheme: "dark" | "light";
   themeParams: Record<string, string>;
 }

@@ -256,25 +256,51 @@ const Index = () => {
     }
   };
 
-  // Listen for QR image capture event
-  useEffect(() => {
-    const handleQRCapture = () => {
-      toast.info("Обработка изображения... Введите код вручную.");
-      setIsQRModalOpen(false);
-      setIsManualModalOpen(true);
-    };
+  // Handle QR code scanned via native Telegram scanner
+  const handleQRScanned = async (scannedText: string) => {
+    if (!scanningTask || !telegramId) return;
 
-    window.addEventListener(
-      "qr-image-captured",
-      handleQRCapture as EventListener
-    );
-    return () => {
-      window.removeEventListener(
-        "qr-image-captured",
-        handleQRCapture as EventListener
+    setIsQRModalOpen(false);
+    setIsCodeChecking(true);
+
+    try {
+      const result = await api.completeTask(
+        telegramId,
+        scanningTask.dayNumber,
+        scanningTask.verificationType,
+        scannedText
       );
-    };
-  }, []);
+
+      if (result.success) {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.dayNumber === scanningTask.dayNumber
+              ? { ...t, completed: true }
+              : t
+          )
+        );
+        setUserCoins(result.coins || userCoins);
+        setUserXP((prev) => prev + (result.reward || 0));
+
+        setCelebrationData({
+          title: scanningTask.title,
+          xp: result.reward || 0,
+          coins: result.reward || 0,
+        });
+        setIsCelebrationOpen(true);
+        setScanningTask(null);
+
+        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
+      } else {
+        toast.error(result.error || "QR-код не подходит к этому заданию.");
+        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("error");
+      }
+    } catch {
+      toast.error("Ошибка сети. Попробуйте позже.");
+    } finally {
+      setIsCodeChecking(false);
+    }
+  };
 
   const handleBuyItem = async (id: string) => {
     if (!telegramId) return;
@@ -504,6 +530,7 @@ const Index = () => {
           setScanningTask(null);
         }}
         onManualInput={handleManualInput}
+        onQRScanned={handleQRScanned}
       />
 
       {/* Manual Code Input Modal */}
