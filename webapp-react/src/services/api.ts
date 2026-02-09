@@ -109,3 +109,16 @@ export async function fetchLeaderboard(): Promise<ApiLeaderboardEntry[]> {
   const res = await fetch(`${API_BASE}/api/leaderboard`);
   return res.json();
 }
+
+export async function submitSurvey(
+  telegramId: number,
+  taskDay: number,
+  answers: Record<string, string | string[]>
+): Promise<CompleteTaskResponse> {
+  const res = await fetch(`${API_BASE}/api/survey`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId, taskDay, answers }),
+  });
+  return res.json();
+}

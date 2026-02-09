@@ -187,6 +187,58 @@ app.get("/api/leaderboard", async (req, res) => {
     }
 });
 
+// Survey endpoint (task 1 - questionnaire)
+app.post("/api/survey", async (req, res) => {
+    try {
+        const { telegramId, taskDay, answers } = req.body;
+
+        const userResult = await pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
+        if (userResult.rows.length === 0) return res.json({ error: "User not found" });
+        const user = userResult.rows[0];
+
+        const taskResult = await pool.query("SELECT * FROM tasks WHERE day_number = $1", [taskDay]);
+        if (taskResult.rows.length === 0) return res.json({ error: "Task not found" });
+        const task = taskResult.rows[0];
+
+        // Check if already completed
+        const existing = await pool.query(
+            "SELECT * FROM user_tasks WHERE user_id = $1 AND task_id = $2 AND status = 'completed'",
+            [user.id, task.id]
+        );
+        if (existing.rows.length > 0) {
+            return res.json({ error: "Task already completed" });
+        }
+
+        // Save survey answers as JSON in verification_data
+        await pool.query(
+            `INSERT INTO user_tasks (user_id, task_id, status, completed_at, verified_by)
+             VALUES ($1, $2, 'completed', now(), 'survey')
+             ON CONFLICT (user_id, task_id) DO UPDATE SET status = 'completed', completed_at = now()`,
+            [user.id, task.id]
+        );
+
+        // Save answers to user record (full_name, birth_date, goals, has_kids)
+        await pool.query(
+            `UPDATE users SET
+                survey_data = $1,
+                last_activity_at = now()
+             WHERE id = $2`,
+            [JSON.stringify(answers), user.id]
+        );
+
+        // Award coins
+        await pool.query(
+            "UPDATE users SET coins = coins + $1, xp = xp + $1, last_activity_at = now() WHERE id = $2",
+            [task.coins_reward, user.id]
+        );
+
+        const updatedUser = await pool.query("SELECT * FROM users WHERE id = $1", [user.id]);
+        res.json({ success: true, coins: updatedUser.rows[0].coins, reward: task.coins_reward });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get("/", (req, res) => res.send("Bot is running"));
 
 app.listen(3000, () => console.log("Server running on port 3000"));

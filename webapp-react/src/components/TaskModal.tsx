@@ -1,9 +1,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, QrCode, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SurveyForm } from "@/components/SurveyForm";
 
 interface Task {
   id: number;
+  dayNumber?: number;
   stage: number;
   title: string;
   subtitle: string;
@@ -23,9 +25,11 @@ interface TaskModalProps {
   onClose: () => void;
   onScan?: () => void;
   onComplete?: () => void;
+  onSurveySubmit?: (answers: Record<string, string | string[]>) => void;
+  isSurveyLoading?: boolean;
 }
 
-export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete }: TaskModalProps) => {
+export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveySubmit, isSurveyLoading }: TaskModalProps) => {
   if (!task) return null;
 
   const getStageBadgeClass = (stage: number) => {
@@ -46,13 +50,15 @@ export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete }: TaskMod
       case 1:
         return "Разминка";
       case 2:
-        return "Квест";
+        return "Охота в клубе";
       case 3:
-        return "Лояльность";
+        return "Заминка";
       default:
         return "Этап";
     }
   };
+
+  const isSurveyTask = task.dayNumber === 1;
 
   return (
     <AnimatePresence>
@@ -128,6 +134,11 @@ export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete }: TaskMod
                   <CheckCircle2 className="h-6 w-6 text-success" />
                   <span className="font-semibold text-success">Выполнено!</span>
                 </div>
+              ) : isSurveyTask ? (
+                <SurveyForm
+                  onSubmit={(answers) => onSurveySubmit?.(answers)}
+                  isLoading={isSurveyLoading}
+                />
               ) : task.verificationType === "qr" || task.verificationType === "code" ? (
                 <Button
                   className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"

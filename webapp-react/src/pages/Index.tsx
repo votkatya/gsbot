@@ -36,6 +36,7 @@ const Index = () => {
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [isCodeChecking, setIsCodeChecking] = useState(false);
+  const [isSurveyLoading, setIsSurveyLoading] = useState(false);
 
   // Celebration state
   const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
@@ -253,6 +254,47 @@ const Index = () => {
       }
     } catch {
       toast.error("Ошибка сети");
+    }
+  };
+
+  // Handle survey submission (task 1)
+  const handleSurveySubmit = async (answers: Record<string, string | string[]>) => {
+    if (!selectedTask || !telegramId) return;
+    setIsSurveyLoading(true);
+
+    try {
+      const result = await api.submitSurvey(
+        telegramId,
+        selectedTask.dayNumber,
+        answers
+      );
+
+      if (result.success) {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.dayNumber === selectedTask.dayNumber ? { ...t, completed: true } : t
+          )
+        );
+        setUserCoins(result.coins || userCoins);
+        setUserXP((prev) => prev + (result.reward || 0));
+
+        setCelebrationData({
+          title: selectedTask.title,
+          xp: result.reward || 0,
+          coins: result.reward || 0,
+        });
+        setIsModalOpen(false);
+        setIsCelebrationOpen(true);
+
+        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
+      } else {
+        toast.error(result.error || "Ошибка отправки анкеты");
+        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("error");
+      }
+    } catch {
+      toast.error("Ошибка сети");
+    } finally {
+      setIsSurveyLoading(false);
     }
   };
 
@@ -520,6 +562,8 @@ const Index = () => {
         onComplete={() => {
           if (selectedTask) handleCompleteTask(selectedTask);
         }}
+        onSurveySubmit={handleSurveySubmit}
+        isSurveyLoading={isSurveyLoading}
       />
 
       {/* QR Scanner Modal */}
