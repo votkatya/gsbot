@@ -27,10 +27,14 @@ export interface ApiTask {
 
 export interface ApiShopItem {
   id: number;
-  name: string;
+  name?: string;
+  title?: string;
   description: string | null;
   price: number;
-  image_url: string | null;
+  icon?: string;
+  color?: string;
+  category?: string;
+  image_url?: string | null;
   is_active: boolean;
 }
 

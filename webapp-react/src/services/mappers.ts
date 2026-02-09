@@ -124,14 +124,15 @@ function guessIconFromTitle(title: string): string {
 }
 
 export function mapApiShopItem(item: ApiShopItem): ShopItemView {
+  const title = item.title || item.name || "Товар";
   return {
     id: String(item.id),
-    title: item.name,
+    title,
     description: item.description || "",
     price: item.price,
     stock: "99", // Timeweb schema has no stock field
-    iconName: guessIconFromTitle(item.name),
-    imageUrl: item.image_url,
+    iconName: guessIconFromTitle(title),
+    imageUrl: item.image_url || null,
   };
 }
 
