@@ -115,6 +115,14 @@ app.post("/api/complete-task", async (req, res) => {
             }
         }
 
+        // Проверка кода из приложения (задание 2)
+        if (verificationType === "app_code") {
+            const validCodes = ["testgs"]; // TODO: заменить на реальные коды
+            if (!validCodes.includes(verificationData?.toLowerCase())) {
+                return res.json({ error: "Неверный код. Попробуй ещё раз." });
+            }
+        }
+
         // Проверка кода от сотрудника
         if (task.verification_type === "code" && verificationData) {
             const codeResult = await pool.query(
