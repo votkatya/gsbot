@@ -134,8 +134,10 @@ export const TaskCard = ({ task, onScan, onOpenTask }: TaskCardProps) => {
             </span>
             <span className="text-xs text-muted-foreground">{task.zone}</span>
           </div>
-          <h3 className="font-semibold text-foreground truncate">{task.title}</h3>
-          <p className="text-sm text-muted-foreground truncate">{task.subtitle}</p>
+          <h3 className="font-semibold text-foreground">{task.title}</h3>
+          {task.subtitle && task.subtitle !== task.title && (
+            <p className="text-sm text-muted-foreground">{task.subtitle}</p>
+          )}
           <div className="mt-2 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium text-primary">
