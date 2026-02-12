@@ -188,7 +188,7 @@ app.post("/api/purchase", async (req, res) => {
 
 app.get("/api/leaderboard", async (req, res) => {
     try {
-        const result = await pool.query("SELECT telegram_id, first_name, coins, xp FROM users ORDER BY coins DESC LIMIT 20");
+        const result = await pool.query("SELECT telegram_id, first_name, coins, xp FROM users ORDER BY xp DESC LIMIT 20");
         res.json(result.rows);
     } catch (e) {
         res.status(500).json({ error: e.message });

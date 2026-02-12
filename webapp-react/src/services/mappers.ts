@@ -214,7 +214,7 @@ export function mapLeaderboard(
     return {
       rank,
       name: entry.first_name || "Аноним",
-      points: entry.coins,
+      points: entry.xp,
       streak: 0, // Timeweb DB has no streak field
       medal:
         rank === 1
