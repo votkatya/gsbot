@@ -62,6 +62,22 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+// Простая авторизация для админки
+const ADMIN_PASSWORD = "GorodSporta2025Admin!"; // TODO: изменить в продакшене
+
+// Middleware для проверки админского доступа
+function checkAdminAuth(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const token = authHeader.substring(7);
+    if (token !== ADMIN_PASSWORD) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    next();
+}
+
 // Webhook для бота
 app.post("/webhook", webhookCallback(bot, "express"));
 
@@ -242,6 +258,203 @@ app.post("/api/survey", async (req, res) => {
 
         const updatedUser = await pool.query("SELECT * FROM users WHERE id = $1", [user.id]);
         res.json({ success: true, coins: updatedUser.rows[0].coins, reward: task.coins_reward });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ==================== ADMIN API ENDPOINTS ====================
+
+// Логин для админки
+app.post("/admin/api/login", async (req, res) => {
+    try {
+        const { password } = req.body;
+        if (password === ADMIN_PASSWORD) {
+            res.json({ success: true, token: ADMIN_PASSWORD });
+        } else {
+            res.status(401).json({ error: "Invalid password" });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Статистика для дашборда
+app.get("/admin/api/stats", checkAdminAuth, async (req, res) => {
+    try {
+        const totalUsers = await pool.query("SELECT COUNT(*) FROM users");
+        const activeUsers = await pool.query("SELECT COUNT(*) FROM users WHERE last_activity_at > NOW() - INTERVAL '7 days'");
+        const totalTasks = await pool.query("SELECT COUNT(*) FROM tasks");
+        const completedTasks = await pool.query("SELECT COUNT(*) FROM user_tasks WHERE status = 'completed'");
+        const totalPrizes = await pool.query("SELECT COUNT(*) FROM shop_items WHERE is_active = true");
+        const totalPurchases = await pool.query("SELECT COUNT(*) FROM purchases");
+        const totalCoinsSpent = await pool.query("SELECT COALESCE(SUM(price_paid), 0) as total FROM purchases");
+
+        res.json({
+            users: {
+                total: parseInt(totalUsers.rows[0].count),
+                active: parseInt(activeUsers.rows[0].count)
+            },
+            tasks: {
+                total: parseInt(totalTasks.rows[0].count),
+                completed: parseInt(completedTasks.rows[0].count)
+            },
+            prizes: {
+                total: parseInt(totalPrizes.rows[0].count),
+                purchased: parseInt(totalPurchases.rows[0].count),
+                coinsSpent: parseInt(totalCoinsSpent.rows[0].total)
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Список пользователей
+app.get("/admin/api/users", checkAdminAuth, async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT
+                id, telegram_id, first_name, last_name, username,
+                coins, xp, last_activity_at, created_at,
+                (SELECT COUNT(*) FROM user_tasks WHERE user_id = users.id AND status = 'completed') as completed_tasks
+            FROM users
+            ORDER BY created_at DESC
+        `);
+        res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Детали пользователя
+app.get("/admin/api/users/:id", checkAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+        if (userResult.rows.length === 0) return res.status(404).json({ error: "User not found" });
+
+        const user = userResult.rows[0];
+
+        // Получаем выполненные задания
+        const tasksResult = await pool.query(`
+            SELECT t.*, ut.status, ut.completed_at, ut.verified_by
+            FROM user_tasks ut
+            JOIN tasks t ON t.id = ut.task_id
+            WHERE ut.user_id = $1
+            ORDER BY ut.completed_at DESC
+        `, [id]);
+
+        // Получаем покупки
+        const purchasesResult = await pool.query(`
+            SELECT p.*, si.title, si.price
+            FROM purchases p
+            JOIN shop_items si ON si.id = p.item_id
+            WHERE p.user_id = $1
+            ORDER BY p.purchased_at DESC
+        `, [id]);
+
+        res.json({
+            user,
+            tasks: tasksResult.rows,
+            purchases: purchasesResult.rows
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Список заданий
+app.get("/admin/api/tasks", checkAdminAuth, async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT
+                t.*,
+                (SELECT COUNT(*) FROM user_tasks WHERE task_id = t.id AND status = 'completed') as completion_count
+            FROM tasks t
+            ORDER BY t.day_number
+        `);
+        res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Обновление задания
+app.put("/admin/api/tasks/:id", checkAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, description, coins_reward, verification_type, verification_data } = req.body;
+
+        await pool.query(`
+            UPDATE tasks SET
+                title = $1,
+                description = $2,
+                coins_reward = $3,
+                verification_type = $4,
+                verification_data = $5
+            WHERE id = $6
+        `, [title, description, coins_reward, verification_type, verification_data, id]);
+
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Список призов
+app.get("/admin/api/prizes", checkAdminAuth, async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT
+                si.*,
+                (SELECT COUNT(*) FROM purchases WHERE item_id = si.id) as purchase_count
+            FROM shop_items si
+            ORDER BY si.price
+        `);
+        res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Обновление приза
+app.put("/admin/api/prizes/:id", checkAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, description, price, icon, is_active } = req.body;
+
+        await pool.query(`
+            UPDATE shop_items SET
+                title = $1,
+                description = $2,
+                price = $3,
+                icon = $4,
+                is_active = $5
+            WHERE id = $6
+        `, [title, description, price, icon, is_active, id]);
+
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Список покупок
+app.get("/admin/api/purchases", checkAdminAuth, async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT
+                p.*,
+                u.first_name, u.last_name, u.telegram_id,
+                si.title as item_title
+            FROM purchases p
+            JOIN users u ON u.id = p.user_id
+            JOIN shop_items si ON si.id = p.item_id
+            ORDER BY p.purchased_at DESC
+            LIMIT 100
+        `);
+        res.json(result.rows);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
