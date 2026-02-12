@@ -268,6 +268,20 @@ tail -f /var/log/nginx/error.log
 - Telegram Bot (grammy)
 - Подключение к PostgreSQL
 
+### Зависимости (package.json)
+
+```json
+{
+  "name": "gorodsporta-bot",
+  "version": "1.0.0",
+  "dependencies": {
+    "grammy": "^1.21.1",
+    "express": "^4.18.2",
+    "pg": "^8.11.3"
+  }
+}
+```
+
 ### Параметры подключения к БД
 
 ```javascript
@@ -306,15 +320,17 @@ npm install
 # Запуск в режиме разработки
 node index.js
 
-# Запуск через PM2 (если настроен)
-pm2 start index.js --name bot
-pm2 restart bot
-pm2 stop bot
-pm2 logs bot
+# Запуск через PM2 ✅ (используется на production)
+pm2 start index.js --name gorodsporta-bot
+pm2 restart gorodsporta-bot
+pm2 stop gorodsporta-bot
+pm2 logs gorodsporta-bot
 
 # Статус PM2
 pm2 status
 ```
+
+⚠️ **ВАЖНО:** Процесс в PM2 называется `gorodsporta-bot`, а не просто `bot`!
 
 ### Порты
 
