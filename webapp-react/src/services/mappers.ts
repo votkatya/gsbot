@@ -8,6 +8,7 @@ interface TaskUIMetadata {
   subtitle: string;
   zone: string;
   iconName: string;
+  instruction?: string;
 }
 
 const TASK_UI: Record<number, TaskUIMetadata> = {
@@ -16,13 +17,48 @@ const TASK_UI: Record<number, TaskUIMetadata> = {
   2: { stage: 1, subtitle: "Будь в курсе!", zone: "Онлайн", iconName: "Smartphone" },
   3: { stage: 1, subtitle: "Давай дружить!", zone: "Соцсети", iconName: "Send" },
   // Блок 2: Охота в клубе
-  4: { stage: 2, subtitle: "Пройди Таниту", zone: "Тренажерный зал", iconName: "Dumbbell" },
-  5: { stage: 2, subtitle: "Вводная тренировка", zone: "Тренажерный зал", iconName: "Activity" },
-  6: { stage: 2, subtitle: "Полежать в джакузи", zone: "SPA", iconName: "Sun" },
-  7: { stage: 2, subtitle: "Посети коммерческий класс", zone: "Групповые", iconName: "Users" },
-  8: { stage: 2, subtitle: "Вводная тренировка в бассейне", zone: "Бассейн", iconName: "Waves" },
-  9: { stage: 2, subtitle: "Посети мероприятие", zone: "Клуб", iconName: "Star" },
-  10: { stage: 2, subtitle: "Посети коммерческий класс", zone: "Групповые", iconName: "Users" },
+  4: {
+    stage: 2,
+    subtitle: "Пройди Таниту",
+    zone: "Медкабинет",
+    iconName: "Activity",
+    instruction: "Пройди аппарат Танита в медкабинете, отсканируй QR-код и задание будет выполнено"
+  },
+  5: {
+    stage: 2,
+    subtitle: "Вводная тренировка",
+    zone: "Тренажерный зал",
+    iconName: "Dumbbell",
+    instruction: "Пройди вводную тренировку в тренажерном зале с тренером, отсканируй QR-код и задание будет выполнено"
+  },
+  6: {
+    stage: 2,
+    subtitle: "Полежать в джакузи",
+    zone: "Бассейн",
+    iconName: "Waves",
+    instruction: "Полежи в джакузи в бассейне, отсканируй QR-код и задание будет выполнено"
+  },
+  7: {
+    stage: 2,
+    subtitle: "Посети коммерческий класс",
+    zone: "Групповые",
+    iconName: "Users",
+    instruction: "Посети коммерческий класс и получи код от тренера"
+  },
+  8: {
+    stage: 2,
+    subtitle: "Вводная тренировка в бассейне",
+    zone: "Бассейн",
+    iconName: "Waves",
+    instruction: "Пройди вводную тренировку в бассейне с тренером, отсканируй QR-код и задание будет выполнено"
+  },
+  9: {
+    stage: 2,
+    subtitle: "Посети мероприятие",
+    zone: "Клуб",
+    iconName: "Star",
+    instruction: "Посети мероприятие и получи код от тренера"
+  },
   // Блок 3: Заминка
   11: { stage: 3, subtitle: "Поделись впечатлением!", zone: "Онлайн", iconName: "MessageSquare" },
   12: { stage: 3, subtitle: "Расскажи о нас!", zone: "Онлайн", iconName: "Send" },
@@ -45,6 +81,7 @@ export interface Task {
   title: string;
   subtitle: string;
   description: string;
+  instruction?: string;
   reward: number; // XP
   rewardCoins: number;
   zone: string;
@@ -79,6 +116,7 @@ export function mapApiTasks(apiTasks: ApiTask[]): Task[] {
       title: apiTask.title,
       subtitle: ui.subtitle,
       description: apiTask.description || "",
+      instruction: ui.instruction,
       reward: apiTask.coins_reward,
       rewardCoins: apiTask.coins_reward,
       zone: ui.zone,

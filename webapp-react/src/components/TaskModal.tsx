@@ -11,6 +11,7 @@ interface Task {
   title: string;
   subtitle: string;
   description: string;
+  instruction?: string;
   reward: number;
   rewardCoins?: number;
   zone: string;
@@ -268,7 +269,15 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{task.description}</p>
+
+                {/* Instruction block */}
+                {task.instruction && (
+                  <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
+                    <h3 className="text-sm font-semibold text-primary mb-2">📋 Инструкция:</h3>
+                    <p className="text-sm text-foreground">{task.instruction}</p>
+                  </div>
+                )}
 
                 {/* Scan button */}
                 <Button
