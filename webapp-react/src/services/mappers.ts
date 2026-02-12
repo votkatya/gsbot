@@ -93,20 +93,36 @@ export interface Task {
 }
 
 export function mapApiTasks(apiTasks: ApiTask[]): Task[] {
-  // Count stage 1+2 completions for lock logic
-  const completedStage12Count = apiTasks.filter((t) => {
-    const ui = TASK_UI[t.day_number] || DEFAULT_TASK_UI;
-    return t.status === "completed" && (ui.stage === 1 || ui.stage === 2);
-  }).length;
+  // Count completions by stage for lock logic
+  const completedByStage = {
+    1: apiTasks.filter((t) => {
+      const ui = TASK_UI[t.day_number] || DEFAULT_TASK_UI;
+      return t.status === "completed" && ui.stage === 1;
+    }).length,
+    2: apiTasks.filter((t) => {
+      const ui = TASK_UI[t.day_number] || DEFAULT_TASK_UI;
+      return t.status === "completed" && ui.stage === 2;
+    }).length,
+  };
+
+  // Total tasks in stage 1
+  const totalStage1Tasks = Object.keys(TASK_UI).filter((key) => TASK_UI[Number(key)].stage === 1).length;
 
   return apiTasks.map((apiTask) => {
     const ui = TASK_UI[apiTask.day_number] || DEFAULT_TASK_UI;
     const isCompleted = apiTask.status === "completed";
 
-    // Stage 3 tasks locked until at least 6 stage 1+2 tasks are done
+    // Lock logic:
+    // - Stage 1: always unlocked
+    // - Stage 2: locked until ALL stage 1 tasks are completed
+    // - Stage 3: locked until at least 3 stage 2 tasks are completed
     let isLocked = false;
-    if (ui.stage === 3 && !isCompleted) {
-      isLocked = completedStage12Count < 6;
+    if (!isCompleted) {
+      if (ui.stage === 2) {
+        isLocked = completedByStage[1] < totalStage1Tasks;
+      } else if (ui.stage === 3) {
+        isLocked = completedByStage[2] < 3;
+      }
     }
 
     return {
