@@ -63,9 +63,14 @@ const Index = () => {
 
   // --- Load all data ---
   useEffect(() => {
-    if (!isReady || !telegramId) return;
+    console.log("Index: loadData effect triggered", { isReady, telegramId });
+    if (!isReady || !telegramId) {
+      console.log("Index: Waiting for Telegram context to be ready");
+      return;
+    }
 
     async function loadData() {
+      console.log("Index: Starting data load...");
       setIsLoading(true);
       setServerError(false);
       try {

@@ -29,13 +29,21 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
+    console.log("TelegramContext: initializing...");
+
     const tg = window.Telegram?.WebApp;
+    console.log("Telegram WebApp available:", !!tg);
+
     if (tg) {
+      console.log("Telegram WebApp found, calling ready()");
       tg.ready();
       tg.expand();
 
       const user = tg.initDataUnsafe?.user;
       const startParam = tg.initDataUnsafe?.start_param || null;
+
+      console.log("Telegram user data:", user);
+      console.log("Start param:", startParam);
 
       setValue({
         telegramId: user?.id || null,
@@ -47,6 +55,7 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
       });
     } else {
       // Development fallback: no Telegram SDK available
+      console.log("Telegram WebApp not found, using fallback");
       setValue((prev) => ({
         ...prev,
         telegramId: import.meta.env.DEV ? 123456789 : null,
@@ -54,6 +63,8 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         isReady: true,
       }));
     }
+
+    console.log("TelegramContext: initialization complete");
   }, []);
 
   return (
