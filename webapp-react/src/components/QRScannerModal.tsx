@@ -97,10 +97,10 @@ export const QRScannerModal = ({ isOpen, onClose, onManualInput, onQRScanned }: 
                 Сканировать QR-код
               </Button>
 
-              {/* Manual input option */}
+              {/* Manual input option - larger with gray background */}
               <button
                 onClick={onManualInput}
-                className="text-sm text-muted-foreground underline hover:text-foreground"
+                className="w-full rounded-xl bg-muted/50 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors"
               >
                 Ввести код вручную
               </button>
