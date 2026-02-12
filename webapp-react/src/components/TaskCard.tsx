@@ -135,33 +135,14 @@ export const TaskCard = ({ task, onScan, onOpenTask }: TaskCardProps) => {
             <span className="text-xs text-muted-foreground">{task.zone}</span>
           </div>
           <h3 className="font-semibold text-foreground">{task.title}</h3>
-          {task.subtitle && task.subtitle !== task.title && (
-            <p className="text-sm text-muted-foreground">{task.subtitle}</p>
-          )}
-          <div className="mt-2 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-primary">
-                +{task.reward} XP
+          <div className="mt-2 flex items-center gap-3">
+            <span className="text-sm font-medium text-primary">
+              +{task.reward} XP
+            </span>
+            {task.rewardCoins && task.rewardCoins > 0 && (
+              <span className="text-sm font-medium text-yellow-500">
+                +{task.rewardCoins} 🪙
               </span>
-              {task.rewardCoins && task.rewardCoins > 0 && (
-                <span className="text-sm font-medium text-yellow-500">
-                  +{task.rewardCoins} 🪙
-                </span>
-              )}
-            </div>
-            {!isLocked && !isCompleted && (task.verificationType === "qr" || task.verificationType === "code") && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-8 gap-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onScan?.(task);
-                }}
-              >
-                <QrCode className="h-4 w-4" />
-                Скан
-              </Button>
             )}
           </div>
         </div>

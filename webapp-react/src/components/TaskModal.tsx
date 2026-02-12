@@ -32,8 +32,18 @@ interface TaskModalProps {
   isCodeLoading?: boolean;
 }
 
-export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveySubmit, isSurveyLoading, onCodeSubmit, isCodeLoading }: TaskModalProps) => {
-  const [appCode, setAppCode] = useState("");
+export const TaskModal = ({
+  task,
+  isOpen,
+  onClose,
+  onScan,
+  onComplete,
+  onSurveySubmit,
+  isSurveyLoading,
+  onCodeSubmit,
+  isCodeLoading
+}: TaskModalProps) => {
+  const [code, setCode] = useState("");
 
   if (!task) return null;
 
@@ -63,8 +73,13 @@ export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveyS
     }
   };
 
+  // Determine task types
   const isSurveyTask = task.dayNumber === 1;
   const isAppTask = task.dayNumber === 2;
+  const isStage1or3 = task.stage === 1 || task.stage === 3;
+  const isStage2 = task.stage === 2;
+  const needsCodeInput = (isStage1or3 && !isSurveyTask && !isAppTask) || task.verificationType === "self";
+  const needsQRScan = isStage2 && (task.verificationType === "qr" || task.verificationType === "code");
 
   return (
     <AnimatePresence>
@@ -94,15 +109,15 @@ export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveyS
               <X className="h-5 w-5 text-muted-foreground" />
             </button>
 
-            {isSurveyTask && !task.completed ? (
-              /* Survey task layout - compact */
+            {/* COMPLETED STATE - Same for all tasks */}
+            {task.completed ? (
               <div className="space-y-4">
-                {/* Top row: badge + reward */}
+                {/* Header with badge and rewards */}
                 <div className="flex items-center justify-between pr-8">
                   <span
                     className={`rounded-full px-3 py-1 text-sm font-medium ${getStageBadgeClass(task.stage)}`}
                   >
-                    {getStageLabel(task.stage)} • {task.zone}
+                    {getStageLabel(task.stage)}
                   </span>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="font-medium text-primary">+{task.reward} XP</span>
@@ -113,10 +128,40 @@ export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveyS
                 </div>
 
                 {/* Title */}
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
-                  <p className="text-sm text-muted-foreground">Заполни анкету</p>
+                <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
+
+                {/* Description */}
+                <p className="text-foreground">{task.description}</p>
+
+                {/* Completed badge */}
+                <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 p-4">
+                  <CheckCircle2 className="h-6 w-6 text-success" />
+                  <span className="font-semibold text-success">Награда получена</span>
                 </div>
+              </div>
+            ) : isSurveyTask ? (
+              /* SURVEY TASK (Day 1) */
+              <div className="space-y-4">
+                {/* Header with badge and rewards */}
+                <div className="flex items-center justify-between pr-8">
+                  <span
+                    className={`rounded-full px-3 py-1 text-sm font-medium ${getStageBadgeClass(task.stage)}`}
+                  >
+                    {getStageLabel(task.stage)}
+                  </span>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium text-primary">+{task.reward} XP</span>
+                    {task.rewardCoins && task.rewardCoins > 0 && (
+                      <span className="font-medium text-yellow-500">+{task.rewardCoins} 🪙</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
+
+                {/* Description */}
+                <p className="text-foreground">{task.description}</p>
 
                 {/* Survey form */}
                 <SurveyForm
@@ -124,25 +169,15 @@ export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveyS
                   isLoading={isSurveyLoading}
                 />
               </div>
-            ) : isSurveyTask && task.completed ? (
-              /* Survey task completed - compact */
+            ) : isAppTask ? (
+              /* APP DOWNLOAD TASK (Day 2) */
               <div className="space-y-4">
-                <h2 className="text-2xl font-bold text-foreground pr-8">{task.title}</h2>
-                <p className="text-muted-foreground">Награда получена</p>
-                <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 p-4">
-                  <CheckCircle2 className="h-6 w-6 text-success" />
-                  <span className="font-semibold text-success">Выполнено!</span>
-                </div>
-              </div>
-            ) : isAppTask && !task.completed ? (
-              /* App download task - Будь в курсе */
-              <div className="space-y-4">
-                {/* Top row: badge + reward */}
+                {/* Header with badge and rewards */}
                 <div className="flex items-center justify-between pr-8">
                   <span
                     className={`rounded-full px-3 py-1 text-sm font-medium ${getStageBadgeClass(task.stage)}`}
                   >
-                    {getStageLabel(task.stage)} • {task.zone}
+                    {getStageLabel(task.stage)}
                   </span>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="font-medium text-primary">+{task.reward} XP</span>
@@ -153,14 +188,10 @@ export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveyS
                 </div>
 
                 {/* Title */}
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
-                </div>
+                <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground text-sm">
-                  Скачай мобильное приложение Город Спорта, зарегистрируйся, найди код и введи в строку ниже
-                </p>
+                <p className="text-foreground">{task.description}</p>
 
                 {/* App links */}
                 <div className="space-y-2">
@@ -194,85 +225,87 @@ export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveyS
                 </div>
 
                 {/* Code input */}
-                <div>
-                  <input
-                    type="text"
-                    value={appCode}
-                    onChange={(e) => setAppCode(e.target.value)}
-                    placeholder="Введи код из приложения"
-                    className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="Введи код из приложения"
+                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
 
                 {/* Submit button */}
                 <Button
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                   size="lg"
-                  disabled={!appCode.trim() || isCodeLoading}
-                  onClick={() => onCodeSubmit?.(appCode.trim())}
+                  disabled={!code.trim() || isCodeLoading}
+                  onClick={() => {
+                    onCodeSubmit?.(code.trim());
+                    setCode("");
+                  }}
                 >
                   {isCodeLoading ? "Проверяем..." : "Выполнить"}
                 </Button>
               </div>
-            ) : isAppTask && task.completed ? (
-              /* App task completed - compact */
+            ) : needsQRScan ? (
+              /* STAGE 2 - QR SCAN TASKS */
               <div className="space-y-4">
-                <h2 className="text-2xl font-bold text-foreground pr-8">{task.title}</h2>
-                <p className="text-muted-foreground">Награда получена</p>
-                <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 p-4">
-                  <CheckCircle2 className="h-6 w-6 text-success" />
-                  <span className="font-semibold text-success">Выполнено!</span>
+                {/* Header with badge and rewards */}
+                <div className="flex items-center justify-between pr-8">
+                  <span
+                    className={`rounded-full px-3 py-1 text-sm font-medium ${getStageBadgeClass(task.stage)}`}
+                  >
+                    {getStageLabel(task.stage)}
+                  </span>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium text-primary">+{task.reward} XP</span>
+                    {task.rewardCoins && task.rewardCoins > 0 && (
+                      <span className="font-medium text-yellow-500">+{task.rewardCoins} 🪙</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              /* Default task layout */
-              <div className="space-y-4">
-                {/* Badge */}
-                <span
-                  className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${getStageBadgeClass(task.stage)}`}
-                >
-                  {getStageLabel(task.stage)} • {task.zone}
-                </span>
 
                 {/* Title */}
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
-                  <p className="text-muted-foreground">{task.subtitle}</p>
-                </div>
+                <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
                 <p className="text-foreground">{task.description}</p>
 
-                {/* Reward */}
-                <div className="flex items-center gap-4 rounded-xl bg-primary/10 p-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">⚡</span>
-                    <p className="font-bold text-primary">+{task.reward} XP</p>
+                {/* Scan button */}
+                <Button
+                  className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                  size="lg"
+                  onClick={onScan}
+                >
+                  <QrCode className="h-5 w-5" />
+                  Сканировать QR-код
+                </Button>
+              </div>
+            ) : (
+              /* STAGE 1 & 3 - CODE INPUT TASKS (except survey and app) */
+              <div className="space-y-4">
+                {/* Header with badge and rewards */}
+                <div className="flex items-center justify-between pr-8">
+                  <span
+                    className={`rounded-full px-3 py-1 text-sm font-medium ${getStageBadgeClass(task.stage)}`}
+                  >
+                    {getStageLabel(task.stage)}
+                  </span>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium text-primary">+{task.reward} XP</span>
+                    {task.rewardCoins && task.rewardCoins > 0 && (
+                      <span className="font-medium text-yellow-500">+{task.rewardCoins} 🪙</span>
+                    )}
                   </div>
-                  {task.rewardCoins && task.rewardCoins > 0 && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">🪙</span>
-                      <p className="font-bold text-yellow-500">+{task.rewardCoins}</p>
-                    </div>
-                  )}
                 </div>
 
-                {/* Action */}
-                {task.completed ? (
-                  <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 p-4">
-                    <CheckCircle2 className="h-6 w-6 text-success" />
-                    <span className="font-semibold text-success">Выполнено!</span>
-                  </div>
-                ) : task.verificationType === "qr" || task.verificationType === "code" ? (
-                  <Button
-                    className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-                    size="lg"
-                    onClick={onScan}
-                  >
-                    <QrCode className="h-5 w-5" />
-                    {task.verificationType === "qr" ? "Сканировать QR-код" : "Ввести код"}
-                  </Button>
-                ) : (
+                {/* Title */}
+                <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
+
+                {/* Description */}
+                <p className="text-foreground">{task.description}</p>
+
+                {/* Code input or just button */}
+                {task.verificationType === "self" ? (
                   <Button
                     className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                     size="lg"
@@ -280,6 +313,28 @@ export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveyS
                   >
                     Выполнить
                   </Button>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      placeholder="Введи код"
+                      className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+
+                    <Button
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                      size="lg"
+                      disabled={!code.trim() || isCodeLoading}
+                      onClick={() => {
+                        onCodeSubmit?.(code.trim());
+                        setCode("");
+                      }}
+                    >
+                      {isCodeLoading ? "Проверяем..." : "Выполнить"}
+                    </Button>
+                  </>
                 )}
               </div>
             )}
