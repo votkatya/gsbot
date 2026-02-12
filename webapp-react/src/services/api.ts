@@ -1,4 +1,29 @@
+import { mockApi } from "./mockApi";
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://gsbot18.ru";
+const USE_MOCK = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_API !== "false";
+const API_TIMEOUT = 10000; // 10 seconds timeout
+
+// Helper function to fetch with timeout
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout = API_TIMEOUT): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timeout - server is not responding');
+    }
+    throw error;
+  }
+}
 
 // --- Types matching the Timeweb DB response shapes ---
 
@@ -63,10 +88,22 @@ export interface PurchaseResponse {
 export async function fetchUser(
   telegramId: number
 ): Promise<{ user: ApiUser; tasks: ApiTask[] } | null> {
-  const res = await fetch(`${API_BASE}/api/user/${telegramId}`);
-  const data = await res.json();
-  if (data.error) return null;
-  return data;
+  if (USE_MOCK) {
+    return mockApi.fetchUser(telegramId);
+  }
+  try {
+    const res = await fetchWithTimeout(`${API_BASE}/api/user/${telegramId}`);
+    if (!res.ok) {
+      console.error(`API error: ${res.status} ${res.statusText}`);
+      return null;
+    }
+    const data = await res.json();
+    if (data.error) return null;
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch user:', error);
+    return null;
+  }
 }
 
 export async function completeTask(
@@ -75,39 +112,71 @@ export async function completeTask(
   verificationType: string,
   verificationData?: string
 ): Promise<CompleteTaskResponse> {
-  const res = await fetch(`${API_BASE}/api/complete-task`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      telegramId,
-      taskDay,
-      verificationType,
-      verificationData,
-    }),
-  });
-  return res.json();
+  if (USE_MOCK) {
+    return mockApi.completeTask(telegramId, taskDay, verificationType, verificationData);
+  }
+  try {
+    const res = await fetchWithTimeout(`${API_BASE}/api/complete-task`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        telegramId,
+        taskDay,
+        verificationType,
+        verificationData,
+      }),
+    });
+    return res.json();
+  } catch (error) {
+    console.error('Failed to complete task:', error);
+    return { error: 'Network error. Please try again.' };
+  }
 }
 
 export async function fetchShop(): Promise<ApiShopItem[]> {
-  const res = await fetch(`${API_BASE}/api/shop`);
-  return res.json();
+  if (USE_MOCK) {
+    return mockApi.fetchShop();
+  }
+  try {
+    const res = await fetchWithTimeout(`${API_BASE}/api/shop`);
+    return res.json();
+  } catch (error) {
+    console.error('Failed to fetch shop:', error);
+    return [];
+  }
 }
 
 export async function purchaseItem(
   telegramId: number,
   itemId: number
 ): Promise<PurchaseResponse> {
-  const res = await fetch(`${API_BASE}/api/purchase`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId, itemId }),
-  });
-  return res.json();
+  if (USE_MOCK) {
+    return mockApi.purchaseItem(telegramId, itemId);
+  }
+  try {
+    const res = await fetchWithTimeout(`${API_BASE}/api/purchase`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, itemId }),
+    });
+    return res.json();
+  } catch (error) {
+    console.error('Failed to purchase item:', error);
+    return { error: 'Network error. Please try again.' };
+  }
 }
 
 export async function fetchLeaderboard(): Promise<ApiLeaderboardEntry[]> {
-  const res = await fetch(`${API_BASE}/api/leaderboard`);
-  return res.json();
+  if (USE_MOCK) {
+    return mockApi.fetchLeaderboard();
+  }
+  try {
+    const res = await fetchWithTimeout(`${API_BASE}/api/leaderboard`);
+    return res.json();
+  } catch (error) {
+    console.error('Failed to fetch leaderboard:', error);
+    return [];
+  }
 }
 
 export async function submitSurvey(
@@ -115,10 +184,18 @@ export async function submitSurvey(
   taskDay: number,
   answers: Record<string, string | string[]>
 ): Promise<CompleteTaskResponse> {
-  const res = await fetch(`${API_BASE}/api/survey`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId, taskDay, answers }),
-  });
-  return res.json();
+  if (USE_MOCK) {
+    return mockApi.submitSurvey(telegramId, taskDay, answers);
+  }
+  try {
+    const res = await fetchWithTimeout(`${API_BASE}/api/survey`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, taskDay, answers }),
+    });
+    return res.json();
+  } catch (error) {
+    console.error('Failed to submit survey:', error);
+    return { error: 'Network error. Please try again.' };
+  }
 }

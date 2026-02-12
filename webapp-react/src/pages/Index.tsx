@@ -37,6 +37,7 @@ const Index = () => {
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [isCodeChecking, setIsCodeChecking] = useState(false);
   const [isSurveyLoading, setIsSurveyLoading] = useState(false);
+  const [isAppCodeLoading, setIsAppCodeLoading] = useState(false);
 
   // Celebration state
   const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
@@ -54,6 +55,7 @@ const Index = () => {
   // Data loading
   const [isLoading, setIsLoading] = useState(true);
   const [userNotFound, setUserNotFound] = useState(false);
+  const [serverError, setServerError] = useState(false);
 
   // Shop & Leaderboard
   const [shopItems, setShopItems] = useState<ShopItemView[]>([]);
@@ -65,6 +67,7 @@ const Index = () => {
 
     async function loadData() {
       setIsLoading(true);
+      setServerError(false);
       try {
         // Load user + tasks
         const userData = await api.fetchUser(telegramId!);
@@ -74,20 +77,35 @@ const Index = () => {
           setUserName(userData.user.first_name || "Атлет");
           setTasks(mapApiTasks(userData.tasks));
           setUserNotFound(false);
+          setServerError(false);
         } else {
-          setUserNotFound(true);
+          // Could be user not found OR server error
+          // Let's try to load shop to differentiate
+          const shopData = await api.fetchShop();
+          if (shopData.length === 0) {
+            // Server might be down
+            setServerError(true);
+            setUserNotFound(false);
+          } else {
+            // User not found
+            setUserNotFound(true);
+            setServerError(false);
+          }
         }
 
         // Load shop
-        const shopData = await api.fetchShop();
-        setShopItems(shopData.map(mapApiShopItem));
+        if (!serverError) {
+          const shopData = await api.fetchShop();
+          setShopItems(shopData.map(mapApiShopItem));
 
-        // Load leaderboard
-        const lbData = await api.fetchLeaderboard();
-        setLeaderboard(mapLeaderboard(lbData, telegramId!));
+          // Load leaderboard
+          const lbData = await api.fetchLeaderboard();
+          setLeaderboard(mapLeaderboard(lbData, telegramId!));
+        }
       } catch (err) {
         console.error("Failed to load data:", err);
-        toast.error("Ошибка загрузки данных");
+        setServerError(true);
+        toast.error("Не удалось подключиться к серверу");
       } finally {
         setIsLoading(false);
       }
@@ -298,6 +316,54 @@ const Index = () => {
     }
   };
 
+  // Handle app code submission (task 2 - Будь в курсе)
+  const handleAppCodeSubmit = async (code: string) => {
+    if (!selectedTask || !telegramId) return;
+    setIsAppCodeLoading(true);
+
+    try {
+      const result = await api.completeTask(
+        telegramId,
+        selectedTask.dayNumber,
+        "app_code",
+        code
+      );
+
+      if (result.success) {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.dayNumber === selectedTask.dayNumber
+              ? { ...t, completed: true }
+              : t
+          )
+        );
+        setUserCoins(result.coins || userCoins);
+        setUserXP((prev) => prev + (result.reward || 0));
+
+        setCelebrationData({
+          title: selectedTask.title,
+          xp: result.reward || 0,
+          coins: result.reward || 0,
+        });
+        setIsModalOpen(false);
+        setIsCelebrationOpen(true);
+
+        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred(
+          "success"
+        );
+      } else {
+        toast.error(result.error || "Неверный код");
+        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred(
+          "error"
+        );
+      }
+    } catch {
+      toast.error("Ошибка сети");
+    } finally {
+      setIsAppCodeLoading(false);
+    }
+  };
+
   // Handle QR code scanned via native Telegram scanner
   const handleQRScanned = async (scannedText: string) => {
     if (!scanningTask || !telegramId) return;
@@ -375,6 +441,29 @@ const Index = () => {
         <div className="text-center space-y-4">
           <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">Загрузка...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Server error ---
+  if (serverError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-8">
+        <div className="text-center space-y-4">
+          <div className="text-5xl">⚠️</div>
+          <h2 className="text-xl font-bold text-foreground">
+            Сервер временно недоступен
+          </h2>
+          <p className="text-muted-foreground">
+            Не удалось подключиться к серверу. Пожалуйста, попробуйте позже или обратитесь к администратору.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+          >
+            Попробовать снова
+          </button>
         </div>
       </div>
     );
@@ -564,6 +653,8 @@ const Index = () => {
         }}
         onSurveySubmit={handleSurveySubmit}
         isSurveyLoading={isSurveyLoading}
+        onCodeSubmit={handleAppCodeSubmit}
+        isCodeLoading={isAppCodeLoading}
       />
 
       {/* QR Scanner Modal */}

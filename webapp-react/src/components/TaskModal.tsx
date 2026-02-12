@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, QrCode, CheckCircle2 } from "lucide-react";
+import { X, QrCode, CheckCircle2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SurveyForm } from "@/components/SurveyForm";
 
@@ -27,9 +28,13 @@ interface TaskModalProps {
   onComplete?: () => void;
   onSurveySubmit?: (answers: Record<string, string | string[]>) => void;
   isSurveyLoading?: boolean;
+  onCodeSubmit?: (code: string) => void;
+  isCodeLoading?: boolean;
 }
 
-export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveySubmit, isSurveyLoading }: TaskModalProps) => {
+export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveySubmit, isSurveyLoading, onCodeSubmit, isCodeLoading }: TaskModalProps) => {
+  const [appCode, setAppCode] = useState("");
+
   if (!task) return null;
 
   const getStageBadgeClass = (stage: number) => {
@@ -59,6 +64,7 @@ export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveyS
   };
 
   const isSurveyTask = task.dayNumber === 1;
+  const isAppTask = task.dayNumber === 2;
 
   return (
     <AnimatePresence>
@@ -117,6 +123,106 @@ export const TaskModal = ({ task, isOpen, onClose, onScan, onComplete, onSurveyS
                   onSubmit={(answers) => onSurveySubmit?.(answers)}
                   isLoading={isSurveyLoading}
                 />
+              </div>
+            ) : isSurveyTask && task.completed ? (
+              /* Survey task completed - compact */
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold text-foreground pr-8">{task.title}</h2>
+                <p className="text-muted-foreground">Награда получена</p>
+                <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 p-4">
+                  <CheckCircle2 className="h-6 w-6 text-success" />
+                  <span className="font-semibold text-success">Выполнено!</span>
+                </div>
+              </div>
+            ) : isAppTask && !task.completed ? (
+              /* App download task - Будь в курсе */
+              <div className="space-y-4">
+                {/* Top row: badge + reward */}
+                <div className="flex items-center justify-between pr-8">
+                  <span
+                    className={`rounded-full px-3 py-1 text-sm font-medium ${getStageBadgeClass(task.stage)}`}
+                  >
+                    {getStageLabel(task.stage)} • {task.zone}
+                  </span>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium text-primary">+{task.reward} XP</span>
+                    {task.rewardCoins && task.rewardCoins > 0 && (
+                      <span className="font-medium text-yellow-500">+{task.rewardCoins} 🪙</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
+                </div>
+
+                {/* Description */}
+                <p className="text-foreground text-sm">
+                  Скачай мобильное приложение Город Спорта, зарегистрируйся, найди код и введи в строку ниже
+                </p>
+
+                {/* App links */}
+                <div className="space-y-2">
+                  <a
+                    href="https://apps.apple.com/by/app/%D0%B3%D0%BE%D1%80%D0%BE%D0%B4-%D1%81%D0%BF%D0%BE%D1%80%D1%82%D0%B0-%D0%B2%D0%BE%D1%82%D0%BA%D0%B8%D0%BD%D1%81%D0%BA/id6754234879"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-xl bg-muted/50 p-3 text-sm text-primary hover:bg-muted transition-colors"
+                  >
+                    <ExternalLink className="h-4 w-4 shrink-0" />
+                    <span>App Store</span>
+                  </a>
+                  <a
+                    href="https://play.google.com/store/apps/details?id=ru.razomovsky.gorod_sporta&hl=ru&pli=1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-xl bg-muted/50 p-3 text-sm text-primary hover:bg-muted transition-colors"
+                  >
+                    <ExternalLink className="h-4 w-4 shrink-0" />
+                    <span>Google Play</span>
+                  </a>
+                  <a
+                    href="https://www.rustore.ru/catalog/app/ru.razomovsky.gorod_sporta"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-xl bg-muted/50 p-3 text-sm text-primary hover:bg-muted transition-colors"
+                  >
+                    <ExternalLink className="h-4 w-4 shrink-0" />
+                    <span>RuStore</span>
+                  </a>
+                </div>
+
+                {/* Code input */}
+                <div>
+                  <input
+                    type="text"
+                    value={appCode}
+                    onChange={(e) => setAppCode(e.target.value)}
+                    placeholder="Введи код из приложения"
+                    className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+
+                {/* Submit button */}
+                <Button
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                  size="lg"
+                  disabled={!appCode.trim() || isCodeLoading}
+                  onClick={() => onCodeSubmit?.(appCode.trim())}
+                >
+                  {isCodeLoading ? "Проверяем..." : "Выполнить"}
+                </Button>
+              </div>
+            ) : isAppTask && task.completed ? (
+              /* App task completed - compact */
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold text-foreground pr-8">{task.title}</h2>
+                <p className="text-muted-foreground">Награда получена</p>
+                <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 p-4">
+                  <CheckCircle2 className="h-6 w-6 text-success" />
+                  <span className="font-semibold text-success">Выполнено!</span>
+                </div>
               </div>
             ) : (
               /* Default task layout */
