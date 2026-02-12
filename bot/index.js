@@ -111,7 +111,7 @@ app.post("/api/complete-task", async (req, res) => {
         if (task.verification_type === "qr" && verificationData) {
             const taskData = task.verification_data;
             if (taskData && taskData.qr_code && taskData.qr_code !== verificationData) {
-                return res.json({ error: "Invalid QR code" });
+                return res.json({ error: "Неверный код. Попробуйте ещё раз." });
             }
         }
 
@@ -129,7 +129,7 @@ app.post("/api/complete-task", async (req, res) => {
                 "SELECT * FROM staff_codes WHERE code = $1 AND (task_day = $2 OR task_day IS NULL) AND used_count < usage_limit",
                 [verificationData, taskDay]
             );
-            if (codeResult.rows.length === 0) return res.json({ error: "Invalid code" });
+            if (codeResult.rows.length === 0) return res.json({ error: "Неверный код. Попробуйте ещё раз." });
             await pool.query("UPDATE staff_codes SET used_count = used_count + 1 WHERE id = $1", [codeResult.rows[0].id]);
         }
 
