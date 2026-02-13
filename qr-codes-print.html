@@ -49,18 +49,19 @@
         }
 
         .qr-card {
-            border: 2px solid #e0e0e0;
+            border: 2px solid #000000;
             border-radius: 10px;
             padding: 30px;
             text-align: center;
-            background: #fafafa;
+            background: #FFD33D;
             page-break-inside: avoid;
         }
 
         .qr-card h2 {
-            color: #FF6B35;
+            color: #000000;
             margin-bottom: 20px;
-            font-size: 24px;
+            font-size: 20px;
+            font-weight: bold;
         }
 
         .qr-code {
@@ -75,8 +76,8 @@
         .manual-code {
             margin-top: 20px;
             padding: 15px 25px;
-            background: #FF6B35;
-            color: white;
+            background: #000000;
+            color: #FFD33D;
             border-radius: 8px;
             font-size: 32px;
             font-weight: bold;
@@ -85,9 +86,10 @@
         }
 
         .code-label {
-            color: #666;
+            color: #000000;
             font-size: 14px;
             margin-top: 10px;
+            font-weight: bold;
         }
 
         .print-button {
@@ -146,14 +148,14 @@
 
     <script>
         const tasks = [
-            { day: 3, qrCode: 'GORODSPORTA_DAY3', manualCode: 'WRM12', title: 'День 3' },
-            { day: 4, qrCode: 'GORODSPORTA_DAY4', manualCode: 'CRD23', title: 'День 4' },
-            { day: 5, qrCode: 'GORODSPORTA_DAY5', manualCode: 'PWR34', title: 'День 5' },
-            { day: 6, qrCode: 'GORODSPORTA_DAY6', manualCode: 'FLX45', title: 'День 6' },
-            { day: 7, qrCode: 'GORODSPORTA_DAY7', manualCode: 'END56', title: 'День 7' },
-            { day: 8, qrCode: 'GORODSPORTA_DAY8', manualCode: 'STR67', title: 'День 8' },
-            { day: 9, qrCode: 'GORODSPORTA_DAY9', manualCode: 'SPD78', title: 'День 9' },
-            { day: 10, qrCode: 'GORODSPORTA_DAY10', manualCode: 'FNL89', title: 'День 10' }
+            { day: 3, qrCode: 'GORODSPORTA_DAY3', manualCode: 'WRM12', title: 'Участвуй в игре и получай подарки!' },
+            { day: 4, qrCode: 'GORODSPORTA_DAY4', manualCode: 'CRD23', title: 'Участвуй в игре и получай подарки!' },
+            { day: 5, qrCode: 'GORODSPORTA_DAY5', manualCode: 'PWR34', title: 'Участвуй в игре и получай подарки!' },
+            { day: 6, qrCode: 'GORODSPORTA_DAY6', manualCode: 'FLX45', title: 'Участвуй в игре и получай подарки!' },
+            { day: 7, qrCode: 'GORODSPORTA_DAY7', manualCode: 'END56', title: 'Участвуй в игре и получай подарки!' },
+            { day: 8, qrCode: 'GORODSPORTA_DAY8', manualCode: 'STR67', title: 'Участвуй в игре и получай подарки!' },
+            { day: 9, qrCode: 'GORODSPORTA_DAY9', manualCode: 'SPD78', title: 'Участвуй в игре и получай подарки!' },
+            { day: 10, qrCode: 'GORODSPORTA_DAY10', manualCode: 'FNL89', title: 'Участвуй в игре и получай подарки!' }
         ];
 
         const qrGrid = document.getElementById('qrGrid');
