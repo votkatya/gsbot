@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'sonner'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Users from './pages/Users'
@@ -14,25 +15,28 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Login />} />
-      <Route
-        path="/*"
-        element={
-          <PrivateRoute>
-            <Layout>
-              <Routes>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/users" element={<Users />} />
-                <Route path="/tasks" element={<Tasks />} />
-                <Route path="/prizes" element={<Prizes />} />
-                <Route path="/purchases" element={<Purchases />} />
-              </Routes>
-            </Layout>
-          </PrivateRoute>
-        }
-      />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route
+          path="/*"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <Routes>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/users" element={<Users />} />
+                  <Route path="/tasks" element={<Tasks />} />
+                  <Route path="/prizes" element={<Prizes />} />
+                  <Route path="/purchases" element={<Purchases />} />
+                </Routes>
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+      <Toaster position="top-right" richColors />
+    </>
   )
 }
 

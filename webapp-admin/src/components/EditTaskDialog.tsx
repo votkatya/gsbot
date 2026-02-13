@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { toast } from 'sonner';
 
 interface EditTaskDialogProps {
   task: any;
@@ -28,17 +29,17 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       onClose();
-      alert('Задание обновлено!');
+      toast.success('Задание обновлено!');
     },
     onError: (error: any) => {
-      alert(`Ошибка: ${error.message}`);
+      toast.error(`Ошибка: ${error.message}`);
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
-      alert('Введите название задания');
+      toast.warning('Введите название задания');
       return;
     }
     updateMutation.mutate({

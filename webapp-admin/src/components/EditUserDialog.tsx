@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { toast } from 'sonner';
 
 interface EditUserDialogProps {
   user: any;
@@ -23,17 +24,17 @@ export function EditUserDialog({ user, isOpen, onClose }: EditUserDialogProps) {
       setCoins(0);
       setXP(0);
       setReason('');
-      alert('Пользователь обновлён!');
+      toast.success('Пользователь обновлён!');
     },
     onError: (error: any) => {
-      alert(`Ошибка: ${error.message}`);
+      toast.error(`Ошибка: ${error.message}`);
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (coins === 0 && xp === 0) {
-      alert('Укажите количество монет или XP');
+      toast.warning('Укажите количество монет или XP');
       return;
     }
     updateMutation.mutate({ coins, xp, reason });
