@@ -92,6 +92,26 @@
             font-weight: bold;
         }
 
+        .task-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+
+        .task-subtitle {
+            color: #000000;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .task-zone {
+            color: #000000;
+            font-size: 14px;
+            font-style: italic;
+        }
+
         .print-button {
             display: block;
             margin: 30px auto;
@@ -148,14 +168,12 @@
 
     <script>
         const tasks = [
-            { day: 3, qrCode: 'GORODSPORTA_DAY3', manualCode: 'WRM12', title: 'Участвуй в игре и получай подарки!' },
-            { day: 4, qrCode: 'GORODSPORTA_DAY4', manualCode: 'CRD23', title: 'Участвуй в игре и получай подарки!' },
-            { day: 5, qrCode: 'GORODSPORTA_DAY5', manualCode: 'PWR34', title: 'Участвуй в игре и получай подарки!' },
-            { day: 6, qrCode: 'GORODSPORTA_DAY6', manualCode: 'FLX45', title: 'Участвуй в игре и получай подарки!' },
-            { day: 7, qrCode: 'GORODSPORTA_DAY7', manualCode: 'END56', title: 'Участвуй в игре и получай подарки!' },
-            { day: 8, qrCode: 'GORODSPORTA_DAY8', manualCode: 'STR67', title: 'Участвуй в игре и получай подарки!' },
-            { day: 9, qrCode: 'GORODSPORTA_DAY9', manualCode: 'SPD78', title: 'Участвуй в игре и получай подарки!' },
-            { day: 10, qrCode: 'GORODSPORTA_DAY10', manualCode: 'FNL89', title: 'Участвуй в игре и получай подарки!' }
+            { day: 4, qrCode: 'GORODSPORTA_DAY4', manualCode: 'TNT45', title: 'Участвуй в игре и получай подарки!', subtitle: 'Пройди Таниту', zone: 'Медкабинет' },
+            { day: 5, qrCode: 'GORODSPORTA_DAY5', manualCode: 'GYM56', title: 'Участвуй в игре и получай подарки!', subtitle: 'Вводная тренировка', zone: 'Тренажерный зал' },
+            { day: 6, qrCode: 'GORODSPORTA_DAY6', manualCode: 'SPA67', title: 'Участвуй в игре и получай подарки!', subtitle: 'Полежать в джакузи', zone: 'Бассейн' },
+            { day: 7, qrCode: 'GORODSPORTA_DAY7', manualCode: 'GRP78', title: 'Участвуй в игре и получай подарки!', subtitle: 'Посети коммерческий класс', zone: 'Групповые' },
+            { day: 8, qrCode: 'GORODSPORTA_DAY8', manualCode: 'PWL89', title: 'Участвуй в игре и получай подарки!', subtitle: 'Вводная тренировка в бассейне', zone: 'Бассейн' },
+            { day: 9, qrCode: 'GORODSPORTA_DAY9', manualCode: 'EVT90', title: 'Участвуй в игре и получай подарки!', subtitle: 'Посети мероприятие', zone: 'Клуб' }
         ];
 
         const qrGrid = document.getElementById('qrGrid');
@@ -179,10 +197,25 @@
             label.className = 'code-label';
             label.textContent = 'Код для ручного ввода';
 
+            const taskInfo = document.createElement('div');
+            taskInfo.className = 'task-info';
+
+            const taskSubtitle = document.createElement('div');
+            taskSubtitle.className = 'task-subtitle';
+            taskSubtitle.textContent = task.subtitle;
+
+            const taskZone = document.createElement('div');
+            taskZone.className = 'task-zone';
+            taskZone.textContent = `Локация: ${task.zone}`;
+
+            taskInfo.appendChild(taskSubtitle);
+            taskInfo.appendChild(taskZone);
+
             card.appendChild(title);
             card.appendChild(qrContainer);
             card.appendChild(manualCode);
             card.appendChild(label);
+            card.appendChild(taskInfo);
 
             qrGrid.appendChild(card);
 

@@ -1,81 +1,61 @@
--- Обновление заданий блока 2 (дни 3-10) с QR-кодами и ручными кодами
+-- Обновление заданий блока 2 (дни 4-9) с QR-кодами и ручными кодами
 
--- День 3
-UPDATE tasks
-SET
-    verification_type = 'qr_or_manual',
-    verification_data = jsonb_build_object(
-        'qr_code', 'GORODSPORTA_DAY3',
-        'manual_code', 'WRM12'
-    )
-WHERE day_number = 3;
-
--- День 4
+-- День 4: Пройди Таниту (Медкабинет)
 UPDATE tasks
 SET
     verification_type = 'qr_or_manual',
     verification_data = jsonb_build_object(
         'qr_code', 'GORODSPORTA_DAY4',
-        'manual_code', 'CRD23'
+        'manual_code', 'TNT45'
     )
 WHERE day_number = 4;
 
--- День 5
+-- День 5: Вводная тренировка (Тренажерный зал)
 UPDATE tasks
 SET
     verification_type = 'qr_or_manual',
     verification_data = jsonb_build_object(
         'qr_code', 'GORODSPORTA_DAY5',
-        'manual_code', 'PWR34'
+        'manual_code', 'GYM56'
     )
 WHERE day_number = 5;
 
--- День 6
+-- День 6: Полежать в джакузи (Бассейн)
 UPDATE tasks
 SET
     verification_type = 'qr_or_manual',
     verification_data = jsonb_build_object(
         'qr_code', 'GORODSPORTA_DAY6',
-        'manual_code', 'FLX45'
+        'manual_code', 'SPA67'
     )
 WHERE day_number = 6;
 
--- День 7
+-- День 7: Посети коммерческий класс (Групповые)
 UPDATE tasks
 SET
     verification_type = 'qr_or_manual',
     verification_data = jsonb_build_object(
         'qr_code', 'GORODSPORTA_DAY7',
-        'manual_code', 'END56'
+        'manual_code', 'GRP78'
     )
 WHERE day_number = 7;
 
--- День 8
+-- День 8: Вводная тренировка в бассейне (Бассейн)
 UPDATE tasks
 SET
     verification_type = 'qr_or_manual',
     verification_data = jsonb_build_object(
         'qr_code', 'GORODSPORTA_DAY8',
-        'manual_code', 'STR67'
+        'manual_code', 'PWL89'
     )
 WHERE day_number = 8;
 
--- День 9
+-- День 9: Посети мероприятие (Клуб)
 UPDATE tasks
 SET
     verification_type = 'qr_or_manual',
     verification_data = jsonb_build_object(
         'qr_code', 'GORODSPORTA_DAY9',
-        'manual_code', 'SPD78'
+        'manual_code', 'EVT90'
     )
 WHERE day_number = 9;
-
--- День 10
-UPDATE tasks
-SET
-    verification_type = 'qr_or_manual',
-    verification_data = jsonb_build_object(
-        'qr_code', 'GORODSPORTA_DAY10',
-        'manual_code', 'FNL89'
-    )
-WHERE day_number = 10;
