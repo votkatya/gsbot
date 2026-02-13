@@ -139,6 +139,31 @@ app.post("/api/complete-task", async (req, res) => {
             }
         }
 
+        // Проверка QR-кода или ручного кода для блока 2 (дни 3-10)
+        if (verificationType === "qr_or_manual" && verificationData) {
+            const inputCode = verificationData.toUpperCase().trim();
+            const taskData = task.verification_data;
+
+            if (!taskData || (!taskData.qr_code && !taskData.manual_code)) {
+                return res.json({ error: "Задание не настроено" });
+            }
+
+            let isValid = false;
+
+            // Если введен короткий код (5 символов) - это ручной код
+            if (inputCode.length === 5 && taskData.manual_code) {
+                isValid = (inputCode === taskData.manual_code.toUpperCase());
+            }
+            // Если длинный код - это QR-код
+            else if (taskData.qr_code) {
+                isValid = (inputCode === taskData.qr_code.toUpperCase());
+            }
+
+            if (!isValid) {
+                return res.json({ error: "Неверный код. Попробуй ещё раз." });
+            }
+        }
+
         // Проверка кода от сотрудника
         if (task.verification_type === "code" && verificationData) {
             const codeResult = await pool.query(

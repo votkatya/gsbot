@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR-коды для печати - Город Спорта</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .qr-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            background: #fafafa;
+            page-break-inside: avoid;
+        }
+
+        .qr-card h2 {
+            color: #FF6B35;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .qr-code {
+            margin: 20px auto;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .manual-code {
+            margin-top: 20px;
+            padding: 15px 25px;
+            background: #FF6B35;
+            color: white;
+            border-radius: 8px;
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .code-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .print-button {
+            display: block;
+            margin: 30px auto;
+            padding: 15px 40px;
+            background: #FF6B35;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .print-button:hover {
+            background: #ff5722;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+
+            .print-button {
+                display: none;
+            }
+
+            .qr-grid {
+                gap: 30px;
+            }
+
+            @page {
+                margin: 15mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏃‍♂️ Город Спорта - QR-коды для печати</h1>
+        <p class="subtitle">Блок 2: Разминка (дни 3-10)</p>
+
+        <button class="print-button" onclick="window.print()">🖨️ Печать</button>
+
+        <div class="qr-grid" id="qrGrid"></div>
+
+        <button class="print-button" onclick="window.print()">🖨️ Печать</button>
+    </div>
+
+    <script>
+        const tasks = [
+            { day: 3, qrCode: 'GORODSPORTA_DAY3', manualCode: 'WRM12', title: 'День 3' },
+            { day: 4, qrCode: 'GORODSPORTA_DAY4', manualCode: 'CRD23', title: 'День 4' },
+            { day: 5, qrCode: 'GORODSPORTA_DAY5', manualCode: 'PWR34', title: 'День 5' },
+            { day: 6, qrCode: 'GORODSPORTA_DAY6', manualCode: 'FLX45', title: 'День 6' },
+            { day: 7, qrCode: 'GORODSPORTA_DAY7', manualCode: 'END56', title: 'День 7' },
+            { day: 8, qrCode: 'GORODSPORTA_DAY8', manualCode: 'STR67', title: 'День 8' },
+            { day: 9, qrCode: 'GORODSPORTA_DAY9', manualCode: 'SPD78', title: 'День 9' },
+            { day: 10, qrCode: 'GORODSPORTA_DAY10', manualCode: 'FNL89', title: 'День 10' }
+        ];
+
+        const qrGrid = document.getElementById('qrGrid');
+
+        tasks.forEach(task => {
+            const card = document.createElement('div');
+            card.className = 'qr-card';
+
+            const title = document.createElement('h2');
+            title.textContent = task.title;
+
+            const qrContainer = document.createElement('div');
+            qrContainer.className = 'qr-code';
+            qrContainer.id = `qr-${task.day}`;
+
+            const manualCode = document.createElement('div');
+            manualCode.className = 'manual-code';
+            manualCode.textContent = task.manualCode;
+
+            const label = document.createElement('div');
+            label.className = 'code-label';
+            label.textContent = 'Код для ручного ввода';
+
+            card.appendChild(title);
+            card.appendChild(qrContainer);
+            card.appendChild(manualCode);
+            card.appendChild(label);
+
+            qrGrid.appendChild(card);
+
+            // Генерация QR-кода
+            new QRCode(qrContainer, {
+                text: task.qrCode,
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        });
+    </script>
+</body>
+</html>
