@@ -375,6 +375,34 @@ app.post("/api/survey", async (req, res) => {
     }
 });
 
+// Registration endpoint - save user registration data
+app.post("/api/register", async (req, res) => {
+    try {
+        const { telegramId, fullName, phone, membership } = req.body;
+
+        console.log("📝 Registration request:", { telegramId, fullName, phone, membership });
+
+        // Update user with registration data
+        const result = await pool.query(
+            `UPDATE users
+             SET first_name = $1, phone = $2, membership_type = $3, last_activity_at = now()
+             WHERE telegram_id = $4
+             RETURNING *`,
+            [fullName, phone, membership, telegramId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.json({ error: "User not found" });
+        }
+
+        console.log("✅ Registration saved:", result.rows[0]);
+        res.json({ success: true, user: result.rows[0] });
+    } catch (e) {
+        console.error("❌ Registration error:", e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // ==================== ADMIN API ENDPOINTS ====================
 
 // Логин для админки

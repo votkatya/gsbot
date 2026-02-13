@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация - Превью</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #1a1a1a;
+            border-radius: 24px;
+            max-width: 400px;
+            width: 100%;
+            padding: 40px 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #b0b0b0;
+            line-height: 1.5;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        input {
+            padding: 14px 16px;
+            border: 2px solid #333;
+            border-radius: 12px;
+            background: #0a0a0a;
+            color: #ffffff;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #FFD33D;
+            box-shadow: 0 0 0 3px rgba(255, 211, 61, 0.1);
+        }
+
+        input::placeholder {
+            color: #666;
+        }
+
+        .membership-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            padding: 16px;
+            border: 2px solid #333;
+            border-radius: 12px;
+            background: #0a0a0a;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option:hover {
+            border-color: #FFD33D;
+        }
+
+        .option.selected {
+            border-color: #FFD33D;
+            background: rgba(255, 211, 61, 0.1);
+            color: #FFD33D;
+        }
+
+        .radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #666;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .option.selected .radio {
+            border-color: #FFD33D;
+            background: #FFD33D;
+        }
+
+        .radio-inner {
+            width: 8px;
+            height: 8px;
+            background: #0a0a0a;
+            border-radius: 50%;
+            display: none;
+        }
+
+        .option.selected .radio-inner {
+            display: block;
+        }
+
+        .submit-btn {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: #FFD33D;
+            color: #0a0a0a;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(255, 211, 61, 0.4);
+            margin-top: 12px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: #ffc61a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 211, 61, 0.5);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="emoji">🏋️</div>
+            <h2 class="title">Добро пожаловать!</h2>
+            <p class="subtitle">Зарегистрируйся и играй!</p>
+        </div>
+
+        <div class="form">
+            <!-- Имя -->
+            <div class="field">
+                <label>Имя и Фамилия</label>
+                <input type="text" id="fullName" placeholder="Иван Иванов" oninput="checkForm()">
+            </div>
+
+            <!-- Телефон -->
+            <div class="field">
+                <label>Номер телефона</label>
+                <input type="tel" id="phone" placeholder="+7 (999) 123-45-67" oninput="checkForm()">
+            </div>
+
+            <!-- Абонемент -->
+            <div class="field">
+                <label>У вас есть абонемент в Город Спорта?</label>
+                <div class="membership-options">
+                    <div class="option" onclick="selectOption('no')">
+                        <div class="radio">
+                            <div class="radio-inner"></div>
+                        </div>
+                        <span>Нет</span>
+                    </div>
+                    <div class="option" onclick="selectOption('trial')">
+                        <div class="radio">
+                            <div class="radio-inner"></div>
+                        </div>
+                        <span>Пробная неделя</span>
+                    </div>
+                    <div class="option" onclick="selectOption('yes')">
+                        <div class="radio">
+                            <div class="radio-inner"></div>
+                        </div>
+                        <span>Да, есть абонемент</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <button class="submit-btn" id="submitBtn" onclick="handleSubmit()" disabled>
+                Продолжить
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let selectedMembership = null;
+
+        function selectOption(value) {
+            selectedMembership = value;
+
+            // Update UI
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            checkForm();
+        }
+
+        function checkForm() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+
+            const isValid = fullName.length > 0 && phone.length > 0 && selectedMembership !== null;
+            submitBtn.disabled = !isValid;
+        }
+
+        function handleSubmit() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            alert(`Регистрация завершена!\n\nИмя: ${fullName}\nТелефон: ${phone}\nАбонемент: ${selectedMembership}\n\nВ реальном приложении здесь будет переход к онбордингу.`);
+        }
+    </script>
+</body>
+</html>

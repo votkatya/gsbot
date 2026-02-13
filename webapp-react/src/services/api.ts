@@ -199,3 +199,22 @@ export async function submitSurvey(
     return { error: 'Network error. Please try again.' };
   }
 }
+
+export async function submitRegistration(
+  telegramId: number,
+  fullName: string,
+  phone: string,
+  membership: string
+): Promise<{ success?: boolean; error?: string; user?: ApiUser }> {
+  try {
+    const res = await fetchWithTimeout(`${API_BASE}/api/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, fullName, phone, membership }),
+    });
+    return res.json();
+  } catch (error) {
+    console.error('Failed to submit registration:', error);
+    return { error: 'Network error. Please try again.' };
+  }
+}

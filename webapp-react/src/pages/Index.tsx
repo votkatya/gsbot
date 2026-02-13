@@ -11,6 +11,7 @@ import { QRScannerModal } from "@/components/QRScannerModal";
 import { ManualCodeModal } from "@/components/ManualCodeModal";
 import { CelebrationModal } from "@/components/CelebrationModal";
 import { OnboardingModal } from "@/components/OnboardingModal";
+import { RegistrationModal } from "@/components/RegistrationModal";
 import { toast } from "sonner";
 import { useTelegram } from "@/contexts/TelegramContext";
 import * as api from "@/services/api";
@@ -50,7 +51,8 @@ const Index = () => {
     coins: number;
   } | null>(null);
 
-  // Onboarding state
+  // Registration & Onboarding state
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   // User state
@@ -67,10 +69,16 @@ const Index = () => {
   const [shopItems, setShopItems] = useState<ShopItemView[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
-  // --- Check onboarding on first load ---
+  // --- Check registration & onboarding on first load ---
   useEffect(() => {
+    const hasRegistered = localStorage.getItem("registration_completed");
     const hasSeenOnboarding = localStorage.getItem("onboarding_completed");
-    if (!hasSeenOnboarding) {
+
+    if (!hasRegistered) {
+      // Show registration first
+      setIsRegistrationOpen(true);
+    } else if (!hasSeenOnboarding) {
+      // Then show onboarding
       setIsOnboardingOpen(true);
     }
   }, []);
@@ -427,6 +435,50 @@ const Index = () => {
     } finally {
       setIsReferralLoading(false);
     }
+  };
+
+  // Handle registration completion
+  const handleRegistrationComplete = async (data: {
+    fullName: string;
+    phone: string;
+    membership: string;
+  }) => {
+    console.log("Registration data:", data);
+
+    // Save to backend
+    if (telegramId) {
+      try {
+        const result = await api.submitRegistration(
+          telegramId,
+          data.fullName,
+          data.phone,
+          data.membership
+        );
+
+        if (result.success) {
+          console.log("✅ Registration saved to database");
+          // Update local user name
+          setUserName(data.fullName.split(" ")[0] || "Атлет");
+        } else {
+          console.error("❌ Registration failed:", result.error);
+          toast.error(result.error || "Ошибка регистрации");
+        }
+      } catch (error) {
+        console.error("❌ Registration network error:", error);
+        toast.error("Ошибка сети");
+      }
+    }
+
+    // Save to localStorage
+    localStorage.setItem("registration_completed", "true");
+    localStorage.setItem("registration_data", JSON.stringify(data));
+
+    // Close registration and show onboarding
+    setIsRegistrationOpen(false);
+    setIsOnboardingOpen(true);
+
+    // Haptic feedback
+    window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
   };
 
   // Handle quiz submission (task 14 - Пройди тест)
@@ -807,6 +859,12 @@ const Index = () => {
           coinsReward={celebrationData.coins}
         />
       )}
+
+      {/* Registration Modal */}
+      <RegistrationModal
+        isOpen={isRegistrationOpen}
+        onComplete={handleRegistrationComplete}
+      />
 
       {/* Onboarding Modal */}
       <OnboardingModal
