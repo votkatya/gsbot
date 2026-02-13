@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, QrCode, CheckCircle2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SurveyForm } from "@/components/SurveyForm";
+import { ReferralForm } from "@/components/ReferralForm";
+import { QuizForm } from "@/components/QuizForm";
 
 interface Task {
   id: number;
@@ -19,6 +21,7 @@ interface Task {
   locked: boolean;
   iconName: string;
   verificationType?: string;
+  verificationData?: any;
 }
 
 interface TaskModalProps {
@@ -31,6 +34,10 @@ interface TaskModalProps {
   isSurveyLoading?: boolean;
   onCodeSubmit?: (code: string) => void;
   isCodeLoading?: boolean;
+  onReferralSubmit?: (data: { friendName: string; friendPhone: string }) => void;
+  isReferralLoading?: boolean;
+  onQuizSubmit?: (score: number) => void;
+  isQuizLoading?: boolean;
 }
 
 export const TaskModal = ({
@@ -42,7 +49,11 @@ export const TaskModal = ({
   onSurveySubmit,
   isSurveyLoading,
   onCodeSubmit,
-  isCodeLoading
+  isCodeLoading,
+  onReferralSubmit,
+  isReferralLoading,
+  onQuizSubmit,
+  isQuizLoading
 }: TaskModalProps) => {
   const [code, setCode] = useState("");
 
@@ -77,9 +88,12 @@ export const TaskModal = ({
   // Determine task types
   const isSurveyTask = task.dayNumber === 1;
   const isAppTask = task.dayNumber === 2;
+  const isReferralTask = task.verificationType === "referral_form";
+  const isQuizTask = task.verificationType === "quiz";
+  const isReviewTask = task.dayNumber === 11; // Leave review task
   const isStage1or3 = task.stage === 1 || task.stage === 3;
   const isStage2 = task.stage === 2;
-  const needsCodeInput = (isStage1or3 && !isSurveyTask && !isAppTask) || task.verificationType === "self";
+  const needsCodeInput = (isStage1or3 && !isSurveyTask && !isAppTask && !isReferralTask && !isQuizTask && !isReviewTask) || task.verificationType === "self";
   const needsQRScan = isStage2 && (task.verificationType === "qr" || task.verificationType === "code");
 
   return (
@@ -246,6 +260,113 @@ export const TaskModal = ({
                 >
                   {isCodeLoading ? "Проверяем..." : "Выполнить"}
                 </Button>
+              </div>
+            ) : isReviewTask ? (
+              /* REVIEW TASK (Day 11) - Leave review */
+              <div className="space-y-4">
+                {/* Header with badge and rewards */}
+                <div className="flex items-center justify-between pr-8">
+                  <span
+                    className={`rounded-full px-3 py-1 text-sm font-medium ${getStageBadgeClass(task.stage)}`}
+                  >
+                    {getStageLabel(task.stage)}
+                  </span>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium text-primary">+{task.reward} XP</span>
+                    {task.rewardCoins && task.rewardCoins > 0 && (
+                      <span className="font-medium text-yellow-500">+{task.rewardCoins} 🪙</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
+
+                {/* Description */}
+                <p className="text-foreground">{task.description}</p>
+
+                {/* Review link */}
+                {task.verificationData?.url && (
+                  <a
+                    href={task.verificationData.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-xl bg-muted/50 p-3 text-sm text-primary hover:bg-muted transition-colors"
+                  >
+                    <ExternalLink className="h-4 w-4 shrink-0" />
+                    <span>Оставить отзыв на Яндекс Картах</span>
+                  </a>
+                )}
+
+                {/* Complete button */}
+                <Button
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                  size="lg"
+                  onClick={onComplete}
+                >
+                  Выполнить
+                </Button>
+              </div>
+            ) : isReferralTask ? (
+              /* REFERRAL TASK (Day 13) - Refer a friend */
+              <div className="space-y-4">
+                {/* Header with badge and rewards */}
+                <div className="flex items-center justify-between pr-8">
+                  <span
+                    className={`rounded-full px-3 py-1 text-sm font-medium ${getStageBadgeClass(task.stage)}`}
+                  >
+                    {getStageLabel(task.stage)}
+                  </span>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium text-primary">+{task.reward} XP</span>
+                    {task.rewardCoins && task.rewardCoins > 0 && (
+                      <span className="font-medium text-yellow-500">+{task.rewardCoins} 🪙</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
+
+                {/* Description */}
+                <p className="text-foreground">{task.description}</p>
+
+                {/* Referral form */}
+                <ReferralForm
+                  onSubmit={(data) => onReferralSubmit?.(data)}
+                  isLoading={isReferralLoading}
+                />
+              </div>
+            ) : isQuizTask ? (
+              /* QUIZ TASK (Day 14) - Take the quiz */
+              <div className="space-y-4">
+                {/* Header with badge and rewards */}
+                <div className="flex items-center justify-between pr-8">
+                  <span
+                    className={`rounded-full px-3 py-1 text-sm font-medium ${getStageBadgeClass(task.stage)}`}
+                  >
+                    {getStageLabel(task.stage)}
+                  </span>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium text-primary">+{task.reward} XP</span>
+                    {task.rewardCoins && task.rewardCoins > 0 && (
+                      <span className="font-medium text-yellow-500">+{task.rewardCoins} 🪙</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
+
+                {/* Description */}
+                <p className="text-foreground">{task.description}</p>
+
+                {/* Quiz form */}
+                <QuizForm
+                  questions={task.verificationData?.questions || []}
+                  onSubmit={(score) => onQuizSubmit?.(score)}
+                  isLoading={isQuizLoading}
+                />
               </div>
             ) : needsQRScan ? (
               /* STAGE 2 - QR SCAN TASKS */

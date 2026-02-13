@@ -60,8 +60,8 @@ const TASK_UI: Record<number, TaskUIMetadata> = {
     instruction: "Посети мероприятие и получи код от тренера"
   },
   // Блок 3: Заминка
-  11: { stage: 3, subtitle: "Поделись впечатлением!", zone: "Онлайн", iconName: "MessageSquare" },
-  12: { stage: 3, subtitle: "Расскажи о нас!", zone: "Онлайн", iconName: "Send" },
+  11: { stage: 3, subtitle: "Оставь отзыв", zone: "Онлайн", iconName: "MessageSquare" },
+  12: { stage: 3, subtitle: "[УДАЛЕНО]", zone: "Онлайн", iconName: "Send" }, // Деактивировано
   13: { stage: 3, subtitle: "Подарить купон другу", zone: "Рефералка", iconName: "Users" },
   14: { stage: 3, subtitle: "Пройди тест", zone: "Онлайн", iconName: "Trophy" },
 };

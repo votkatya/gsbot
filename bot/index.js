@@ -149,6 +149,30 @@ app.post("/api/complete-task", async (req, res) => {
             await pool.query("UPDATE staff_codes SET used_count = used_count + 1 WHERE id = $1", [codeResult.rows[0].id]);
         }
 
+        // Обработка реферала (Подарить купон другу)
+        if (verificationType === "referral_form" && verificationData) {
+            try {
+                const data = JSON.parse(verificationData);
+                await pool.query(
+                    "INSERT INTO referrals (user_id, friend_name, friend_phone) VALUES ($1, $2, $3)",
+                    [user.id, data.friendName, data.friendPhone]
+                );
+            } catch (e) {
+                return res.json({ error: "Ошибка сохранения данных" });
+            }
+        }
+
+        // Обработка квиза (Пройди тест)
+        if (verificationType === "quiz" && verificationData) {
+            try {
+                const data = JSON.parse(verificationData);
+                // Сохраняем результат квиза в user_tasks
+                // score можно сохранить в JSON поле, если нужно
+            } catch (e) {
+                return res.json({ error: "Ошибка сохранения результата" });
+            }
+        }
+
         // Засчитываем задание
         await pool.query(
             `INSERT INTO user_tasks (user_id, task_id, status, completed_at, verified_by)

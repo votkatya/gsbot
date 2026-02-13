@@ -38,6 +38,8 @@ const Index = () => {
   const [isCodeChecking, setIsCodeChecking] = useState(false);
   const [isSurveyLoading, setIsSurveyLoading] = useState(false);
   const [isAppCodeLoading, setIsAppCodeLoading] = useState(false);
+  const [isReferralLoading, setIsReferralLoading] = useState(false);
+  const [isQuizLoading, setIsQuizLoading] = useState(false);
 
   // Celebration state
   const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
@@ -369,6 +371,98 @@ const Index = () => {
     }
   };
 
+  // Handle referral form submission (task 13 - Подарить купон другу)
+  const handleReferralSubmit = async (data: { friendName: string; friendPhone: string }) => {
+    if (!selectedTask || !telegramId) return;
+    setIsReferralLoading(true);
+
+    try {
+      const result = await api.completeTask(
+        telegramId,
+        selectedTask.dayNumber,
+        "referral_form",
+        JSON.stringify(data)
+      );
+
+      if (result.success) {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.dayNumber === selectedTask.dayNumber
+              ? { ...t, completed: true }
+              : t
+          )
+        );
+        setUserCoins(result.coins || userCoins);
+        setUserXP((prev) => prev + (result.reward || 0));
+
+        setCelebrationData({
+          title: selectedTask.title,
+          xp: result.reward || 0,
+          coins: result.reward || 0,
+        });
+        setIsModalOpen(false);
+        setIsCelebrationOpen(true);
+
+        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred(
+          "success"
+        );
+      } else {
+        toast.error(result.error || "Ошибка отправки формы");
+        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("error");
+      }
+    } catch {
+      toast.error("Ошибка сети");
+    } finally {
+      setIsReferralLoading(false);
+    }
+  };
+
+  // Handle quiz submission (task 14 - Пройди тест)
+  const handleQuizSubmit = async (score: number) => {
+    if (!selectedTask || !telegramId) return;
+    setIsQuizLoading(true);
+
+    try {
+      const result = await api.completeTask(
+        telegramId,
+        selectedTask.dayNumber,
+        "quiz",
+        JSON.stringify({ score })
+      );
+
+      if (result.success) {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.dayNumber === selectedTask.dayNumber
+              ? { ...t, completed: true }
+              : t
+          )
+        );
+        setUserCoins(result.coins || userCoins);
+        setUserXP((prev) => prev + (result.reward || 0));
+
+        setCelebrationData({
+          title: selectedTask.title,
+          xp: result.reward || 0,
+          coins: result.reward || 0,
+        });
+        setIsModalOpen(false);
+        setIsCelebrationOpen(true);
+
+        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred(
+          "success"
+        );
+      } else {
+        toast.error(result.error || "Ошибка выполнения теста");
+        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("error");
+      }
+    } catch {
+      toast.error("Ошибка сети");
+    } finally {
+      setIsQuizLoading(false);
+    }
+  };
+
   // Handle QR code scanned via native Telegram scanner
   const handleQRScanned = async (scannedText: string) => {
     if (!scanningTask || !telegramId) return;
@@ -660,6 +754,10 @@ const Index = () => {
         isSurveyLoading={isSurveyLoading}
         onCodeSubmit={handleAppCodeSubmit}
         isCodeLoading={isAppCodeLoading}
+        onReferralSubmit={handleReferralSubmit}
+        isReferralLoading={isReferralLoading}
+        onQuizSubmit={handleQuizSubmit}
+        isQuizLoading={isQuizLoading}
       />
 
       {/* QR Scanner Modal */}
