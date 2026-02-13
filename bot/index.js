@@ -106,6 +106,13 @@ app.post("/api/complete-task", async (req, res) => {
     try {
         const { telegramId, taskDay, verificationType, verificationData } = req.body;
 
+        console.log('📥 Complete task request:', {
+            telegramId,
+            taskDay,
+            verificationType,
+            verificationData: verificationData?.substring?.(0, 50) || verificationData
+        });
+
         const userResult = await pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
         if (userResult.rows.length === 0) return res.json({ error: "User not found" });
         const user = userResult.rows[0];
