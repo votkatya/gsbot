@@ -138,11 +138,49 @@ app.post("/api/complete-task", async (req, res) => {
             }
         }
 
-        // Проверка кода из приложения (задание 2)
+        // Проверка кода из приложения (задание 2 или блок 2 с QR/ручными кодами)
         if (verificationType === "app_code") {
-            const validCodes = ["testgs"]; // TODO: заменить на реальные коды
-            if (!validCodes.includes(verificationData?.toLowerCase())) {
-                return res.json({ error: "Неверный код. Попробуй ещё раз." });
+            // Для блока 2 (дни 4-9) проверяем QR или ручной код
+            if (task.verification_type === "qr_or_manual" && verificationData) {
+                const inputCode = verificationData.toUpperCase().trim();
+                const taskData = task.verification_data;
+
+                console.log('🔍 QR/Manual code check:', {
+                    inputCode,
+                    inputLength: inputCode.length,
+                    taskData,
+                    manualCodeUpper: taskData?.manual_code?.toUpperCase(),
+                    qrCodeUpper: taskData?.qr_code?.toUpperCase()
+                });
+
+                if (!taskData || (!taskData.qr_code && !taskData.manual_code)) {
+                    return res.json({ error: "Задание не настроено" });
+                }
+
+                let isValid = false;
+
+                // Если введен короткий код (5 символов) - это ручной код
+                if (inputCode.length === 5 && taskData.manual_code) {
+                    isValid = (inputCode === taskData.manual_code.toUpperCase());
+                    console.log('✅ Manual code check:', { inputCode, expected: taskData.manual_code.toUpperCase(), isValid });
+                }
+                // Если длинный код - это QR-код
+                else if (taskData.qr_code) {
+                    isValid = (inputCode === taskData.qr_code.toUpperCase());
+                    console.log('✅ QR code check:', { inputCode, expected: taskData.qr_code.toUpperCase(), isValid });
+                }
+
+                if (!isValid) {
+                    console.log('❌ Code validation failed');
+                    return res.json({ error: "Неверный код. Попробуй ещё раз." });
+                }
+            }
+            // Для задания 2 - проверяем тестовый код
+            else {
+                const validCodes = ["testgs"];
+                if (!validCodes.includes(verificationData?.toLowerCase())) {
+                    return res.json({ error: "Неверный код. Попробуй ещё раз." });
+                }
             }
         }
 
