@@ -114,9 +114,12 @@ const Index = () => {
             setServerError(true);
             setUserNotFound(false);
           } else {
-            // User not found
+            // User not found - clear localStorage and show registration
             setUserNotFound(true);
             setServerError(false);
+            localStorage.removeItem("registration_completed");
+            localStorage.removeItem("onboarding_completed");
+            setIsRegistrationOpen(true);
           }
         }
 
