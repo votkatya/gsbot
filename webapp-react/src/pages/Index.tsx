@@ -10,6 +10,7 @@ import { ShopItem } from "@/components/ShopItem";
 import { QRScannerModal } from "@/components/QRScannerModal";
 import { ManualCodeModal } from "@/components/ManualCodeModal";
 import { CelebrationModal } from "@/components/CelebrationModal";
+import { OnboardingModal } from "@/components/OnboardingModal";
 import { toast } from "sonner";
 import { useTelegram } from "@/contexts/TelegramContext";
 import * as api from "@/services/api";
@@ -49,6 +50,9 @@ const Index = () => {
     coins: number;
   } | null>(null);
 
+  // Onboarding state
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+
   // User state
   const [userXP, setUserXP] = useState(0);
   const [userCoins, setUserCoins] = useState(0);
@@ -62,6 +66,14 @@ const Index = () => {
   // Shop & Leaderboard
   const [shopItems, setShopItems] = useState<ShopItemView[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+
+  // --- Check onboarding on first load ---
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem("onboarding_completed");
+    if (!hasSeenOnboarding) {
+      setIsOnboardingOpen(true);
+    }
+  }, []);
 
   // --- Load all data ---
   useEffect(() => {
@@ -795,6 +807,12 @@ const Index = () => {
           coinsReward={celebrationData.coins}
         />
       )}
+
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+      />
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
