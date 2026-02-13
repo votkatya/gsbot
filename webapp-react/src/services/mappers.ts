@@ -61,8 +61,8 @@ const TASK_UI: Record<number, TaskUIMetadata> = {
   },
   // Блок 3: Заминка
   11: { stage: 3, subtitle: "Оставь отзыв", zone: "Онлайн", iconName: "MessageSquare" },
-  12: { stage: 3, subtitle: "Подарить купон другу", zone: "Рефералка", iconName: "Users" },
-  13: { stage: 3, subtitle: "Пройди тест", zone: "Онлайн", iconName: "Trophy" },
+  13: { stage: 3, subtitle: "Подарить купон другу", zone: "Рефералка", iconName: "Users" },
+  14: { stage: 3, subtitle: "Пройди тест", zone: "Онлайн", iconName: "Trophy" },
 };
 
 const DEFAULT_TASK_UI: TaskUIMetadata = {
