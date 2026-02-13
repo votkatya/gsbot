@@ -555,7 +555,7 @@ app.get("/admin/api/users/:id", checkAdminAuth, async (req, res) => {
             FROM purchases p
             JOIN shop_items si ON si.id = p.item_id
             WHERE p.user_id = $1
-            ORDER BY p.purchased_at DESC
+            ORDER BY p.created_at DESC
         `, [id]);
 
         res.json({
