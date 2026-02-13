@@ -19,14 +19,8 @@ bot.command("start", async (ctx) => {
     const tgUser = ctx.from;
     const param = ctx.match || "";
 
-    // Создаем или обновляем пользователя
-    await pool.query(
-        `INSERT INTO users (telegram_id, first_name, last_name, username)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (telegram_id) DO UPDATE SET
-         first_name = $2, last_name = $3, username = $4`,
-        [tgUser.id, tgUser.first_name, tgUser.last_name || null, tgUser.username || null]
-    );
+    // Не создаём пользователя автоматически!
+    // Пользователь создастся после регистрации в приложении через /api/register
 
     if (param.startsWith("qr_")) {
         await ctx.reply("QR-код найден! Открой приложение:", {
@@ -382,18 +376,15 @@ app.post("/api/register", async (req, res) => {
 
         console.log("📝 Registration request:", { telegramId, fullName, phone, membership });
 
-        // Update user with registration data
+        // Create or update user with registration data
         const result = await pool.query(
-            `UPDATE users
-             SET first_name = $1, phone = $2, membership_type = $3, last_activity_at = now()
-             WHERE telegram_id = $4
+            `INSERT INTO users (telegram_id, first_name, phone, membership_type, coins, xp, last_activity_at, created_at)
+             VALUES ($1, $2, $3, $4, 0, 0, now(), now())
+             ON CONFLICT (telegram_id) DO UPDATE SET
+             first_name = $2, phone = $3, membership_type = $4, last_activity_at = now()
              RETURNING *`,
-            [fullName, phone, membership, telegramId]
+            [telegramId, fullName, phone, membership]
         );
-
-        if (result.rows.length === 0) {
-            return res.json({ error: "User not found" });
-        }
 
         console.log("✅ Registration saved:", result.rows[0]);
         res.json({ success: true, user: result.rows[0] });
