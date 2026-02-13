@@ -69,6 +69,13 @@ class ApiClient {
     return this.request(`/admin/api/users/${id}`);
   }
 
+  async updateUser(id: number, data: { coins?: number; xp?: number; reason?: string }) {
+    return this.request(`/admin/api/users/${id}/update`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   // Tasks
   async getTasks() {
     return this.request('/admin/api/tasks');

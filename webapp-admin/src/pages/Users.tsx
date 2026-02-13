@@ -1,9 +1,13 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { formatDistanceToNow } from 'date-fns'
 import { ru } from 'date-fns/locale'
+import { EditUserDialog } from '../components/EditUserDialog'
 
 export default function Users() {
+  const [editingUser, setEditingUser] = useState<any>(null)
+
   const { data: users, isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: () => api.getUsers(),
@@ -53,6 +57,9 @@ export default function Users() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Активность
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Действия
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -95,6 +102,14 @@ export default function Users() {
                         })
                       : '—'}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <button
+                      onClick={() => setEditingUser(user)}
+                      className="text-blue-600 hover:text-blue-900 font-medium"
+                    >
+                      Редактировать
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -105,6 +120,14 @@ export default function Users() {
       <div className="mt-4 text-sm text-gray-600">
         Всего пользователей: {users?.length || 0}
       </div>
+
+      {editingUser && (
+        <EditUserDialog
+          user={editingUser}
+          isOpen={!!editingUser}
+          onClose={() => setEditingUser(null)}
+        />
+      )}
     </div>
   )
 }

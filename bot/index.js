@@ -519,6 +519,41 @@ app.get("/admin/api/users/:id", checkAdminAuth, async (req, res) => {
     }
 });
 
+// Обновить монеты и XP пользователя (для админки)
+app.post("/admin/api/users/:id/update", checkAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { coins, xp, reason } = req.body;
+
+        console.log(`📝 Admin update user ${id}:`, { coins, xp, reason });
+
+        // Проверяем что пользователь существует
+        const userCheck = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Обновляем монеты и XP
+        const updateResult = await pool.query(
+            `UPDATE users
+             SET coins = coins + $1, xp = xp + $2, last_activity_at = now()
+             WHERE id = $3
+             RETURNING *`,
+            [coins || 0, xp || 0, id]
+        );
+
+        console.log(`✅ User ${id} updated:`, {
+            newCoins: updateResult.rows[0].coins,
+            newXP: updateResult.rows[0].xp
+        });
+
+        res.json({ success: true, user: updateResult.rows[0] });
+    } catch (e) {
+        console.error("❌ Failed to update user:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Список заданий
 app.get("/admin/api/tasks", checkAdminAuth, async (req, res) => {
     try {
