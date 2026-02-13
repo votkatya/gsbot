@@ -15,6 +15,15 @@ const pool = new Pool({
 
 const bot = new Bot(BOT_TOKEN);
 
+// Установить Menu Button для Web App
+bot.api.setChatMenuButton({
+    menu_button: {
+        type: "web_app",
+        text: "Открыть игру",
+        web_app: { url: WEBAPP_URL }
+    }
+}).catch(err => console.error("Failed to set menu button:", err));
+
 bot.command("start", async (ctx) => {
     const tgUser = ctx.from;
     const param = ctx.match || "";
