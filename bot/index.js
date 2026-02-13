@@ -456,6 +456,7 @@ app.get("/admin/api/users", checkAdminAuth, async (req, res) => {
         const result = await pool.query(`
             SELECT
                 id, telegram_id, first_name, last_name, username,
+                phone, membership_type,
                 coins, xp, last_activity_at, created_at,
                 (SELECT COUNT(*) FROM user_tasks WHERE user_id = users.id AND status = 'completed') as completed_tasks
             FROM users
