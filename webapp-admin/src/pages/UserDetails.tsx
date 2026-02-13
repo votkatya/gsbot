@@ -11,23 +11,15 @@ export default function UserDetails() {
   const navigate = useNavigate();
   const [showEditDialog, setShowEditDialog] = useState(false);
 
-  const { data: user, isLoading } = useQuery({
+  const { data: userData, isLoading } = useQuery({
     queryKey: ['user', id],
     queryFn: () => api.getUser(id!),
     enabled: !!id,
   });
 
-  const { data: userTasks } = useQuery({
-    queryKey: ['user-tasks', id],
-    queryFn: () => api.getUserTasks(id!),
-    enabled: !!id,
-  });
-
-  const { data: userPurchases } = useQuery({
-    queryKey: ['user-purchases', id],
-    queryFn: () => api.getUserPurchases(id!),
-    enabled: !!id,
-  });
+  const user = userData?.user;
+  const userTasks = userData?.tasks;
+  const userPurchases = userData?.purchases;
 
   if (isLoading) {
     return (
