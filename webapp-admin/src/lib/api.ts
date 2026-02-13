@@ -60,6 +60,10 @@ class ApiClient {
     return this.request('/admin/api/stats');
   }
 
+  async getChartStats() {
+    return this.request('/admin/api/stats/charts');
+  }
+
   // Users
   async getUsers() {
     return this.request('/admin/api/users');

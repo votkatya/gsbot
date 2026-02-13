@@ -464,6 +464,55 @@ app.get("/admin/api/stats", checkAdminAuth, async (req, res) => {
     }
 });
 
+// Статистика для графиков
+app.get("/admin/api/stats/charts", checkAdminAuth, async (req, res) => {
+    try {
+        // Регистрации по дням (последние 7 дней)
+        const registrationsByDay = await pool.query(`
+            SELECT
+                DATE(created_at) as date,
+                COUNT(*) as count
+            FROM users
+            WHERE created_at > NOW() - INTERVAL '7 days'
+            GROUP BY DATE(created_at)
+            ORDER BY date
+        `);
+
+        // Выполнения заданий по дням (последние 7 дней)
+        const taskCompletionsByDay = await pool.query(`
+            SELECT
+                DATE(completed_at) as date,
+                COUNT(*) as count
+            FROM user_tasks
+            WHERE completed_at > NOW() - INTERVAL '7 days' AND status = 'completed'
+            GROUP BY DATE(completed_at)
+            ORDER BY date
+        `);
+
+        // Топ-5 самых популярных заданий
+        const topTasks = await pool.query(`
+            SELECT
+                t.title,
+                t.day_number,
+                COUNT(ut.id) as completions
+            FROM tasks t
+            LEFT JOIN user_tasks ut ON ut.task_id = t.id AND ut.status = 'completed'
+            GROUP BY t.id, t.title, t.day_number
+            ORDER BY completions DESC
+            LIMIT 5
+        `);
+
+        res.json({
+            registrationsByDay: registrationsByDay.rows,
+            taskCompletionsByDay: taskCompletionsByDay.rows,
+            topTasks: topTasks.rows
+        });
+    } catch (e) {
+        console.error("❌ Failed to get chart stats:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Список пользователей
 app.get("/admin/api/users", checkAdminAuth, async (req, res) => {
     try {

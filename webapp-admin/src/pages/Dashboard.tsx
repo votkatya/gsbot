@@ -1,11 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { Users, ListChecks, Gift, TrendingUp } from 'lucide-react'
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { format } from 'date-fns'
+import { ru } from 'date-fns/locale'
 
 export default function Dashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['stats'],
     queryFn: () => api.getStats(),
+  })
+
+  const { data: chartData } = useQuery({
+    queryKey: ['chartStats'],
+    queryFn: () => api.getChartStats(),
   })
 
   if (isLoading) {
@@ -76,20 +84,77 @@ export default function Dashboard() {
         })}
       </div>
 
-      <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          Добро пожаловать в админ-панель!
-        </h2>
-        <p className="text-gray-600 mb-4">
-          Здесь вы можете управлять пользователями, заданиями и призами.
-        </p>
-        <ul className="space-y-2 text-gray-600">
-          <li>• Просматривайте статистику по пользователям и активности</li>
-          <li>• Управляйте заданиями и настраивайте награды</li>
-          <li>• Контролируйте призы и историю покупок</li>
-          <li>• Следите за активностью пользователей</li>
-        </ul>
-      </div>
+      {/* Графики */}
+      {chartData && (
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* График регистраций */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">
+              Регистрации (последние 7 дней)
+            </h2>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={chartData.registrationsByDay}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(date) => format(new Date(date), 'd MMM', { locale: ru })}
+                />
+                <YAxis />
+                <Tooltip
+                  labelFormatter={(date) => format(new Date(date), 'd MMMM', { locale: ru })}
+                  formatter={(value: any) => [`${value} чел.`, 'Регистрации']}
+                />
+                <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* График выполнений заданий */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">
+              Выполнено заданий (последние 7 дней)
+            </h2>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={chartData.taskCompletionsByDay}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(date) => format(new Date(date), 'd MMM', { locale: ru })}
+                />
+                <YAxis />
+                <Tooltip
+                  labelFormatter={(date) => format(new Date(date), 'd MMMM', { locale: ru })}
+                  formatter={(value: any) => [`${value} шт.`, 'Заданий']}
+                />
+                <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Топ заданий */}
+      {chartData && chartData.topTasks.length > 0 && (
+        <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-4">
+            Топ-5 самых популярных заданий
+          </h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData.topTasks} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" />
+              <YAxis
+                dataKey="title"
+                type="category"
+                width={200}
+                tick={{ fontSize: 12 }}
+              />
+              <Tooltip formatter={(value: any) => [`${value} раз`, 'Выполнено']} />
+              <Bar dataKey="completions" fill="#8b5cf6" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   )
 }
