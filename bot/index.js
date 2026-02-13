@@ -140,11 +140,15 @@ app.post("/api/complete-task", async (req, res) => {
 
         // Проверка кода из приложения (задание 2 или блок 2 с QR/ручными кодами)
         if (verificationType === "app_code") {
-            // Для блока 2 (дни 4-9) проверяем QR или ручной код
-            if (task.verification_type === "qr_or_manual" && verificationData) {
-                const inputCode = verificationData.toUpperCase().trim();
-                const taskData = task.verification_data;
+            const inputCode = verificationData?.toUpperCase().trim();
+            const taskData = task.verification_data;
 
+            // Проверяем тестовый код для всех заданий с app_code
+            if (taskData?.test_code && inputCode === taskData.test_code.toUpperCase()) {
+                console.log('✅ Test code accepted:', inputCode);
+            }
+            // Для блока 2 (дни 4-9) проверяем QR или ручной код
+            else if (task.verification_type === "qr_or_manual" && verificationData) {
                 console.log('🔍 QR/Manual code check:', {
                     inputCode,
                     inputLength: inputCode.length,
@@ -175,12 +179,9 @@ app.post("/api/complete-task", async (req, res) => {
                     return res.json({ error: "Неверный код. Попробуй ещё раз." });
                 }
             }
-            // Для задания 2 - проверяем тестовый код
+            // Для обычных заданий с app_code (день 2 и т.д.)
             else {
-                const validCodes = ["testgs"];
-                if (!validCodes.includes(verificationData?.toLowerCase())) {
-                    return res.json({ error: "Неверный код. Попробуй ещё раз." });
-                }
+                return res.json({ error: "Неверный код. Попробуй ещё раз." });
             }
         }
 

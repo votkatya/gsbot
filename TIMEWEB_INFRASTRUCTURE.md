@@ -308,6 +308,21 @@ const pool = new Pool({
 | GET | `/api/leaderboard` | Получить рейтинг |
 | POST | `/webhook` | Webhook для Telegram бота |
 
+#### Верификация заданий Блока 2 (QR коды + ручные коды)
+
+Дни 4-9 используют тип верификации `qr_or_manual`:
+- Фронтенд отправляет `verificationType: 'app_code'` с введенным кодом
+- Backend проверяет `task.verification_type === "qr_or_manual"`
+- Коды длиной 5 символов проверяются как `manual_code` (формат: 3 буквы + 2 цифры, например TNT45)
+- Коды длиннее 5 символов проверяются как `qr_code` (например GORODSPORTA_DAY4)
+- Проверка регистронезависимая (`.toUpperCase()`)
+
+**QR-коды для печати:**
+- Файл `/Users/user/Downloads/Claude GS/qr-codes-print.html` содержит страницу для печати QR-кодов
+- Дизайн: желтый фон (#FFD33D), черные элементы
+- Каждая карточка содержит: QR-код, ручной код, название задания, локацию
+- QR-коды генерируются через библиотеку qrcodejs
+
 ### Запуск и управление
 
 ```bash
@@ -450,10 +465,26 @@ CREATE TABLE tasks (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     coins_reward INT DEFAULT 0,
-    verification_type VARCHAR(50), -- 'qr', 'code', 'self', 'survey', 'app_code'
+    verification_type VARCHAR(50), -- 'qr', 'code', 'self', 'survey', 'app_code', 'qr_or_manual'
     verification_data JSONB,
     created_at TIMESTAMP DEFAULT NOW()
 );
+```
+
+**Типы верификации:**
+- `qr` - только QR-код
+- `code` - только код сотрудника
+- `self` - самостоятельное выполнение (без проверки)
+- `survey` - анкета (день 1)
+- `app_code` - код в приложении
+- `qr_or_manual` - QR-код или ручной ввод 5-символьного кода (Блок 2, дни 4-9)
+
+**Структура verification_data для qr_or_manual:**
+```json
+{
+  "qr_code": "GORODSPORTA_DAY4",
+  "manual_code": "TNT45"
+}
 ```
 
 #### 3. `user_tasks` - Выполненные задания
@@ -975,6 +1006,7 @@ psql -U gsadmin -d gorodsporta
 | Дата | Версия | Изменения |
 |------|--------|-----------|
 | 12.02.2026 | 1.0 | Первая версия документации |
+| 13.02.2026 | 1.1 | Добавлена информация о QR-кодах и ручных кодах для Блока 2 (дни 4-9) |
 
 ---
 
