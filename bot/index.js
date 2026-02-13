@@ -144,6 +144,14 @@ app.post("/api/complete-task", async (req, res) => {
             const inputCode = verificationData.toUpperCase().trim();
             const taskData = task.verification_data;
 
+            console.log('🔍 QR/Manual code check:', {
+                inputCode,
+                inputLength: inputCode.length,
+                taskData,
+                manualCodeUpper: taskData?.manual_code?.toUpperCase(),
+                qrCodeUpper: taskData?.qr_code?.toUpperCase()
+            });
+
             if (!taskData || (!taskData.qr_code && !taskData.manual_code)) {
                 return res.json({ error: "Задание не настроено" });
             }
@@ -153,13 +161,16 @@ app.post("/api/complete-task", async (req, res) => {
             // Если введен короткий код (5 символов) - это ручной код
             if (inputCode.length === 5 && taskData.manual_code) {
                 isValid = (inputCode === taskData.manual_code.toUpperCase());
+                console.log('✅ Manual code check:', { inputCode, expected: taskData.manual_code.toUpperCase(), isValid });
             }
             // Если длинный код - это QR-код
             else if (taskData.qr_code) {
                 isValid = (inputCode === taskData.qr_code.toUpperCase());
+                console.log('✅ QR code check:', { inputCode, expected: taskData.qr_code.toUpperCase(), isValid });
             }
 
             if (!isValid) {
+                console.log('❌ Code validation failed');
                 return res.json({ error: "Неверный код. Попробуй ещё раз." });
             }
         }
