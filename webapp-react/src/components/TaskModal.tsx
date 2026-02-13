@@ -94,7 +94,7 @@ export const TaskModal = ({
   const isStage1or3 = task.stage === 1 || task.stage === 3;
   const isStage2 = task.stage === 2;
   const needsCodeInput = (isStage1or3 && !isSurveyTask && !isAppTask && !isReferralTask && !isQuizTask && !isReviewTask) || task.verificationType === "self";
-  const needsQRScan = isStage2 && (task.verificationType === "qr" || task.verificationType === "code");
+  const needsQRScan = isStage2 && (task.verificationType === "qr" || task.verificationType === "code" || task.verificationType === "qr_or_manual");
 
   return (
     <AnimatePresence>
@@ -146,7 +146,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{task.description}</p>
 
                 {/* Completed badge */}
                 <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 p-4">
@@ -176,7 +176,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{task.description}</p>
 
                 {/* Survey form */}
                 <SurveyForm
@@ -206,7 +206,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{task.description}</p>
 
                 {/* App links */}
                 <div className="space-y-2">
@@ -283,7 +283,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{task.description}</p>
 
                 {/* Review link */}
                 {task.verificationData?.url && (
@@ -329,7 +329,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{task.description}</p>
 
                 {/* Referral form */}
                 <ReferralForm
@@ -359,7 +359,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{task.description}</p>
 
                 {/* Quiz form */}
                 <QuizForm
@@ -396,7 +396,7 @@ export const TaskModal = ({
                 {task.instruction && (
                   <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
                     <h3 className="text-sm font-semibold text-primary mb-2">📋 Инструкция:</h3>
-                    <p className="text-sm text-foreground">{task.instruction}</p>
+                    <p className="text-sm text-foreground whitespace-pre-line">{task.instruction}</p>
                   </div>
                 )}
 
@@ -409,6 +409,41 @@ export const TaskModal = ({
                   <QrCode className="h-5 w-5" />
                   Сканировать QR-код
                 </Button>
+
+                {/* Manual code input for qr_or_manual tasks */}
+                {task.verificationType === "qr_or_manual" && (
+                  <>
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-muted" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-card px-2 text-muted-foreground">или</span>
+                      </div>
+                    </div>
+
+                    <input
+                      type="text"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value.toUpperCase())}
+                      placeholder="Введи код вручную"
+                      className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary uppercase"
+                      maxLength={5}
+                    />
+
+                    <Button
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                      size="lg"
+                      disabled={!code.trim() || isCodeLoading}
+                      onClick={() => {
+                        onCodeSubmit?.(code.trim());
+                        setCode("");
+                      }}
+                    >
+                      {isCodeLoading ? "Проверяем..." : "Отправить код"}
+                    </Button>
+                  </>
+                )}
               </div>
             ) : (
               /* STAGE 1 & 3 - CODE INPUT TASKS (except survey and app) */
@@ -432,7 +467,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{task.description}</p>
 
                 {/* Code input or just button */}
                 {task.verificationType === "self" ? (
