@@ -40,6 +40,29 @@ interface TaskModalProps {
   isQuizLoading?: boolean;
 }
 
+// Helper function to convert URLs in text to clickable links
+const renderDescriptionWithLinks = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline hover:text-primary/80"
+        >
+          {part}
+        </a>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+};
+
 export const TaskModal = ({
   task,
   isOpen,
@@ -146,7 +169,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground whitespace-pre-line">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{renderDescriptionWithLinks(task.description)}</p>
 
                 {/* Completed badge */}
                 <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 p-4">
@@ -176,7 +199,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground whitespace-pre-line">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{renderDescriptionWithLinks(task.description)}</p>
 
                 {/* Survey form */}
                 <SurveyForm
@@ -206,7 +229,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground whitespace-pre-line">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{renderDescriptionWithLinks(task.description)}</p>
 
                 {/* App links */}
                 <div className="space-y-2">
@@ -283,7 +306,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground whitespace-pre-line">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{renderDescriptionWithLinks(task.description)}</p>
 
                 {/* Review link */}
                 {task.verificationData?.url && (
@@ -329,7 +352,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground whitespace-pre-line">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{renderDescriptionWithLinks(task.description)}</p>
 
                 {/* Referral form */}
                 <ReferralForm
@@ -359,7 +382,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground whitespace-pre-line">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{renderDescriptionWithLinks(task.description)}</p>
 
                 {/* Quiz form */}
                 <QuizForm
@@ -390,7 +413,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground whitespace-pre-line">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{renderDescriptionWithLinks(task.description)}</p>
 
                 {/* Instruction block */}
                 {task.instruction && (
@@ -467,7 +490,7 @@ export const TaskModal = ({
                 <h2 className="text-2xl font-bold text-foreground">{task.title}</h2>
 
                 {/* Description */}
-                <p className="text-foreground whitespace-pre-line">{task.description}</p>
+                <p className="text-foreground whitespace-pre-line">{renderDescriptionWithLinks(task.description)}</p>
 
                 {/* Code input or just button */}
                 {task.verificationType === "self" ? (
