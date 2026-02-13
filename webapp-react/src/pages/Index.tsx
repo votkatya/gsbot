@@ -872,7 +872,10 @@ const Index = () => {
         onClose={() => setIsOnboardingOpen(false)}
       />
 
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      {/* Hide bottom nav during registration and onboarding */}
+      {!isRegistrationOpen && !isOnboardingOpen && (
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      )}
     </div>
   );
 };
