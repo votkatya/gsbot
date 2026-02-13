@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
+import { EditTaskDialog } from '../components/EditTaskDialog'
 
 export default function Tasks() {
+  const [editingTask, setEditingTask] = useState<any>(null)
+
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['tasks'],
     queryFn: () => api.getTasks(),
@@ -48,6 +52,12 @@ export default function Tasks() {
                   </span>
                 </div>
               </div>
+              <button
+                onClick={() => setEditingTask(task)}
+                className="ml-4 px-4 py-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md font-medium transition-colors"
+              >
+                Редактировать
+              </button>
             </div>
           </div>
         ))}
@@ -56,6 +66,14 @@ export default function Tasks() {
       <div className="mt-4 text-sm text-gray-600">
         Всего заданий: {tasks?.length || 0}
       </div>
+
+      {editingTask && (
+        <EditTaskDialog
+          task={editingTask}
+          isOpen={!!editingTask}
+          onClose={() => setEditingTask(null)}
+        />
+      )}
     </div>
   )
 }
