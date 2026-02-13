@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
+import { EditPrizeDialog } from '../components/EditPrizeDialog'
 
 export default function Prizes() {
+  const [editingPrize, setEditingPrize] = useState<any>(null)
+
   const { data: prizes, isLoading } = useQuery({
     queryKey: ['prizes'],
     queryFn: () => api.getPrizes(),
@@ -51,6 +55,15 @@ export default function Prizes() {
                 Куплено: {prize.purchase_count}
               </div>
             </div>
+
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <button
+                onClick={() => setEditingPrize(prize)}
+                className="w-full px-4 py-2 text-sm text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-colors font-medium"
+              >
+                Редактировать
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -58,6 +71,14 @@ export default function Prizes() {
       <div className="mt-4 text-sm text-gray-600">
         Всего призов: {prizes?.length || 0} (активных: {prizes?.filter((p: any) => p.is_active).length || 0})
       </div>
+
+      {editingPrize && (
+        <EditPrizeDialog
+          prize={editingPrize}
+          isOpen={!!editingPrize}
+          onClose={() => setEditingPrize(null)}
+        />
+      )}
     </div>
   )
 }

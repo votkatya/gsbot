@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { formatDistanceToNow } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import { EditUserDialog } from '../components/EditUserDialog'
 
 export default function Users() {
+  const navigate = useNavigate()
   const [editingUser, setEditingUser] = useState<any>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -135,12 +137,21 @@ export default function Users() {
                       : '—'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button
-                      onClick={() => setEditingUser(user)}
-                      className="text-blue-600 hover:text-blue-900 font-medium"
-                    >
-                      Редактировать
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => navigate(`/users/${user.id}`)}
+                        className="text-blue-600 hover:text-blue-900 font-medium"
+                      >
+                        Подробнее
+                      </button>
+                      <span className="text-gray-300">|</span>
+                      <button
+                        onClick={() => setEditingUser(user)}
+                        className="text-green-600 hover:text-green-900 font-medium"
+                      >
+                        Редактировать
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

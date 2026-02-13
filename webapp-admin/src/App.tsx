@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Users from './pages/Users'
+import UserDetails from './pages/UserDetails'
 import Tasks from './pages/Tasks'
 import Prizes from './pages/Prizes'
 import Purchases from './pages/Purchases'
@@ -26,6 +27,7 @@ function App() {
                 <Routes>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/users" element={<Users />} />
+                  <Route path="/users/:id" element={<UserDetails />} />
                   <Route path="/tasks" element={<Tasks />} />
                   <Route path="/prizes" element={<Prizes />} />
                   <Route path="/purchases" element={<Purchases />} />

@@ -80,6 +80,14 @@ class ApiClient {
     });
   }
 
+  async getUserTasks(userId: string) {
+    return this.request(`/admin/api/users/${userId}/tasks`);
+  }
+
+  async getUserPurchases(userId: string) {
+    return this.request(`/admin/api/users/${userId}/purchases`);
+  }
+
   // Tasks
   async getTasks() {
     return this.request('/admin/api/tasks');

@@ -603,6 +603,46 @@ app.post("/admin/api/users/:id/update", checkAdminAuth, async (req, res) => {
     }
 });
 
+// Задания пользователя
+app.get("/admin/api/users/:id/tasks", checkAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(`
+            SELECT
+                ut.*,
+                t.title as task_title,
+                t.day_number,
+                t.coins_reward
+            FROM user_tasks ut
+            JOIN tasks t ON t.id = ut.task_id
+            WHERE ut.user_id = $1 AND ut.status = 'completed'
+            ORDER BY ut.completed_at DESC
+        `, [id]);
+        res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Покупки пользователя
+app.get("/admin/api/users/:id/purchases", checkAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(`
+            SELECT
+                p.*,
+                si.title as item_title
+            FROM purchases p
+            JOIN shop_items si ON si.id = p.item_id
+            WHERE p.user_id = $1
+            ORDER BY p.created_at DESC
+        `, [id]);
+        res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Список заданий
 app.get("/admin/api/tasks", checkAdminAuth, async (req, res) => {
     try {
