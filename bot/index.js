@@ -28,8 +28,18 @@ bot.command("start", async (ctx) => {
     const tgUser = ctx.from;
     const param = ctx.match || "";
 
-    // Не создаём пользователя автоматически!
-    // Пользователь создастся после регистрации в приложении через /api/register
+    // Создаём пользователя в базе (без phone и membership - их заполним при регистрации)
+    try {
+        await pool.query(
+            `INSERT INTO users (telegram_id, first_name, last_name, username, coins, xp, last_activity_at, created_at)
+             VALUES ($1, $2, $3, $4, 0, 0, now(), now())
+             ON CONFLICT (telegram_id) DO UPDATE SET
+             first_name = $2, last_name = $3, username = $4, last_activity_at = now()`,
+            [tgUser.id, tgUser.first_name, tgUser.last_name || "", tgUser.username || ""]
+        );
+    } catch (err) {
+        console.error("Failed to create/update user:", err);
+    }
 
     if (param.startsWith("qr_")) {
         await ctx.reply("QR-код найден! Открой приложение:", {

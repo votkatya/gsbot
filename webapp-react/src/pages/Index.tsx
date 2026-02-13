@@ -70,16 +70,13 @@ const Index = () => {
   const [shopItems, setShopItems] = useState<ShopItemView[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
-  // --- Check registration & onboarding on first load ---
+  // --- Check onboarding on first load ---
   useEffect(() => {
-    const hasRegistered = localStorage.getItem("registration_completed");
     const hasSeenOnboarding = localStorage.getItem("onboarding_completed");
+    const hasRegistered = localStorage.getItem("registration_completed");
 
-    if (!hasRegistered) {
-      // Show registration first
-      setIsRegistrationOpen(true);
-    } else if (!hasSeenOnboarding) {
-      // Then show onboarding
+    // Show onboarding only if user has registered but hasn't seen onboarding
+    if (hasRegistered && !hasSeenOnboarding) {
       setIsOnboardingOpen(true);
     }
   }, []);
@@ -106,6 +103,14 @@ const Index = () => {
           setTasks(mapApiTasks(userData.tasks));
           setUserNotFound(false);
           setServerError(false);
+
+          // Check if user needs to complete registration
+          if (!userData.user.phone) {
+            console.log("User needs to complete registration");
+            localStorage.removeItem("registration_completed");
+            localStorage.removeItem("onboarding_completed");
+            setIsRegistrationOpen(true);
+          }
         } else {
           // Could be user not found OR server error
           // Let's try to load shop to differentiate
