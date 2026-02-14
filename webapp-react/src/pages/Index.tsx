@@ -91,6 +91,19 @@ const Index = () => {
     }
   };
 
+  // --- Reload tasks ---
+  const reloadTasks = async () => {
+    if (!telegramId) return;
+    try {
+      const userData = await api.fetchUser(telegramId);
+      if (userData && userData.tasks) {
+        setTasks(mapApiTasks(userData.tasks));
+      }
+    } catch (err) {
+      console.error("Failed to reload tasks:", err);
+    }
+  };
+
   // --- Load all data ---
   const loadData = async () => {
     if (!isReady || !telegramId) {
@@ -346,6 +359,7 @@ const Index = () => {
         setIsModalOpen(false);
         setIsCelebrationOpen(true);
         reloadLeaderboard();
+        reloadTasks();
 
         window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
       } else {
