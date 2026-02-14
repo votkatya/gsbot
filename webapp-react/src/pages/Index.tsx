@@ -80,62 +80,73 @@ const Index = () => {
     }
   }, []);
 
+  // --- Reload leaderboard ---
+  const reloadLeaderboard = async () => {
+    if (!telegramId) return;
+    try {
+      const lbData = await api.fetchLeaderboard();
+      setLeaderboard(mapLeaderboard(lbData, telegramId));
+    } catch (err) {
+      console.error("Failed to reload leaderboard:", err);
+    }
+  };
+
   // --- Load all data ---
-  useEffect(() => {
-    console.log("Index: loadData effect triggered", { isReady, telegramId });
+  const loadData = async () => {
     if (!isReady || !telegramId) {
       console.log("Index: Waiting for Telegram context to be ready");
       return;
     }
 
-    async function loadData() {
-      console.log("Index: Starting data load...");
-      setIsLoading(true);
-      setServerError(false);
-      try {
-        // Load user + tasks
-        const userData = await api.fetchUser(telegramId!);
+    console.log("Index: Starting data load...");
+    setIsLoading(true);
+    setServerError(false);
+    try {
+      // Load user + tasks
+      const userData = await api.fetchUser(telegramId!);
 
-        // Always load shop and leaderboard regardless of user status
-        const shopData = await api.fetchShop();
-        setShopItems(shopData.map(mapApiShopItem));
+      // Always load shop and leaderboard regardless of user status
+      const shopData = await api.fetchShop();
+      setShopItems(shopData.map(mapApiShopItem));
 
-        const lbData = await api.fetchLeaderboard();
-        setLeaderboard(mapLeaderboard(lbData, telegramId!));
+      const lbData = await api.fetchLeaderboard();
+      setLeaderboard(mapLeaderboard(lbData, telegramId!));
 
-        if (userData && userData.user) {
-          // User exists in database
-          setUserXP(userData.user.xp);
-          setUserCoins(userData.user.coins);
-          setUserName(userData.user.first_name || "Атлет");
-          setTasks(mapApiTasks(userData.tasks));
+      if (userData && userData.user) {
+        // User exists in database
+        setUserXP(userData.user.xp);
+        setUserCoins(userData.user.coins);
+        setUserName(userData.user.first_name || "Атлет");
+        setTasks(mapApiTasks(userData.tasks));
 
-          // Check if user needs to complete registration (no phone)
-          if (!userData.user.phone) {
-            console.log("User exists but needs to complete registration (no phone)");
-            localStorage.removeItem("registration_completed");
-            localStorage.removeItem("onboarding_completed");
-            setIsRegistrationOpen(true);
-          } else {
-            // User is fully registered
-            console.log("User is fully registered");
-          }
-        } else {
-          // User not found in database - show registration
-          console.log("User not found in database - showing registration");
+        // Check if user needs to complete registration (no phone)
+        if (!userData.user.phone) {
+          console.log("User exists but needs to complete registration (no phone)");
           localStorage.removeItem("registration_completed");
           localStorage.removeItem("onboarding_completed");
           setIsRegistrationOpen(true);
+        } else {
+          // User is fully registered
+          console.log("User is fully registered");
         }
-      } catch (err) {
-        console.error("Failed to load data:", err);
-        setServerError(true);
-        toast.error("Не удалось подключиться к серверу");
-      } finally {
-        setIsLoading(false);
+      } else {
+        // User not found in database - show registration
+        console.log("User not found in database - showing registration");
+        localStorage.removeItem("registration_completed");
+        localStorage.removeItem("onboarding_completed");
+        setIsRegistrationOpen(true);
       }
+    } catch (err) {
+      console.error("Failed to load data:", err);
+      setServerError(true);
+      toast.error("Не удалось подключиться к серверу");
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  useEffect(() => {
+    console.log("Index: loadData effect triggered", { isReady, telegramId });
     loadData();
   }, [isReady, telegramId]);
 
@@ -172,6 +183,7 @@ const Index = () => {
                 coins: result.reward || 0,
               });
               setIsCelebrationOpen(true);
+              reloadLeaderboard();
 
               window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred(
                 "success"
@@ -289,6 +301,11 @@ const Index = () => {
         setIsModalOpen(false);
         setIsCelebrationOpen(true);
 
+        // Reload leaderboard to update ranking
+        api.fetchLeaderboard().then(lbData => {
+          setLeaderboard(mapLeaderboard(lbData, telegramId!));
+        });
+
         window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred(
           "success"
         );
@@ -328,6 +345,7 @@ const Index = () => {
         });
         setIsModalOpen(false);
         setIsCelebrationOpen(true);
+        reloadLeaderboard();
 
         window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
       } else {
@@ -459,6 +477,20 @@ const Index = () => {
           console.log("✅ Registration saved to database");
           // Update local user name
           setUserName(data.fullName.split(" ")[0] || "Атлет");
+
+          // Save to localStorage
+          localStorage.setItem("registration_completed", "true");
+          localStorage.setItem("registration_data", JSON.stringify(data));
+
+          // Close registration and show onboarding
+          setIsRegistrationOpen(false);
+          setIsOnboardingOpen(true);
+
+          // Haptic feedback
+          window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
+
+          // Reload data to get tasks and leaderboard
+          await loadData();
         } else {
           console.error("❌ Registration failed:", result.error);
           toast.error(result.error || "Ошибка регистрации");
@@ -468,17 +500,6 @@ const Index = () => {
         toast.error("Ошибка сети");
       }
     }
-
-    // Save to localStorage
-    localStorage.setItem("registration_completed", "true");
-    localStorage.setItem("registration_data", JSON.stringify(data));
-
-    // Close registration and show onboarding
-    setIsRegistrationOpen(false);
-    setIsOnboardingOpen(true);
-
-    // Haptic feedback
-    window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
   };
 
   // Handle quiz submission (task 14 - Пройди тест)
