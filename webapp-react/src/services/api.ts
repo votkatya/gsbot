@@ -204,13 +204,15 @@ export async function submitRegistration(
   telegramId: number,
   fullName: string,
   phone: string,
-  membership: string
+  membership: string,
+  lastName?: string,
+  username?: string
 ): Promise<{ success?: boolean; error?: string; user?: ApiUser }> {
   try {
     const res = await fetchWithTimeout(`${API_BASE}/api/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId, fullName, phone, membership }),
+      body: JSON.stringify({ telegramId, fullName, phone, membership, lastName, username }),
     });
     return res.json();
   } catch (error) {

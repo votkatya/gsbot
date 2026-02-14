@@ -27,7 +27,7 @@ import {
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
-  const { telegramId, firstName, isReady, startParam } = useTelegram();
+  const { telegramId, firstName, lastName, username, isReady, startParam } = useTelegram();
 
   const [activeTab, setActiveTab] = useState("home");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -450,7 +450,9 @@ const Index = () => {
           telegramId,
           data.fullName,
           data.phone,
-          data.membership
+          data.membership,
+          lastName,
+          username
         );
 
         if (result.success) {

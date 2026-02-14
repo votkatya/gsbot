@@ -396,18 +396,18 @@ app.post("/api/survey", async (req, res) => {
 // Registration endpoint - save user registration data
 app.post("/api/register", async (req, res) => {
     try {
-        const { telegramId, fullName, phone, membership } = req.body;
+        const { telegramId, fullName, phone, membership, lastName, username } = req.body;
 
-        console.log("📝 Registration request:", { telegramId, fullName, phone, membership });
+        console.log("📝 Registration request:", { telegramId, fullName, phone, membership, lastName, username });
 
         // Create or update user with registration data
         const result = await pool.query(
-            `INSERT INTO users (telegram_id, first_name, phone, membership_type, coins, xp, last_activity_at, created_at)
-             VALUES ($1, $2, $3, $4, 0, 0, now(), now())
+            `INSERT INTO users (telegram_id, first_name, last_name, username, phone, membership_type, coins, xp, last_activity_at, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, 0, 0, now(), now())
              ON CONFLICT (telegram_id) DO UPDATE SET
-             first_name = $2, phone = $3, membership_type = $4, last_activity_at = now()
+             first_name = $2, last_name = $3, username = $4, phone = $5, membership_type = $6, last_activity_at = now()
              RETURNING *`,
-            [telegramId, fullName, phone, membership]
+            [telegramId, fullName, lastName || "", username || "", phone, membership]
         );
 
         console.log("✅ Registration saved:", result.rows[0]);
