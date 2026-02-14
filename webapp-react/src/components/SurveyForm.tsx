@@ -13,6 +13,23 @@ export const SurveyForm = ({ onSubmit, isLoading }: SurveyFormProps) => {
   const [goals, setGoals] = useState<string[]>([]);
   const [hasKids, setHasKids] = useState<string>("");
 
+  // Handle birth date input with mask DD.MM.YYYY
+  const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+
+    if (value.length >= 2) {
+      value = value.slice(0, 2) + "." + value.slice(2);
+    }
+    if (value.length >= 5) {
+      value = value.slice(0, 5) + "." + value.slice(5);
+    }
+    if (value.length > 10) {
+      value = value.slice(0, 10);
+    }
+
+    setBirthDate(value);
+  };
+
   const goalOptions = [
     "Похудение",
     "Набор мышц / форма",
@@ -61,10 +78,13 @@ export const SurveyForm = ({ onSubmit, isLoading }: SurveyFormProps) => {
           Дата рождения
         </label>
         <input
-          type="date"
+          type="text"
+          inputMode="numeric"
           value={birthDate}
-          onChange={(e) => setBirthDate(e.target.value)}
-          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          onChange={handleBirthDateChange}
+          placeholder="ДД.ММ.ГГГГ"
+          maxLength={10}
+          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
 
