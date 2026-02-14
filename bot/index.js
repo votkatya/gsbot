@@ -45,23 +45,24 @@ bot.command("start", async (ctx) => {
         console.error("❌ Failed to create/update user:", err.message);
     }
 
-    if (param.startsWith("qr_")) {
-        await ctx.reply("QR-код найден! Открой приложение:", {
-            reply_markup: {
-                inline_keyboard: [[
-                    { text: "Получить награду", web_app: { url: WEBAPP_URL + "?tgWebAppStartParam=" + param } }
-                ]]
-            }
-        });
-    } else {
-        await ctx.reply("Привет, " + tgUser.first_name + "! Добро пожаловать в Город Спорта!", {
-            reply_markup: {
-                inline_keyboard: [[
-                    { text: "Начать", web_app: { url: WEBAPP_URL } }
-                ]]
-            }
-        });
-    }
+    // Сообщения отправляются через сторонний сервис
+    // if (param.startsWith("qr_")) {
+    //     await ctx.reply("QR-код найден! Открой приложение:", {
+    //         reply_markup: {
+    //             inline_keyboard: [[
+    //                 { text: "Получить награду", web_app: { url: WEBAPP_URL + "?tgWebAppStartParam=" + param } }
+    //             ]]
+    //         }
+    //     });
+    // } else {
+    //     await ctx.reply("Привет, " + tgUser.first_name + "! Добро пожаловать в Город Спорта!", {
+    //         reply_markup: {
+    //             inline_keyboard: [[
+    //                 { text: "Начать", web_app: { url: WEBAPP_URL } }
+    //             ]]
+    //         }
+    //     });
+    // }
 });
 
 const app = express();
