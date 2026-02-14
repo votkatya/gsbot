@@ -88,6 +88,12 @@ class ApiClient {
     return this.request(`/admin/api/users/${userId}/purchases`);
   }
 
+  async deleteUser(userId: string) {
+    return this.request(`/admin/api/users/${userId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Tasks
   async getTasks() {
     return this.request('/admin/api/tasks');

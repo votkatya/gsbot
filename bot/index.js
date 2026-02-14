@@ -604,6 +604,35 @@ app.post("/admin/api/users/:id/update", checkAdminAuth, async (req, res) => {
     }
 });
 
+// Удалить пользователя
+app.delete("/admin/api/users/:id", checkAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        console.log(`🗑️ Admin deleting user ${id}`);
+
+        // Удаляем все связанные данные (каскадное удаление)
+        // 1. Удаляем задания пользователя
+        await pool.query("DELETE FROM user_tasks WHERE user_id = $1", [id]);
+
+        // 2. Удаляем покупки пользователя
+        await pool.query("DELETE FROM purchases WHERE user_id = $1", [id]);
+
+        // 3. Удаляем самого пользователя
+        const result = await pool.query("DELETE FROM users WHERE id = $1 RETURNING telegram_id", [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        console.log(`✅ User ${id} (telegram_id: ${result.rows[0].telegram_id}) deleted successfully`);
+        res.json({ success: true });
+    } catch (e) {
+        console.error("❌ Failed to delete user:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Задания пользователя
 app.get("/admin/api/users/:id/tasks", checkAdminAuth, async (req, res) => {
     try {

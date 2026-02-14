@@ -1,15 +1,18 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useState } from 'react';
 import { EditUserDialog } from '@/components/EditUserDialog';
+import { toast } from 'sonner';
 
 export default function UserDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const { data: userData, isLoading } = useQuery({
     queryKey: ['user', id],
@@ -20,6 +23,27 @@ export default function UserDetails() {
   const user = userData?.user;
   const userTasks = userData?.tasks;
   const userPurchases = userData?.purchases;
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.deleteUser(id!),
+    onSuccess: () => {
+      toast.success('Пользователь удалён');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      navigate('/users');
+    },
+    onError: (error: any) => {
+      toast.error(`Ошибка удаления: ${error.message}`);
+    },
+  });
+
+  const handleDelete = () => {
+    if (showDeleteConfirm) {
+      deleteMutation.mutate();
+    } else {
+      setShowDeleteConfirm(true);
+      setTimeout(() => setShowDeleteConfirm(false), 5000); // Сброс через 5 секунд
+    }
+  };
 
   if (isLoading) {
     return (
@@ -61,12 +85,29 @@ export default function UserDetails() {
               {user.username ? `@${user.username}` : 'Нет username'}
             </p>
           </div>
-          <button
-            onClick={() => setShowEditDialog(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Редактировать
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowEditDialog(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Редактировать
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                showDeleteConfirm
+                  ? 'bg-red-600 text-white hover:bg-red-700'
+                  : 'bg-gray-100 text-red-600 hover:bg-red-50'
+              } ${deleteMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {deleteMutation.isPending
+                ? 'Удаление...'
+                : showDeleteConfirm
+                ? 'Точно удалить?'
+                : 'Удалить'}
+            </button>
+          </div>
         </div>
       </div>
 
