@@ -7,7 +7,7 @@ interface ProgressWidgetProps {
 }
 
 export const ProgressWidget = ({ completed, total }: ProgressWidgetProps) => {
-  const percentage = Math.round((completed / total) * 100);
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   return (
     <motion.div
