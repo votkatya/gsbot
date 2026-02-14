@@ -63,7 +63,6 @@ const Index = () => {
 
   // Data loading
   const [isLoading, setIsLoading] = useState(true);
-  const [userNotFound, setUserNotFound] = useState(false);
   const [serverError, setServerError] = useState(false);
 
   // Shop & Leaderboard
@@ -96,47 +95,37 @@ const Index = () => {
       try {
         // Load user + tasks
         const userData = await api.fetchUser(telegramId!);
-        if (userData) {
+
+        // Always load shop and leaderboard regardless of user status
+        const shopData = await api.fetchShop();
+        setShopItems(shopData.map(mapApiShopItem));
+
+        const lbData = await api.fetchLeaderboard();
+        setLeaderboard(mapLeaderboard(lbData, telegramId!));
+
+        if (userData && userData.user) {
+          // User exists in database
           setUserXP(userData.user.xp);
           setUserCoins(userData.user.coins);
           setUserName(userData.user.first_name || "Атлет");
           setTasks(mapApiTasks(userData.tasks));
-          setUserNotFound(false);
-          setServerError(false);
 
-          // Check if user needs to complete registration
+          // Check if user needs to complete registration (no phone)
           if (!userData.user.phone) {
-            console.log("User needs to complete registration");
+            console.log("User exists but needs to complete registration (no phone)");
             localStorage.removeItem("registration_completed");
             localStorage.removeItem("onboarding_completed");
             setIsRegistrationOpen(true);
+          } else {
+            // User is fully registered
+            console.log("User is fully registered");
           }
         } else {
-          // Could be user not found OR server error
-          // Let's try to load shop to differentiate
-          const shopData = await api.fetchShop();
-          if (shopData.length === 0) {
-            // Server might be down
-            setServerError(true);
-            setUserNotFound(false);
-          } else {
-            // User not found - clear localStorage and show registration
-            setUserNotFound(true);
-            setServerError(false);
-            localStorage.removeItem("registration_completed");
-            localStorage.removeItem("onboarding_completed");
-            setIsRegistrationOpen(true);
-          }
-        }
-
-        // Load shop
-        if (!serverError) {
-          const shopData = await api.fetchShop();
-          setShopItems(shopData.map(mapApiShopItem));
-
-          // Load leaderboard
-          const lbData = await api.fetchLeaderboard();
-          setLeaderboard(mapLeaderboard(lbData, telegramId!));
+          // User not found in database - show registration
+          console.log("User not found in database - showing registration");
+          localStorage.removeItem("registration_completed");
+          localStorage.removeItem("onboarding_completed");
+          setIsRegistrationOpen(true);
         }
       } catch (err) {
         console.error("Failed to load data:", err);
@@ -641,22 +630,7 @@ const Index = () => {
     );
   }
 
-  // --- User not found ---
-  if (userNotFound) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-8">
-        <div className="text-center space-y-4">
-          <div className="text-5xl">🏋️</div>
-          <h2 className="text-xl font-bold text-foreground">
-            Добро пожаловать в Город Спорта!
-          </h2>
-          <p className="text-muted-foreground">
-            Чтобы начать, запустите бота в Telegram и нажмите кнопку «Начать».
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // User not found is now handled by showing registration modal
 
   return (
     <div className="min-h-screen bg-background pb-24">
