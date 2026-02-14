@@ -40,33 +40,57 @@ interface TaskModalProps {
   isQuizLoading?: boolean;
 }
 
-// Helper function to convert Markdown-style links [text](url) to clickable links
+// Helper function to convert URLs and Markdown-style links to clickable links
 const renderDescriptionWithLinks = (text: string) => {
+  // First, handle markdown-style links [text](url)
   const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  // Then handle plain URLs (http:// or https://)
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
   const parts: (string | JSX.Element)[] = [];
   let lastIndex = 0;
+  let keyCounter = 0;
+
+  // Process both markdown links and plain URLs
+  const combinedRegex = /\[([^\]]+)\]\(([^)]+)\)|(https?:\/\/[^\s]+)/g;
   let match;
 
-  while ((match = markdownLinkRegex.exec(text)) !== null) {
+  while ((match = combinedRegex.exec(text)) !== null) {
     // Add text before the link
     if (match.index > lastIndex) {
       parts.push(text.substring(lastIndex, match.index));
     }
 
-    // Add the link
-    const linkText = match[1];
-    const url = match[2];
-    parts.push(
-      <a
-        key={match.index}
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-primary underline hover:text-primary/80 font-medium"
-      >
-        {linkText}
-      </a>
-    );
+    if (match[1] && match[2]) {
+      // Markdown-style link [text](url)
+      const linkText = match[1];
+      const url = match[2];
+      parts.push(
+        <a
+          key={`link-${keyCounter++}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline hover:text-primary/80 font-medium"
+        >
+          {linkText}
+        </a>
+      );
+    } else if (match[3]) {
+      // Plain URL
+      const url = match[3];
+      parts.push(
+        <a
+          key={`link-${keyCounter++}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline hover:text-primary/80 font-medium"
+        >
+          {url}
+        </a>
+      );
+    }
 
     lastIndex = match.index + match[0].length;
   }
@@ -246,37 +270,6 @@ export const TaskModal = ({
 
                 {/* Description */}
                 <p className="text-foreground whitespace-pre-line">{renderDescriptionWithLinks(task.description)}</p>
-
-                {/* App links */}
-                <div className="space-y-2">
-                  <a
-                    href="https://apps.apple.com/by/app/%D0%B3%D0%BE%D1%80%D0%BE%D0%B4-%D1%81%D0%BF%D0%BE%D1%80%D1%82%D0%B0-%D0%B2%D0%BE%D1%82%D0%BA%D0%B8%D0%BD%D1%81%D0%BA/id6754234879"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-xl bg-muted/50 p-3 text-sm text-primary hover:bg-muted transition-colors"
-                  >
-                    <ExternalLink className="h-4 w-4 shrink-0" />
-                    <span>App Store</span>
-                  </a>
-                  <a
-                    href="https://play.google.com/store/apps/details?id=ru.razomovsky.gorod_sporta&hl=ru&pli=1"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-xl bg-muted/50 p-3 text-sm text-primary hover:bg-muted transition-colors"
-                  >
-                    <ExternalLink className="h-4 w-4 shrink-0" />
-                    <span>Google Play</span>
-                  </a>
-                  <a
-                    href="https://www.rustore.ru/catalog/app/ru.razomovsky.gorod_sporta"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-xl bg-muted/50 p-3 text-sm text-primary hover:bg-muted transition-colors"
-                  >
-                    <ExternalLink className="h-4 w-4 shrink-0" />
-                    <span>RuStore</span>
-                  </a>
-                </div>
 
                 {/* Code input */}
                 <input
