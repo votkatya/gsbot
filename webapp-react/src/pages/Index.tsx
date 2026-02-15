@@ -69,6 +69,10 @@ const Index = () => {
   const [shopItems, setShopItems] = useState<ShopItemView[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
+  // Stage visibility
+  const [stage2Visible, setStage2Visible] = useState(false);
+  const [stage3Visible, setStage3Visible] = useState(false);
+
   // --- Check onboarding on first load ---
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem("onboarding_completed");
@@ -97,47 +101,11 @@ const Index = () => {
     try {
       const userData = await api.fetchUser(telegramId);
       if (userData && userData.tasks) {
-        const oldTasks = tasks;
         const newTasks = mapApiTasks(userData.tasks);
         setTasks(newTasks);
-
-        // Check if a new stage was unlocked
-        checkStageUnlocked(oldTasks, newTasks);
       }
     } catch (err) {
       console.error("Failed to reload tasks:", err);
-    }
-  };
-
-  // --- Check if new stage unlocked ---
-  const checkStageUnlocked = (oldTasks: Task[], newTasks: Task[]) => {
-    // Check if any task changed from locked to unlocked
-    const newlyUnlockedStages = new Set<number>();
-
-    newTasks.forEach(newTask => {
-      const oldTask = oldTasks.find(t => t.id === newTask.id);
-      if (oldTask?.locked && !newTask.locked) {
-        newlyUnlockedStages.add(newTask.stage);
-      }
-    });
-
-    if (newlyUnlockedStages.size > 0) {
-      // Show toast with action button
-      toast.success('🎉 Следующий блок разблокирован!', {
-        action: {
-          label: 'Супер',
-          onClick: () => {
-            // Scroll to the newly unlocked stage
-            const firstUnlockedStage = Math.min(...Array.from(newlyUnlockedStages));
-            const element = document.querySelector(`[data-stage="${firstUnlockedStage}"]`);
-            if (element) {
-              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
-          },
-        },
-        duration: 10000, // 10 seconds
-      });
     }
   };
 
@@ -254,6 +222,35 @@ const Index = () => {
 
   const completedTasks = tasks.filter((t) => t.completed).length;
   const totalTasks = tasks.length;
+
+  // Check if stages are completed
+  const isStage1Completed = stage1Tasks.length > 0 && stage1Tasks.every((t) => t.completed);
+  const isStage2Completed = stage2Tasks.filter((t) => t.completed).length >= 3;
+
+  // Handlers for "Continue" buttons
+  const handleShowStage2 = () => {
+    setStage2Visible(true);
+    window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
+    // Scroll to stage 2
+    setTimeout(() => {
+      const element = document.querySelector(`[data-stage="2"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
+
+  const handleShowStage3 = () => {
+    setStage3Visible(true);
+    window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
+    // Scroll to stage 3
+    setTimeout(() => {
+      const element = document.querySelector(`[data-stage="3"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
 
   const handleOpenTask = (task: Task) => {
     setSelectedTask(task);
@@ -720,6 +717,7 @@ const Index = () => {
           <ProgressWidget completed={completedTasks} total={totalTasks} />
 
           {/* Stage 1: Warmup */}
+          {/* Stage 1: Warmup - Always visible */}
           {stage1Tasks.length > 0 && (
             <section className="px-4" data-stage="1">
               <h2 className="mb-3 text-lg font-bold text-foreground">
@@ -738,9 +736,26 @@ const Index = () => {
             </section>
           )}
 
-          {/* Stage 2: Quest */}
-          {stage2Tasks.length > 0 && (
-            <section className="px-4" data-stage="2">
+          {/* Continue button for Stage 2 */}
+          {!stage2Visible && stage2Tasks.length > 0 && (
+            <div className="px-4 mt-6">
+              <button
+                onClick={handleShowStage2}
+                disabled={!isStage1Completed}
+                className={`w-full py-4 px-6 rounded-2xl font-bold text-lg transition-all ${
+                  isStage1Completed
+                    ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg active:scale-95'
+                    : 'bg-muted text-muted-foreground cursor-not-allowed opacity-50'
+                }`}
+              >
+                {isStage1Completed ? '🎯 Продолжить' : '🔒 Завершите все задания блока 1'}
+              </button>
+            </div>
+          )}
+
+          {/* Stage 2: Quest - Visible after button click */}
+          {stage2Visible && stage2Tasks.length > 0 && (
+            <section className="px-4 mt-6" data-stage="2">
               <h2 className="mb-3 text-lg font-bold text-foreground">
                 🎯 Охота в клубе
               </h2>
@@ -757,9 +772,26 @@ const Index = () => {
             </section>
           )}
 
-          {/* Stage 3: Loyalty */}
-          {stage3Tasks.length > 0 && (
-            <section className="px-4" data-stage="3">
+          {/* Continue button for Stage 3 */}
+          {stage2Visible && !stage3Visible && stage3Tasks.length > 0 && (
+            <div className="px-4 mt-6">
+              <button
+                onClick={handleShowStage3}
+                disabled={!isStage2Completed}
+                className={`w-full py-4 px-6 rounded-2xl font-bold text-lg transition-all ${
+                  isStage2Completed
+                    ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg active:scale-95'
+                    : 'bg-muted text-muted-foreground cursor-not-allowed opacity-50'
+                }`}
+              >
+                {isStage2Completed ? '🏆 Продолжить' : '🔒 Завершите минимум 3 задания блока 2'}
+              </button>
+            </div>
+          )}
+
+          {/* Stage 3: Loyalty - Visible after button click */}
+          {stage3Visible && stage3Tasks.length > 0 && (
+            <section className="px-4 mt-6" data-stage="3">
               <h2 className="mb-3 text-lg font-bold text-foreground">
                 🏆 Заминка
               </h2>
