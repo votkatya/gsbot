@@ -1,73 +1,226 @@
-# Welcome to your Lovable project
+# Город Спорта - Telegram Mini App
 
-## Project info
+Telegram Mini App для спортивного клуба "Город Спорта"
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🎯 О проекте
 
-## How can I edit this code?
+Telegram Mini App с геймификацией для повышения вовлеченности участников спортклуба.
 
-There are several ways of editing your application.
+**Основные функции:**
+- 🎮 Система заданий с прогрессивной разблокировкой
+- 🏆 Рейтинг участников
+- 🪙 Внутренняя валюта (Спортики)
+- 🎁 Магазин призов
+- 📊 Трекинг прогресса
 
-**Use Lovable**
+**URL:** https://gsbot18.ru
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Технологии
 
-**Use your preferred IDE**
+- **React 18** + **TypeScript**
+- **Vite** - сборщик
+- **Tailwind CSS** - стилизация
+- **Framer Motion** - анимации
+- **TanStack Query** - управление данными
+- **Sonner** - уведомления
+- **Lucide React** - иконки
+- **Telegram Web App SDK**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Локальная разработка
 
-Follow these steps:
+### Требования
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- Node.js v20+
+- npm v10+
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Установка
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+# 1. Клонировать репозиторий
+git clone https://github.com/votkatya/gsbot.git
+cd gsbot/webapp-react
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 2. Установить зависимости
+npm install
+
+# 3. Запустить dev сервер
 npm run dev
+
+# Откроется на http://localhost:8080
 ```
 
-**Edit a file directly in GitHub**
+### Переменные окружения
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Создайте файл `.env`:
 
-**Use GitHub Codespaces**
+```env
+VITE_API_BASE_URL=https://gsbot18.ru
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## 📦 Сборка для production
 
-This project is built with:
+```bash
+# Собрать проект
+npm run build
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Результат будет в папке dist/
+```
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## 🏗️ Структура проекта
 
-## Can I connect a custom domain to my Lovable project?
+```
+webapp-react/
+├── src/
+│   ├── components/          # Переиспользуемые компоненты
+│   │   ├── Header.tsx       # Шапка приложения
+│   │   ├── BottomNav.tsx    # Нижняя навигация
+│   │   ├── TaskCard.tsx     # Карточка задания
+│   │   ├── TaskModal.tsx    # Модалка деталей задания
+│   │   ├── ShopItem.tsx     # Элемент магазина
+│   │   ├── LeaderboardItem.tsx
+│   │   ├── ProgressWidget.tsx
+│   │   ├── CelebrationModal.tsx  # Празднование выполнения
+│   │   ├── OnboardingModal.tsx   # Онбординг
+│   │   ├── RegistrationModal.tsx # Регистрация
+│   │   ├── SurveyForm.tsx        # Анкета (день 1)
+│   │   ├── QRScannerModal.tsx    # QR-сканер
+│   │   └── ManualCodeModal.tsx   # Ввод кода вручную
+│   │
+│   ├── pages/
+│   │   └── Index.tsx        # Главная страница (все вкладки)
+│   │
+│   ├── services/
+│   │   ├── api.ts           # API клиент
+│   │   └── mappers.ts       # Маппинг данных + бизнес-логика
+│   │
+│   ├── contexts/
+│   │   └── TelegramContext.tsx  # Telegram Web App SDK
+│   │
+│   ├── lib/
+│   │   └── utils.ts         # Утилиты
+│   │
+│   └── main.tsx             # Точка входа
+│
+├── public/                  # Статические файлы
+├── index.html
+├── vite.config.ts
+├── tailwind.config.ts
+├── tsconfig.json
+└── package.json
+```
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🎨 Дизайн-система
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+См. [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)
+
+**Основные цвета:**
+- **Primary:** `hsl(48 96% 53%)` - яркий жёлтый
+- **Background:** `hsl(240 10% 3.9%)` - тёмный фон
+- **Card:** `hsl(240 6% 10%)` - фон карточек
+- **Success:** `hsl(142 76% 36%)` - зелёный
+
+---
+
+## 📱 Особенности реализации
+
+### Прогрессивная разблокировка блоков
+
+Блоки заданий открываются постепенно:
+
+1. **Блок 1 (Разминка)** - виден сразу (3 задания)
+2. **Блок 2 (Охота в клубе)** - открывается кнопкой "Продолжить" после выполнения всех заданий блока 1
+3. **Блок 3 (Заминка)** - открывается после выполнения минимум 3 заданий блока 2
+
+**Логика:**
+- Кнопка "Продолжить" неактивна (серая) пока условия не выполнены
+- После выполнения условий кнопка становится активной (яркая)
+- При клике блок плавно появляется с анимацией + автопрокрутка
+
+### Автообновление данных
+
+После каждого действия данные обновляются автоматически:
+- После регистрации → загружаются задания и данные пользователя
+- После выполнения задания → обновляются задания и рейтинг
+- Никаких ручных обновлений страницы не требуется
+
+### Ввод даты рождения
+
+Вместо стандартного calendar input используется masked text input:
+- Формат: ДД.ММ.ГГГГ
+- Автоматическое добавление точек при вводе
+- inputMode="numeric" для удобства на мобильных
+
+---
+
+## 🔌 API
+
+Backend API находится на `https://gsbot18.ru/api/`
+
+### Основные эндпоинты:
+
+| Метод | Путь | Описание |
+|-------|------|----------|
+| GET | `/api/user/:telegramId` | Получить пользователя и задания |
+| POST | `/api/register` | Регистрация нового пользователя |
+| POST | `/api/complete-task` | Выполнить задание |
+| POST | `/api/survey` | Отправить анкету (задание 1) |
+| GET | `/api/shop` | Список товаров |
+| POST | `/api/purchase` | Купить товар |
+| GET | `/api/leaderboard` | Рейтинг участников |
+
+---
+
+## 🧪 Тестирование
+
+Для тестирования в Telegram:
+
+1. Откройте бота: [@gsvtk_bot](https://t.me/gsvtk_bot)
+2. Нажмите `/start`
+3. Приложение откроется как Mini App
+
+**Для разработки:** используйте Telegram Desktop или Web версию с Developer Tools
+
+---
+
+## 📚 Дополнительная документация
+
+- [ADMIN_PANEL_GUIDE.md](../ADMIN_PANEL_GUIDE.md) - Руководство по админ-панели
+- [WORKFLOW_GUIDE.md](../WORKFLOW_GUIDE.md) - Процесс разработки
+- [DEPLOY_CHECKLIST.md](../DEPLOY_CHECKLIST.md) - Чеклист деплоя
+- [TIMEWEB_INFRASTRUCTURE.md](../TIMEWEB_INFRASTRUCTURE.md) - Инфраструктура
+
+---
+
+## 🤝 Разработка
+
+**Текущий стек:**
+- React 18.3.1
+- TypeScript 5.6.2
+- Vite 5.4.19
+- Tailwind CSS 3.4.17
+- Framer Motion 11.15.0
+
+**Кодстайл:**
+- Используется ESLint
+- Форматирование через Prettier (встроен в редактор)
+
+---
+
+## 📄 Лицензия
+
+Частный проект для спортклуба "Город Спорта"
+
+---
+
+**Версия:** 1.0.0
+**Последнее обновление:** 16.02.2026

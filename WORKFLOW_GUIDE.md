@@ -81,8 +81,11 @@ cd /var/www/gorodsporta
 # 2. Получить изменения
 git pull origin main
 
-# 3. Перезагрузить nginx
-systemctl reload nginx
+# 3. Собрать frontend (если нужно - обычно билд уже в репозитории)
+cd webapp-react
+npm run build
+cp -r dist/* /var/www/gorodsporta/deploy/
+cd ..
 
 # 4. Проверить
 # Открыть https://gsbot18.ru/
