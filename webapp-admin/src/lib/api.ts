@@ -122,6 +122,11 @@ class ApiClient {
   async getPurchases() {
     return this.request('/admin/api/purchases');
   }
+
+  // Referrals
+  async getReferrals() {
+    return this.request('/admin/api/referrals');
+  }
 }
 
 export const api = new ApiClient();

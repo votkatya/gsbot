@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Users, ListChecks, Gift, ShoppingCart, LogOut } from 'lucide-react'
+import { LayoutDashboard, Users, ListChecks, Gift, ShoppingCart, UserPlus, LogOut } from 'lucide-react'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
@@ -16,6 +16,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { path: '/tasks', icon: ListChecks, label: 'Задания' },
     { path: '/prizes', icon: Gift, label: 'Призы' },
     { path: '/purchases', icon: ShoppingCart, label: 'Покупки' },
+    { path: '/referrals', icon: UserPlus, label: 'Рефералы' },
   ]
 
   return (

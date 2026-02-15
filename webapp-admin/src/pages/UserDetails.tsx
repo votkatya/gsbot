@@ -202,6 +202,53 @@ export default function UserDetails() {
         </div>
       </div>
 
+      {/* Данные анкеты */}
+      {user.survey_data && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <h2 className="text-xl font-bold mb-4">Данные анкеты</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {(() => {
+              try {
+                const survey = typeof user.survey_data === 'string'
+                  ? JSON.parse(user.survey_data)
+                  : user.survey_data;
+
+                return (
+                  <>
+                    {survey.fullName && (
+                      <div>
+                        <span className="text-gray-600 text-sm">Полное имя:</span>
+                        <p className="font-medium">{survey.fullName}</p>
+                      </div>
+                    )}
+                    {survey.birthDate && (
+                      <div>
+                        <span className="text-gray-600 text-sm">Дата рождения:</span>
+                        <p className="font-medium">{survey.birthDate}</p>
+                      </div>
+                    )}
+                    {survey.goals && (
+                      <div className="md:col-span-2">
+                        <span className="text-gray-600 text-sm">Цели:</span>
+                        <p className="font-medium">{survey.goals}</p>
+                      </div>
+                    )}
+                    {survey.hasKids !== undefined && (
+                      <div>
+                        <span className="text-gray-600 text-sm">Есть дети:</span>
+                        <p className="font-medium">{survey.hasKids ? 'Да' : 'Нет'}</p>
+                      </div>
+                    )}
+                  </>
+                );
+              } catch (e) {
+                return <p className="text-gray-500">Ошибка загрузки данных анкеты</p>;
+              }
+            })()}
+          </div>
+        </div>
+      )}
+
       {/* История заданий */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <h2 className="text-xl font-bold mb-4">История выполненных заданий</h2>

@@ -769,6 +769,23 @@ app.get("/admin/api/purchases", checkAdminAuth, async (req, res) => {
     }
 });
 
+// Admin: Get all referrals
+app.get("/admin/api/referrals", checkAdminAuth, async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT
+                r.*,
+                u.first_name, u.last_name, u.telegram_id, u.phone
+            FROM referrals r
+            JOIN users u ON u.id = r.user_id
+            ORDER BY r.created_at DESC
+        `);
+        res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get("/", (req, res) => res.send("Bot is running"));
 
 app.listen(3000, () => console.log("Server running on port 3000"));
