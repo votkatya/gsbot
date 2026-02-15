@@ -113,13 +113,11 @@ export function mapApiTasks(apiTasks: ApiTask[]): Task[] {
 
     // Lock logic:
     // - Stage 1: always unlocked
-    // - Stage 2: locked until ALL stage 1 tasks are completed
+    // - Stage 2: always unlocked (visibility controlled by UI)
     // - Stage 3: locked until at least 3 stage 2 tasks are completed
     let isLocked = false;
     if (!isCompleted) {
-      if (ui.stage === 2) {
-        isLocked = completedByStage[1] < totalStage1Tasks;
-      } else if (ui.stage === 3) {
+      if (ui.stage === 3) {
         isLocked = completedByStage[2] < 3;
       }
     }
