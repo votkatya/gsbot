@@ -24,7 +24,7 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
   }, [task]);
 
   const updateMutation = useMutation({
-    mutationFn: (data: { title: string; description: string; coins_reward: number }) =>
+    mutationFn: (data: { title: string; description: string; coins_reward: number; verification_type: string; verification_data: any }) =>
       api.updateTask(task.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -46,6 +46,8 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
       title: title.trim(),
       description: description.trim(),
       coins_reward: coinsReward,
+      verification_type: task.verification_type,
+      verification_data: task.verification_data,
     });
   };
 
