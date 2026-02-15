@@ -124,7 +124,6 @@ const Index = () => {
     if (newlyUnlockedStages.size > 0) {
       // Show toast with action button
       toast.success('🎉 Следующий блок разблокирован!', {
-        description: 'Нажми "Супер", чтобы увидеть новые задания',
         action: {
           label: 'Супер',
           onClick: () => {
