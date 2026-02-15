@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
@@ -15,15 +15,22 @@ export function EditUserDialog({ user, isOpen, onClose }: EditUserDialogProps) {
   const [xp, setXP] = useState<number>(0);
   const [reason, setReason] = useState('');
 
+  // Заполняем поля текущими значениями при открытии
+  useEffect(() => {
+    if (isOpen && user) {
+      setCoins(user.coins || 0);
+      setXP(user.xp || 0);
+      setReason('');
+    }
+  }, [isOpen, user]);
+
   const updateMutation = useMutation({
     mutationFn: (data: { coins: number; xp: number; reason: string }) =>
       api.updateUser(user.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['user', user.id] });
       onClose();
-      setCoins(0);
-      setXP(0);
-      setReason('');
       toast.success('Пользователь обновлён!');
     },
     onError: (error: any) => {
@@ -33,14 +40,27 @@ export function EditUserDialog({ user, isOpen, onClose }: EditUserDialogProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (coins === 0 && xp === 0) {
-      toast.warning('Укажите количество монет или XP');
+
+    // Вычисляем изменения
+    const coinsDelta = coins - (user.coins || 0);
+    const xpDelta = xp - (user.xp || 0);
+
+    if (coinsDelta === 0 && xpDelta === 0) {
+      toast.warning('Значения не изменились');
       return;
     }
-    updateMutation.mutate({ coins, xp, reason });
+
+    updateMutation.mutate({
+      coins: coinsDelta,
+      xp: xpDelta,
+      reason: reason || `Изменение через админку`
+    });
   };
 
   if (!isOpen) return null;
+
+  const coinsDelta = coins - (user.coins || 0);
+  const xpDelta = xp - (user.xp || 0);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -54,9 +74,6 @@ export function EditUserDialog({ user, isOpen, onClose }: EditUserDialogProps) {
             <strong>{user.first_name} {user.last_name}</strong>
           </p>
           <p className="text-sm text-gray-500">@{user.username || 'без username'}</p>
-          <p className="text-sm mt-2">
-            Текущие: <strong>{user.coins} 🪙</strong> | <strong>{user.xp} XP</strong>
-          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -69,11 +86,13 @@ export function EditUserDialog({ user, isOpen, onClose }: EditUserDialogProps) {
               value={coins}
               onChange={(e) => setCoins(parseInt(e.target.value) || 0)}
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Введите число (+10 или -5)"
+              placeholder="Количество монет"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Положительное для начисления, отрицательное для списания
-            </p>
+            {coinsDelta !== 0 && (
+              <p className="text-xs mt-1" style={{ color: coinsDelta > 0 ? '#16a34a' : '#dc2626' }}>
+                {coinsDelta > 0 ? `+${coinsDelta}` : coinsDelta} монет
+              </p>
+            )}
           </div>
 
           <div>
@@ -85,11 +104,13 @@ export function EditUserDialog({ user, isOpen, onClose }: EditUserDialogProps) {
               value={xp}
               onChange={(e) => setXP(parseInt(e.target.value) || 0)}
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Введите число (+50 или -20)"
+              placeholder="Количество XP"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Положительное для начисления, отрицательное для списания
-            </p>
+            {xpDelta !== 0 && (
+              <p className="text-xs mt-1" style={{ color: xpDelta > 0 ? '#16a34a' : '#dc2626' }}>
+                {xpDelta > 0 ? `+${xpDelta}` : xpDelta} XP
+              </p>
+            )}
           </div>
 
           <div>
@@ -105,21 +126,25 @@ export function EditUserDialog({ user, isOpen, onClose }: EditUserDialogProps) {
             />
           </div>
 
-          {coins !== 0 && (
+          {(coinsDelta !== 0 || xpDelta !== 0) && (
             <div className="p-3 bg-blue-50 rounded text-sm">
-              <p>
-                Новый баланс: <strong>{user.coins + coins} 🪙</strong>
-                {coins > 0 ? ` (+${coins})` : ` (${coins})`}
-              </p>
-            </div>
-          )}
-
-          {xp !== 0 && (
-            <div className="p-3 bg-green-50 rounded text-sm">
-              <p>
-                Новый XP: <strong>{user.xp + xp} XP</strong>
-                {xp > 0 ? ` (+${xp})` : ` (${xp})`}
-              </p>
+              <p className="font-medium mb-2">Изменения:</p>
+              {coinsDelta !== 0 && (
+                <p>
+                  🪙 Монеты: {user.coins || 0} → <strong>{coins}</strong>
+                  <span className={coinsDelta > 0 ? 'text-green-600' : 'text-red-600'}>
+                    {' '}({coinsDelta > 0 ? `+${coinsDelta}` : coinsDelta})
+                  </span>
+                </p>
+              )}
+              {xpDelta !== 0 && (
+                <p>
+                  ⭐ XP: {user.xp || 0} → <strong>{xp}</strong>
+                  <span className={xpDelta > 0 ? 'text-green-600' : 'text-red-600'}>
+                    {' '}({xpDelta > 0 ? `+${xpDelta}` : xpDelta})
+                  </span>
+                </p>
+              )}
             </div>
           )}
 
