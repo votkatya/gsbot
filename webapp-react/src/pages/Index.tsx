@@ -97,10 +97,48 @@ const Index = () => {
     try {
       const userData = await api.fetchUser(telegramId);
       if (userData && userData.tasks) {
-        setTasks(mapApiTasks(userData.tasks));
+        const oldTasks = tasks;
+        const newTasks = mapApiTasks(userData.tasks);
+        setTasks(newTasks);
+
+        // Check if a new stage was unlocked
+        checkStageUnlocked(oldTasks, newTasks);
       }
     } catch (err) {
       console.error("Failed to reload tasks:", err);
+    }
+  };
+
+  // --- Check if new stage unlocked ---
+  const checkStageUnlocked = (oldTasks: Task[], newTasks: Task[]) => {
+    // Check if any task changed from locked to unlocked
+    const newlyUnlockedStages = new Set<number>();
+
+    newTasks.forEach(newTask => {
+      const oldTask = oldTasks.find(t => t.id === newTask.id);
+      if (oldTask?.locked && !newTask.locked) {
+        newlyUnlockedStages.add(newTask.stage);
+      }
+    });
+
+    if (newlyUnlockedStages.size > 0) {
+      // Show toast with action button
+      toast.success('🎉 Следующий блок разблокирован!', {
+        description: 'Нажми "Супер", чтобы увидеть новые задания',
+        action: {
+          label: 'Супер',
+          onClick: () => {
+            // Scroll to the newly unlocked stage
+            const firstUnlockedStage = Math.min(...Array.from(newlyUnlockedStages));
+            const element = document.querySelector(`[data-stage="${firstUnlockedStage}"]`);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
+          },
+        },
+        duration: 10000, // 10 seconds
+      });
     }
   };
 
@@ -684,7 +722,7 @@ const Index = () => {
 
           {/* Stage 1: Warmup */}
           {stage1Tasks.length > 0 && (
-            <section className="px-4">
+            <section className="px-4" data-stage="1">
               <h2 className="mb-3 text-lg font-bold text-foreground">
                 🔥 Разминка
               </h2>
@@ -703,7 +741,7 @@ const Index = () => {
 
           {/* Stage 2: Quest */}
           {stage2Tasks.length > 0 && (
-            <section className="px-4">
+            <section className="px-4" data-stage="2">
               <h2 className="mb-3 text-lg font-bold text-foreground">
                 🎯 Охота в клубе
               </h2>
@@ -722,7 +760,7 @@ const Index = () => {
 
           {/* Stage 3: Loyalty */}
           {stage3Tasks.length > 0 && (
-            <section className="px-4">
+            <section className="px-4" data-stage="3">
               <h2 className="mb-3 text-lg font-bold text-foreground">
                 🏆 Заминка
               </h2>
