@@ -227,6 +227,21 @@ const Index = () => {
   const isStage1Completed = stage1Tasks.length > 0 && stage1Tasks.every((t) => t.completed);
   const isStage2Completed = stage2Tasks.filter((t) => t.completed).length >= 3;
 
+  // Auto-open blocks based on progress (after tasks are loaded)
+  useEffect(() => {
+    if (tasks.length === 0) return; // Wait for tasks to load
+
+    // Auto-open stage 2 if stage 1 is completed
+    if (isStage1Completed && !stage2Visible) {
+      setStage2Visible(true);
+    }
+
+    // Auto-open stage 3 if stage 2 has 3+ completed tasks
+    if (isStage2Completed && !stage3Visible) {
+      setStage3Visible(true);
+    }
+  }, [tasks, isStage1Completed, isStage2Completed, stage2Visible, stage3Visible]);
+
   // Handlers for "Continue" buttons
   const handleShowStage2 = () => {
     setStage2Visible(true);
