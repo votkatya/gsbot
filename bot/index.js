@@ -171,14 +171,21 @@ app.post("/api/complete-task", async (req, res) => {
         if (task.verification_type === "qr" && verificationData) {
             const taskData = task.verification_data;
             const inputCode = verificationData.toLowerCase().trim();
+            let isValid = false;
 
             // Сначала проверяем тестовый код
             if (taskData?.test_code && inputCode === taskData.test_code.toLowerCase()) {
                 console.log('✅ Test code accepted for QR task:', inputCode);
-                // Код прошел проверку, продолжаем
+                isValid = true;
             }
             // Проверяем основной QR-код
-            else if (taskData?.qr_code && inputCode !== taskData.qr_code.toLowerCase()) {
+            else if (taskData?.qr_code && inputCode === taskData.qr_code.toLowerCase()) {
+                console.log('✅ QR code accepted:', inputCode);
+                isValid = true;
+            }
+
+            // Если ни один код не подошёл
+            if (!isValid) {
                 return res.json({ error: "Неверный код. Попробуйте ещё раз." });
             }
         }
@@ -187,61 +194,68 @@ app.post("/api/complete-task", async (req, res) => {
         if (verificationType === "app_code") {
             const inputCode = verificationData?.toUpperCase().trim();
             const taskData = task.verification_data;
+            let isValid = false;
 
             // Проверяем тестовый код для всех заданий с app_code
             if (taskData?.test_code && inputCode === taskData.test_code.toUpperCase()) {
                 console.log('✅ Test code accepted:', inputCode);
-                // Код прошел проверку, продолжаем выполнение задания
+                isValid = true;
             }
-            // Проверяем основной код (main_code)
+            // Проверяем QR-код (для app_code может быть qr_code вместо main_code)
+            else if (taskData?.qr_code && inputCode === taskData.qr_code.toUpperCase()) {
+                console.log('✅ QR code accepted:', inputCode);
+                isValid = true;
+            }
+            // Проверяем основной код (main_code - для совместимости)
             else if (taskData?.main_code && inputCode === taskData.main_code.toUpperCase()) {
                 console.log('✅ Main code accepted:', inputCode);
-                // Код прошел проверку
+                isValid = true;
             }
-            // Для блока 2 (дни 4-9) проверяем QR или ручной код
-            else if (task.verification_type === "qr_or_manual" && verificationData) {
-                console.log('🔍 QR/Manual code check:', {
-                    inputCode,
-                    inputLength: inputCode.length,
-                    taskData,
-                    manualCodeUpper: taskData?.manual_code?.toUpperCase(),
-                    qrCodeUpper: taskData?.qr_code?.toUpperCase()
-                });
 
-                if (!taskData || (!taskData.qr_code && !taskData.manual_code)) {
-                    return res.json({ error: "Задание не настроено" });
-                }
-
-                let isValid = false;
-
-                // Если введен короткий код (5 символов) - это ручной код
-                if (inputCode.length === 5 && taskData.manual_code) {
-                    isValid = (inputCode === taskData.manual_code.toUpperCase());
-                    console.log('✅ Manual code check:', { inputCode, expected: taskData.manual_code.toUpperCase(), isValid });
-                }
-                // Если длинный код - это QR-код
-                else if (taskData.qr_code) {
-                    isValid = (inputCode === taskData.qr_code.toUpperCase());
-                    console.log('✅ QR code check:', { inputCode, expected: taskData.qr_code.toUpperCase(), isValid });
-                }
-
-                if (!isValid) {
-                    console.log('❌ Code validation failed');
-                    return res.json({ error: "Неверный код. Попробуй ещё раз." });
-                }
-            }
-            // Для обычных заданий с app_code без правильного кода
-            else if (!taskData?.test_code && !taskData?.main_code) {
-                return res.json({ error: "Неверный код. Попробуй ещё раз." });
-            }
-            // Если ни тестовый, ни основной код не подошли
-            else {
+            // Если ни один код не подошёл - ошибка
+            if (!isValid) {
                 return res.json({ error: "Неверный код. Попробуй ещё раз." });
             }
         }
 
         // Проверка QR-кода или ручного кода для блока 2 (дни 3-10)
         if (verificationType === "qr_or_manual" && verificationData) {
+            const inputCode = verificationData.toUpperCase().trim();
+            const taskData = task.verification_data;
+            let isValid = false;
+
+            // 1. Сначала проверяем тестовый код (работает всегда, любая длина)
+            if (taskData?.test_code && inputCode === taskData.test_code.toUpperCase()) {
+                console.log('✅ Test code accepted for qr_or_manual:', inputCode);
+                isValid = true;
+            }
+            // 2. Проверяем короткий ручной код (5 символов)
+            else if (inputCode.length === 5 && taskData?.manual_code && inputCode === taskData.manual_code.toUpperCase()) {
+                console.log('✅ Manual code accepted:', { inputCode, expected: taskData.manual_code.toUpperCase() });
+                isValid = true;
+            }
+            // 3. Проверяем длинный QR-код
+            else if (taskData?.qr_code && inputCode === taskData.qr_code.toUpperCase()) {
+                console.log('✅ QR code accepted:', { inputCode, expected: taskData.qr_code.toUpperCase() });
+                isValid = true;
+            }
+
+            // Если ни один код не подошёл - ошибка
+            if (!isValid) {
+                console.log('❌ Code validation failed for qr_or_manual:', {
+                    inputCode,
+                    inputLength: inputCode.length,
+                    hasTestCode: !!taskData?.test_code,
+                    hasQrCode: !!taskData?.qr_code,
+                    hasManualCode: !!taskData?.manual_code
+                });
+                return res.json({ error: "Неверный код. Попробуй ещё раз." });
+            }
+        }
+
+        // УДАЛЯЕМ дублирующий блок ниже
+        if (false && verificationType === "qr_or_manual" && verificationData) {
+            // Этот блок больше не нужен, логика выше
             const inputCode = verificationData.toUpperCase().trim();
             const taskData = task.verification_data;
 
@@ -658,27 +672,53 @@ app.delete("/admin/api/users/:id", checkAdminAuth, checkAdminRole, async (req, r
     try {
         const { id } = req.params;
 
-        console.log(`🗑️ Admin deleting user ${id}`);
+        console.log(`🗑️ Admin ${req.userName || req.userRole} deleting user ${id}`);
 
-        // Удаляем все связанные данные (каскадное удаление)
-        // 1. Удаляем задания пользователя
-        await pool.query("DELETE FROM user_tasks WHERE user_id = $1", [id]);
-
-        // 2. Удаляем покупки пользователя
-        await pool.query("DELETE FROM purchases WHERE user_id = $1", [id]);
-
-        // 3. Удаляем самого пользователя
-        const result = await pool.query("DELETE FROM users WHERE id = $1 RETURNING telegram_id", [id]);
-
-        if (result.rows.length === 0) {
+        // Проверяем существование пользователя
+        const checkUser = await pool.query("SELECT id, telegram_id, first_name FROM users WHERE id = $1", [id]);
+        if (checkUser.rows.length === 0) {
+            console.log(`❌ User ${id} not found`);
             return res.status(404).json({ error: "User not found" });
         }
 
-        console.log(`✅ User ${id} (telegram_id: ${result.rows[0].telegram_id}) deleted successfully`);
+        const userData = checkUser.rows[0];
+        console.log(`📋 Deleting user: ${userData.first_name} (TG: ${userData.telegram_id})`);
+
+        // Удаляем все связанные данные (каскадное удаление)
+        // 1. Удаляем задания пользователя
+        const tasksResult = await pool.query("DELETE FROM user_tasks WHERE user_id = $1", [id]);
+        console.log(`  ✓ Deleted ${tasksResult.rowCount} user tasks`);
+
+        // 2. Удаляем покупки пользователя
+        const purchasesResult = await pool.query("DELETE FROM purchases WHERE user_id = $1", [id]);
+        console.log(`  ✓ Deleted ${purchasesResult.rowCount} purchases`);
+
+        // 3. Удаляем рефералов (если есть таблица referrals)
+        try {
+            const referralsResult = await pool.query("DELETE FROM referrals WHERE user_id = $1 OR referred_user_id = $1", [id]);
+            console.log(`  ✓ Deleted ${referralsResult.rowCount} referral records`);
+        } catch (e) {
+            console.log(`  ⚠️ No referrals table or error: ${e.message}`);
+        }
+
+        // 4. Удаляем самого пользователя
+        const result = await pool.query("DELETE FROM users WHERE id = $1 RETURNING telegram_id", [id]);
+
+        console.log(`✅ User ${id} (${userData.first_name}, telegram_id: ${result.rows[0].telegram_id}) deleted successfully`);
         res.json({ success: true });
     } catch (e) {
-        console.error("❌ Failed to delete user:", e.message);
-        res.status(500).json({ error: e.message });
+        console.error("❌ Failed to delete user:", e);
+        console.error("Error details:", {
+            message: e.message,
+            code: e.code,
+            detail: e.detail,
+            constraint: e.constraint
+        });
+        res.status(500).json({
+            error: e.message,
+            detail: e.detail || "Database error",
+            code: e.code
+        });
     }
 });
 
