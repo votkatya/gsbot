@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { formatDistanceToNow } from 'date-fns'
 import { ru } from 'date-fns/locale'
+import * as XLSX from 'xlsx'
+import { Download } from 'lucide-react'
 
 export default function Users() {
   const navigate = useNavigate()
@@ -26,6 +28,53 @@ export default function Users() {
     )
   })
 
+  // Функция экспорта в Excel
+  const handleExportToExcel = () => {
+    if (!users || users.length === 0) return
+
+    // Подготовка данных для экспорта
+    const exportData = users.map((user: any) => {
+      // Парсинг survey_data
+      let surveyData: any = {}
+      try {
+        surveyData = typeof user.survey_data === 'string'
+          ? JSON.parse(user.survey_data)
+          : user.survey_data || {}
+      } catch (e) {
+        surveyData = {}
+      }
+
+      return {
+        'ID': user.id,
+        'Telegram ID': user.telegram_id,
+        'Имя': user.first_name || '',
+        'Фамилия': user.last_name || '',
+        'Username': user.username || '',
+        'Телефон': user.phone || '',
+        'Абонемент': user.membership_type || '',
+        'Спорткоины': user.coins || 0,
+        'XP': user.xp || 0,
+        'Уровень': user.level || 0,
+        'Заданий выполнено': user.completed_tasks || 0,
+        'Полное имя (анкета)': surveyData.fullName || '',
+        'Дата рождения': surveyData.birthDate || '',
+        'Цели': surveyData.goals || '',
+        'Есть дети': surveyData.hasKids === true ? 'Да' : surveyData.hasKids === false ? 'Нет' : '',
+        'Дата регистрации': user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : '',
+        'Последняя активность': user.last_activity_at ? new Date(user.last_activity_at).toLocaleDateString('ru-RU') : '',
+      }
+    })
+
+    // Создание Excel файла
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Участники')
+
+    // Скачивание файла
+    const fileName = `участники_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '-')}.xlsx`
+    XLSX.writeFile(wb, fileName)
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -38,7 +87,15 @@ export default function Users() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Пользователи</h1>
-        <div className="relative">
+        <div className="flex gap-3 items-center">
+          <button
+            onClick={handleExportToExcel}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Download size={18} />
+            Экспорт в Excel
+          </button>
+          <div className="relative">
           <input
             type="text"
             placeholder="Поиск по имени, username, телефону..."
@@ -54,6 +111,7 @@ export default function Users() {
               ✕
             </button>
           )}
+        </div>
         </div>
       </div>
 

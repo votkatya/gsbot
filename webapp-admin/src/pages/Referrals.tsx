@@ -2,12 +2,39 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import * as XLSX from 'xlsx';
+import { Download } from 'lucide-react';
 
 export default function Referrals() {
   const { data: referrals, isLoading } = useQuery({
     queryKey: ['referrals'],
     queryFn: () => api.getReferrals(),
   });
+
+  // Функция экспорта в Excel
+  const handleExportToExcel = () => {
+    if (!referrals || referrals.length === 0) return;
+
+    // Подготовка данных для экспорта
+    const exportData = referrals.map((ref: any) => ({
+      'ID': ref.id,
+      'Кто пригласил': `${ref.first_name} ${ref.last_name || ''}`,
+      'Telegram ID пользователя': ref.telegram_id,
+      'Телефон пользователя': ref.phone || '',
+      'Имя друга': ref.friend_name || '',
+      'Телефон друга': ref.friend_phone || '',
+      'Дата приглашения': ref.created_at ? new Date(ref.created_at).toLocaleDateString('ru-RU') : '',
+    }));
+
+    // Создание Excel файла
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Рефералы');
+
+    // Скачивание файла
+    const fileName = `рефералы_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '-')}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  };
 
   if (isLoading) {
     return (
@@ -19,7 +46,17 @@ export default function Referrals() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Рефералы</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Рефералы</h1>
+        <button
+          onClick={handleExportToExcel}
+          disabled={!referrals || referrals.length === 0}
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Download size={18} />
+          Экспорт в Excel
+        </button>
+      </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
