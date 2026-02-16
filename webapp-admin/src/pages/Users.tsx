@@ -44,6 +44,19 @@ export default function Users() {
         surveyData = {}
       }
 
+      // Process goals (it's an array)
+      const goalsText = Array.isArray(surveyData.goals)
+        ? surveyData.goals.join(', ')
+        : surveyData.goals || ''
+
+      // Process hasKids (it's "yes" or "no" string)
+      let hasKidsText = ''
+      if (surveyData.hasKids === 'yes' || surveyData.hasKids === true) {
+        hasKidsText = 'Да'
+      } else if (surveyData.hasKids === 'no' || surveyData.hasKids === false) {
+        hasKidsText = 'Нет'
+      }
+
       return {
         'ID': user.id,
         'Telegram ID': user.telegram_id,
@@ -58,8 +71,8 @@ export default function Users() {
         'Заданий выполнено': user.completed_tasks || 0,
         'Полное имя (анкета)': surveyData.fullName || '',
         'Дата рождения': surveyData.birthDate || '',
-        'Цели': surveyData.goals || '',
-        'Есть дети': surveyData.hasKids === true ? 'Да' : surveyData.hasKids === false ? 'Нет' : '',
+        'Цели': goalsText,
+        'Есть дети': hasKidsText,
         'Дата регистрации': user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : '',
         'Последняя активность': user.last_activity_at ? new Date(user.last_activity_at).toLocaleDateString('ru-RU') : '',
       }
