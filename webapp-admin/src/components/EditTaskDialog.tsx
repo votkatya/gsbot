@@ -14,12 +14,23 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [coinsReward, setCoinsReward] = useState(0);
+  const [verificationCode, setVerificationCode] = useState('');
 
   useEffect(() => {
     if (task) {
       setTitle(task.title || '');
       setDescription(task.description || '');
       setCoinsReward(task.coins_reward || 0);
+
+      // Извлекаем проверочный код из verification_data
+      const verData = task.verification_data || {};
+      if (verData.qr_code) {
+        setVerificationCode(verData.qr_code);
+      } else if (verData.test_code) {
+        setVerificationCode(verData.test_code);
+      } else {
+        setVerificationCode('');
+      }
     }
   }, [task]);
 
@@ -42,12 +53,23 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
       toast.warning('Введите название задания');
       return;
     }
+
+    // Обновляем verification_data с новым кодом
+    let updatedVerificationData = { ...task.verification_data };
+
+    // Определяем, какое поле кода использовать в зависимости от типа проверки
+    if (task.verification_type === 'qr') {
+      updatedVerificationData.qr_code = verificationCode.trim();
+    } else if (task.verification_type === 'app_code' || task.verification_type === 'qr_or_manual') {
+      updatedVerificationData.test_code = verificationCode.trim();
+    }
+
     updateMutation.mutate({
       title: title.trim(),
       description: description.trim(),
       coins_reward: coinsReward,
       verification_type: task.verification_type,
-      verification_data: task.verification_data,
+      verification_data: updatedVerificationData,
     });
   };
 
@@ -117,6 +139,34 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
             </p>
           </div>
 
+          {/* Поле для проверочного кода */}
+          {(task?.verification_type === 'qr' ||
+            task?.verification_type === 'app_code' ||
+            task?.verification_type === 'qr_or_manual') && (
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Проверочный код
+              </label>
+              <input
+                type="text"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                placeholder="Например: SPORT2025"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {task?.verification_type === 'qr' && 'Код для QR-проверки'}
+                {task?.verification_type === 'app_code' && 'Тестовый код для проверки из приложения'}
+                {task?.verification_type === 'qr_or_manual' && 'Тестовый код для проверки (QR или ручной ввод)'}
+              </p>
+              {verificationCode && (
+                <p className="text-xs text-green-600 mt-1 font-mono">
+                  Текущий код: {verificationCode}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="p-3 bg-blue-50 rounded text-sm">
             <p className="font-medium mb-1">Изменения:</p>
             <ul className="space-y-1 text-gray-700">
@@ -126,6 +176,12 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
               {coinsReward !== task?.coins_reward && (
                 <li>• Награда: {task?.coins_reward} 🪙 → {coinsReward} 🪙</li>
               )}
+              {(() => {
+                const oldCode = task?.verification_data?.qr_code || task?.verification_data?.test_code || '';
+                return verificationCode !== oldCode && verificationCode.trim() !== '' && (
+                  <li>• Проверочный код: "{oldCode}" → "{verificationCode}"</li>
+                );
+              })()}
             </ul>
           </div>
 
