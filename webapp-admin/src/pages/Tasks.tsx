@@ -59,17 +59,25 @@ export default function Tasks() {
                       <>
                         {task.verification_data.test_code && (
                           <span className="text-gray-500">
-                            Тест:{' '}
+                            🔧 Тест:{' '}
                             <span className="font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
                               {task.verification_data.test_code}
                             </span>
                           </span>
                         )}
-                        {(task.verification_data.main_code || task.verification_data.qr_code) && (
+                        {task.verification_data.qr_code && (
                           <span className="text-gray-500">
-                            Основной:{' '}
+                            📱 QR:{' '}
                             <span className="font-mono font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                              {task.verification_data.main_code || task.verification_data.qr_code}
+                              {task.verification_data.qr_code}
+                            </span>
+                          </span>
+                        )}
+                        {task.verification_data.manual_code && (
+                          <span className="text-gray-500">
+                            ⌨️ Ручной:{' '}
+                            <span className="font-mono font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded">
+                              {task.verification_data.manual_code}
                             </span>
                           </span>
                         )}

@@ -15,7 +15,8 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
   const [description, setDescription] = useState('');
   const [coinsReward, setCoinsReward] = useState(0);
   const [testCode, setTestCode] = useState('');
-  const [mainCode, setMainCode] = useState('');
+  const [qrCode, setQrCode] = useState('');
+  const [manualCode, setManualCode] = useState('');
 
   useEffect(() => {
     if (task) {
@@ -29,8 +30,11 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
       // Тестовый код (для проверки работы)
       setTestCode(verData.test_code || '');
 
-      // Основной код (для участников) - может быть в qr_code или main_code
-      setMainCode(verData.main_code || verData.qr_code || '');
+      // QR-код (длинный код в QR)
+      setQrCode(verData.qr_code || verData.main_code || '');
+
+      // Ручной код (короткий код для ручного ввода)
+      setManualCode(verData.manual_code || '');
     }
   }, [task]);
 
@@ -57,15 +61,10 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
     // Обновляем verification_data с новыми кодами
     let updatedVerificationData = { ...task.verification_data };
 
-    // Сохраняем оба кода
+    // Сохраняем все коды
     updatedVerificationData.test_code = testCode.trim();
-
-    // Для типа 'qr' используем qr_code, для остальных - main_code
-    if (task.verification_type === 'qr') {
-      updatedVerificationData.qr_code = mainCode.trim();
-    } else {
-      updatedVerificationData.main_code = mainCode.trim();
-    }
+    updatedVerificationData.qr_code = qrCode.trim();
+    updatedVerificationData.manual_code = manualCode.trim();
 
     updateMutation.mutate({
       title: title.trim(),
@@ -166,24 +165,44 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
                 </p>
               </div>
 
-              {/* Основной код для участников */}
+              {/* QR-код */}
               <div>
                 <label className="block text-sm font-medium mb-1 text-green-700">
-                  ✅ Основной код (для участников)
+                  📱 QR-код (длинный код в QR)
                 </label>
                 <input
                   type="text"
-                  value={mainCode}
-                  onChange={(e) => setMainCode(e.target.value)}
+                  value={qrCode}
+                  onChange={(e) => setQrCode(e.target.value)}
                   className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 font-mono bg-green-50"
-                  placeholder="SPORT2025"
+                  placeholder="GORODSPORTA_DAY4"
                 />
                 <p className="text-xs text-gray-600 mt-1">
-                  {task?.verification_type === 'qr' && 'Код, зашитый в QR-коде для участников'}
+                  {task?.verification_type === 'qr' && 'Код, зашитый в QR-коде'}
                   {task?.verification_type === 'app_code' && 'Код из мобильного приложения'}
-                  {task?.verification_type === 'qr_or_manual' && 'Код для ручного ввода или QR-сканирования'}
+                  {task?.verification_type === 'qr_or_manual' && 'Длинный код, который зашит в QR-код'}
                 </p>
               </div>
+
+              {/* Ручной код - только для qr_or_manual */}
+              {task?.verification_type === 'qr_or_manual' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-purple-700">
+                    ⌨️ Ручной код (короткий код для ввода)
+                  </label>
+                  <input
+                    type="text"
+                    value={manualCode}
+                    onChange={(e) => setManualCode(e.target.value)}
+                    className="w-full px-3 py-2 border border-purple-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono bg-purple-50"
+                    placeholder="TNT45"
+                    maxLength={5}
+                  />
+                  <p className="text-xs text-gray-600 mt-1">
+                    Короткий 5-символьный код для ручного ввода (когда нет возможности отсканировать QR)
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -203,9 +222,15 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
                 );
               })()}
               {(() => {
-                const oldMainCode = task?.verification_data?.main_code || task?.verification_data?.qr_code || '';
-                return mainCode !== oldMainCode && (
-                  <li>• Основной код: "{oldMainCode}" → "{mainCode}"</li>
+                const oldQrCode = task?.verification_data?.qr_code || task?.verification_data?.main_code || '';
+                return qrCode !== oldQrCode && (
+                  <li>• QR-код: "{oldQrCode}" → "{qrCode}"</li>
+                );
+              })()}
+              {(() => {
+                const oldManualCode = task?.verification_data?.manual_code || '';
+                return manualCode !== oldManualCode && task?.verification_type === 'qr_or_manual' && (
+                  <li>• Ручной код: "{oldManualCode}" → "{manualCode}"</li>
                 );
               })()}
             </ul>
