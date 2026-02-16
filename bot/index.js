@@ -546,7 +546,8 @@ app.get("/admin/api/users", checkAdminAuth, async (req, res) => {
             SELECT
                 id, telegram_id, first_name, last_name, username,
                 phone, membership_type,
-                coins, xp, last_activity_at, created_at,
+                coins, xp, level, last_activity_at, created_at,
+                survey_data,
                 (SELECT COUNT(*) FROM user_tasks WHERE user_id = users.id AND status = 'completed') as completed_tasks
             FROM users
             ORDER BY created_at DESC
