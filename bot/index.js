@@ -695,10 +695,10 @@ app.delete("/admin/api/users/:id", checkAdminAuth, checkAdminRole, async (req, r
 
         // 3. Удаляем рефералов (если есть таблица referrals)
         try {
-            const referralsResult = await pool.query("DELETE FROM referrals WHERE user_id = $1 OR referred_user_id = $1", [id]);
+            const referralsResult = await pool.query("DELETE FROM referrals WHERE user_id = $1", [id]);
             console.log(`  ✓ Deleted ${referralsResult.rowCount} referral records`);
         } catch (e) {
-            console.log(`  ⚠️ No referrals table or error: ${e.message}`);
+            console.log(`  ⚠️ Error deleting referrals: ${e.message}`);
         }
 
         // 4. Удаляем самого пользователя
