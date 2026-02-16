@@ -51,17 +51,29 @@ export default function Tasks() {
                   <span className="text-gray-500">
                     Выполнено: <span className="font-semibold text-gray-900">{task.completion_count}</span>
                   </span>
-                  {/* Отображение текущего проверочного кода */}
+                  {/* Отображение текущих проверочных кодов */}
                   {(task.verification_type === 'qr' ||
                     task.verification_type === 'app_code' ||
                     task.verification_type === 'qr_or_manual') &&
                     task.verification_data && (
-                      <span className="text-gray-500">
-                        Код:{' '}
-                        <span className="font-mono font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                          {task.verification_data.qr_code || task.verification_data.test_code || '—'}
-                        </span>
-                      </span>
+                      <>
+                        {task.verification_data.test_code && (
+                          <span className="text-gray-500">
+                            Тест:{' '}
+                            <span className="font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                              {task.verification_data.test_code}
+                            </span>
+                          </span>
+                        )}
+                        {(task.verification_data.main_code || task.verification_data.qr_code) && (
+                          <span className="text-gray-500">
+                            Основной:{' '}
+                            <span className="font-mono font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                              {task.verification_data.main_code || task.verification_data.qr_code}
+                            </span>
+                          </span>
+                        )}
+                      </>
                     )}
                 </div>
               </div>
