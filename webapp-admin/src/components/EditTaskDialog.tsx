@@ -102,7 +102,7 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              Награда (спортики)
+              Награда (спорткоины)
             </label>
             <input
               type="number"

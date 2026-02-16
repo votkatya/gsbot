@@ -118,7 +118,7 @@ export default function UserDetails() {
           <div className="text-2xl font-bold text-gray-900">{user.telegram_id}</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="text-sm text-gray-500 mb-1">Спортики</div>
+          <div className="text-sm text-gray-500 mb-1">Спорткоины</div>
           <div className="text-2xl font-bold text-blue-600">{user.coins} 🪙</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

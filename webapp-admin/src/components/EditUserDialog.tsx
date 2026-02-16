@@ -79,7 +79,7 @@ export function EditUserDialog({ user, isOpen, onClose }: EditUserDialogProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">
-              Спортики (монеты)
+              Спорткоины
             </label>
             <input
               type="number"

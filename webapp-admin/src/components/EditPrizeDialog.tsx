@@ -104,7 +104,7 @@ export function EditPrizeDialog({ prize, isOpen, onClose }: EditPrizeDialogProps
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              Цена (спортики) *
+              Цена (спорткоины) *
             </label>
             <input
               type="number"
