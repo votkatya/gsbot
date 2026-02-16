@@ -17,6 +17,8 @@ export default function Login() {
     try {
       const result = await api.login(password)
       if (result.success) {
+        // Сохраняем роль для использования в компонентах
+        localStorage.setItem('admin_name', result.name)
         navigate('/dashboard')
       }
     } catch (err) {

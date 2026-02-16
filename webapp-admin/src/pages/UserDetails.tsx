@@ -6,6 +6,7 @@ import { ru } from 'date-fns/locale';
 import { useState } from 'react';
 import { EditUserDialog } from '@/components/EditUserDialog';
 import { toast } from 'sonner';
+import { canEdit, canDelete } from '@/lib/permissions';
 
 export default function UserDetails() {
   const { id } = useParams<{ id: string }>();
@@ -86,27 +87,31 @@ export default function UserDetails() {
             </p>
           </div>
           <div className="flex gap-3">
-            <button
-              onClick={() => setShowEditDialog(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Редактировать
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                showDeleteConfirm
-                  ? 'bg-red-600 text-white hover:bg-red-700'
-                  : 'bg-gray-100 text-red-600 hover:bg-red-50'
-              } ${deleteMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {deleteMutation.isPending
-                ? 'Удаление...'
-                : showDeleteConfirm
-                ? 'Точно удалить?'
-                : 'Удалить'}
-            </button>
+            {canEdit() && (
+              <button
+                onClick={() => setShowEditDialog(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Редактировать
+              </button>
+            )}
+            {canDelete() && (
+              <button
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  showDeleteConfirm
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'bg-gray-100 text-red-600 hover:bg-red-50'
+                } ${deleteMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {deleteMutation.isPending
+                  ? 'Удаление...'
+                  : showDeleteConfirm
+                  ? 'Точно удалить?'
+                  : 'Удалить'}
+              </button>
+            )}
           </div>
         </div>
       </div>

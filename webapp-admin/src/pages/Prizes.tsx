@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { EditPrizeDialog } from '../components/EditPrizeDialog'
+import { canEdit } from '../lib/permissions'
 
 export default function Prizes() {
   const [editingPrize, setEditingPrize] = useState<any>(null)
@@ -56,14 +57,16 @@ export default function Prizes() {
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-gray-200">
-              <button
-                onClick={() => setEditingPrize(prize)}
-                className="w-full px-4 py-2 text-sm text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-colors font-medium"
-              >
-                Редактировать
-              </button>
-            </div>
+            {canEdit() && (
+              <div className="mt-4 pt-3 border-t border-gray-200">
+                <button
+                  onClick={() => setEditingPrize(prize)}
+                  className="w-full px-4 py-2 text-sm text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-colors font-medium"
+                >
+                  Редактировать
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>

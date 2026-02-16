@@ -4,9 +4,13 @@ import { LayoutDashboard, Users, ListChecks, Gift, ShoppingCart, UserPlus, LogOu
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
+  const userName = localStorage.getItem('admin_name') || 'Пользователь'
+  const userRole = localStorage.getItem('admin_role') || 'staff'
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token')
+    localStorage.removeItem('admin_role')
+    localStorage.removeItem('admin_name')
     navigate('/')
   }
 
@@ -50,6 +54,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="p-4 border-t border-gray-800">
+          <div className="mb-3 px-4 py-2 bg-gray-800 rounded-lg">
+            <p className="text-sm text-gray-400">Вошли как:</p>
+            <p className="text-white font-medium">{userName}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {userRole === 'admin' ? '🔑 Администратор' : '👁️ Сотрудник (просмотр)'}
+            </p>
+          </div>
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors w-full"

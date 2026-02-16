@@ -80,18 +80,37 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-// Простая авторизация для админки
-const ADMIN_PASSWORD = "GorodSporta2025Admin!"; // TODO: изменить в продакшене
+// Простая авторизация для админки с ролями
+const ADMIN_PASSWORD = "GorodSporta2025Admin!"; // Полный доступ
+const STAFF_PASSWORD = "GorodSporta2025Staff!"; // Только просмотр
 
-// Middleware для проверки админского доступа
+// Учетные записи с ролями
+const ACCOUNTS = {
+    [ADMIN_PASSWORD]: { role: 'admin', name: 'Администратор' },
+    [STAFF_PASSWORD]: { role: 'staff', name: 'Сотрудник' }
+};
+
+// Middleware для проверки любого админского доступа (админ или сотрудник)
 function checkAdminAuth(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
     const token = authHeader.substring(7);
-    if (token !== ADMIN_PASSWORD) {
+    const account = ACCOUNTS[token];
+    if (!account) {
         return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    // Сохраняем роль в req для дальнейшей проверки
+    req.userRole = account.role;
+    req.userName = account.name;
+    next();
+}
+
+// Middleware для проверки прав администратора (только admin)
+function checkAdminRole(req, res, next) {
+    if (req.userRole !== 'admin') {
+        return res.status(403).json({ error: 'Forbidden: Admin rights required' });
     }
     next();
 }
@@ -424,8 +443,14 @@ app.post("/api/register", async (req, res) => {
 app.post("/admin/api/login", async (req, res) => {
     try {
         const { password } = req.body;
-        if (password === ADMIN_PASSWORD) {
-            res.json({ success: true, token: ADMIN_PASSWORD });
+        const account = ACCOUNTS[password];
+        if (account) {
+            res.json({
+                success: true,
+                token: password,
+                role: account.role,
+                name: account.name
+            });
         } else {
             res.status(401).json({ error: "Invalid password" });
         }
@@ -569,8 +594,8 @@ app.get("/admin/api/users/:id", checkAdminAuth, async (req, res) => {
     }
 });
 
-// Обновить монеты и XP пользователя (для админки)
-app.post("/admin/api/users/:id/update", checkAdminAuth, async (req, res) => {
+// Обновить монеты и XP пользователя (для админки) - только для админа
+app.post("/admin/api/users/:id/update", checkAdminAuth, checkAdminRole, async (req, res) => {
     try {
         const { id } = req.params;
         const { coins, xp, reason } = req.body;
@@ -604,8 +629,8 @@ app.post("/admin/api/users/:id/update", checkAdminAuth, async (req, res) => {
     }
 });
 
-// Удалить пользователя
-app.delete("/admin/api/users/:id", checkAdminAuth, async (req, res) => {
+// Удалить пользователя - только для админа
+app.delete("/admin/api/users/:id", checkAdminAuth, checkAdminRole, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -689,8 +714,8 @@ app.get("/admin/api/tasks", checkAdminAuth, async (req, res) => {
     }
 });
 
-// Обновление задания
-app.put("/admin/api/tasks/:id", checkAdminAuth, async (req, res) => {
+// Обновление задания - только для админа
+app.put("/admin/api/tasks/:id", checkAdminAuth, checkAdminRole, async (req, res) => {
     try {
         const { id } = req.params;
         const { title, description, coins_reward, verification_type, verification_data } = req.body;
@@ -727,8 +752,8 @@ app.get("/admin/api/prizes", checkAdminAuth, async (req, res) => {
     }
 });
 
-// Обновление приза
-app.put("/admin/api/prizes/:id", checkAdminAuth, async (req, res) => {
+// Обновление приза - только для админа
+app.put("/admin/api/prizes/:id", checkAdminAuth, checkAdminRole, async (req, res) => {
     try {
         const { id } = req.params;
         const { title, description, price, icon, is_active } = req.body;

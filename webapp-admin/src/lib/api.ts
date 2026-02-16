@@ -2,19 +2,35 @@ const API_BASE = 'https://gsbot18.ru';
 
 class ApiClient {
   private token: string | null = null;
+  private role: string | null = null;
 
   constructor() {
     this.token = localStorage.getItem('admin_token');
+    this.role = localStorage.getItem('admin_role');
   }
 
-  setToken(token: string) {
+  setToken(token: string, role?: string) {
     this.token = token;
     localStorage.setItem('admin_token', token);
+    if (role) {
+      this.role = role;
+      localStorage.setItem('admin_role', role);
+    }
   }
 
   clearToken() {
     this.token = null;
+    this.role = null;
     localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_role');
+  }
+
+  getRole(): string | null {
+    return this.role;
+  }
+
+  isAdmin(): boolean {
+    return this.role === 'admin';
   }
 
   private async request(url: string, options: RequestInit = {}) {
@@ -45,12 +61,12 @@ class ApiClient {
 
   // Auth
   async login(password: string) {
-    const data = await this.request('/admin/api/login', {
+    const data: any = await this.request('/admin/api/login', {
       method: 'POST',
       body: JSON.stringify({ password }),
     });
     if (data.success) {
-      this.setToken(data.token);
+      this.setToken(data.token, data.role);
     }
     return data;
   }
