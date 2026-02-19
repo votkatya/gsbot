@@ -566,23 +566,27 @@ const Index = () => {
   };
 
   // Handle review screenshot submission (task 11 - Оставь отзыв)
-  const handleReviewSubmit = () => {
+  const handleReviewSubmit = async (file: File) => {
     if (!selectedTask || !telegramId) return;
 
-    // Register that we're expecting a photo — сервер сам напишет пользователю в бот
-    fetch("/api/request-review", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId, taskId: selectedTask.dayNumber }),
-    }).catch(() => {});
+    const formData = new FormData();
+    formData.append("photo", file);
+    formData.append("telegramId", String(telegramId));
+    formData.append("taskId", String(selectedTask.dayNumber));
 
-    // Mark task locally as pending (waiting for review)
+    try {
+      const res = await fetch("/api/upload-review", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.error) return;
+    } catch {
+      return;
+    }
+
     setTasks((prev) =>
       prev.map((t) =>
         t.dayNumber === selectedTask.dayNumber ? { ...t, reviewPending: true } : t
       )
     );
-
     setIsModalOpen(false);
     window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
   };

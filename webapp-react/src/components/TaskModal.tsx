@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, QrCode, CheckCircle2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ interface TaskModalProps {
   onClose: () => void;
   onScan?: () => void;
   onComplete?: () => void;
-  onReviewSubmit?: () => void;
+  onReviewSubmit?: (file: File) => void;
   onSurveySubmit?: (answers: Record<string, string | string[]>) => void;
   isSurveyLoading?: boolean;
   onCodeSubmit?: (code: string) => void;
@@ -122,6 +122,16 @@ export const TaskModal = ({
   isQuizLoading
 }: TaskModalProps) => {
   const [code, setCode] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
 
   if (!task) return null;
 
@@ -301,9 +311,7 @@ export const TaskModal = ({
               <div className="space-y-4">
                 {/* Header with badge and rewards */}
                 <div className="flex items-center justify-between pr-8">
-                  <span
-                    className={`rounded-full px-3 py-1 text-sm font-medium ${getStageBadgeClass(task.stage)}`}
-                  >
+                  <span className={`rounded-full px-3 py-1 text-sm font-medium ${getStageBadgeClass(task.stage)}`}>
                     {getStageLabel(task.stage)}
                   </span>
                   <div className="flex items-center gap-2 text-sm">
@@ -323,7 +331,7 @@ export const TaskModal = ({
                 {/* Instruction */}
                 <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
                   <p className="text-sm text-foreground">
-                    📸 Сделай скриншот отзыва и нажми кнопку ниже. Отправь скриншот боту — мы его проверим и начислим бонусы!
+                    📸 Сделай скриншот отзыва и прикрепи его ниже — мы проверим и начислим бонусы!
                   </p>
                 </div>
 
@@ -340,20 +348,54 @@ export const TaskModal = ({
                   </a>
                 )}
 
-                {/* Pending / Submit button */}
+                {/* Pending state */}
                 {task.reviewPending ? (
                   <div className="flex items-center justify-center gap-2 rounded-xl bg-yellow-500/10 border border-yellow-500/30 p-4">
                     <span className="text-lg">⏳</span>
                     <span className="font-semibold text-yellow-600 dark:text-yellow-400">Скриншот на проверке</span>
                   </div>
                 ) : (
-                  <Button
-                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                    size="lg"
-                    onClick={onReviewSubmit}
-                  >
-                    Отправить скриншот
-                  </Button>
+                  <>
+                    {/* File picker */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+
+                    {/* Preview */}
+                    {previewUrl ? (
+                      <div className="relative rounded-xl overflow-hidden border border-border">
+                        <img src={previewUrl} alt="Скриншот" className="w-full object-cover max-h-48" />
+                        <button
+                          onClick={() => { setSelectedFile(null); setPreviewUrl(null); }}
+                          className="absolute top-2 right-2 rounded-full bg-black/50 p-1"
+                        >
+                          <X className="h-4 w-4 text-white" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full rounded-xl border-2 border-dashed border-border p-6 text-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                      >
+                        <div className="text-3xl mb-2">📎</div>
+                        <div className="text-sm">Нажми чтобы выбрать скриншот</div>
+                      </button>
+                    )}
+
+                    {/* Submit button */}
+                    <Button
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                      size="lg"
+                      disabled={!selectedFile}
+                      onClick={() => { if (selectedFile) onReviewSubmit?.(selectedFile); }}
+                    >
+                      Отправить скриншот
+                    </Button>
+                  </>
                 )}
               </div>
             ) : isReferralTask ? (

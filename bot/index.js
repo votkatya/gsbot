@@ -1,9 +1,9 @@
-const { Bot, webhookCallback } = require("grammy");
+const { Bot } = require("grammy");
 const express = require("express");
 const { Pool } = require("pg");
 const fs = require("fs");
 const path = require("path");
-const https = require("https");
+const multer = require("multer");
 
 const BOT_TOKEN = "8091797199:AAHAhjl7ooj4ajYdoxZwl-B4AtRlrj_WZqI";
 const WEBAPP_URL = "https://gsbot18.ru";
@@ -27,10 +27,6 @@ try {
 } catch (e) {
     console.log("⚠️ Could not create uploads dir (ok in dev):", e.message);
 }
-
-// Map для отслеживания пользователей, ожидающих отправки скриншота
-// { telegramId: taskId }
-const awaitingReviewPhoto = new Map();
 
 // Установить Menu Button для Web App
 bot.api.setChatMenuButton({
@@ -62,86 +58,8 @@ bot.command("start", async (ctx) => {
         console.error("❌ Failed to create/update user:", err.message);
     }
 
-    // Обработка deeplink для задания с отзывом: ?start=review_11
-    if (param.startsWith("review_")) {
-        const taskId = parseInt(param.replace("review_", ""));
-        if (!isNaN(taskId)) {
-            awaitingReviewPhoto.set(tgUser.id, taskId);
-            console.log(`⏳ Awaiting review photo from telegramId=${tgUser.id} for taskId=${taskId}`);
-            await ctx.reply(
-                "📸 Пришлите скриншот вашего отзыва на Яндекс.Картах.\n\n" +
-                "Убедитесь, что на скриншоте виден текст отзыва и ваше имя."
-            );
-            return;
-        }
-    }
 });
 
-// Обработчик фото — пользователь присылает скриншот отзыва
-bot.on("message:photo", async (ctx) => {
-    const telegramId = ctx.from.id;
-    console.log(`📷 Photo received from telegramId=${telegramId}, awaiting=${awaitingReviewPhoto.has(telegramId)}, mapSize=${awaitingReviewPhoto.size}`);
-
-    // Проверяем, ожидаем ли мы фото от этого пользователя
-    if (!awaitingReviewPhoto.has(telegramId)) {
-        return; // Не ждём фото — игнорируем
-    }
-
-    const taskId = awaitingReviewPhoto.get(telegramId);
-
-    try {
-        // Находим пользователя в БД
-        const userResult = await pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
-        if (userResult.rows.length === 0) {
-            await ctx.reply("❌ Пользователь не найден. Зарегистрируйтесь через приложение.");
-            return;
-        }
-        const user = userResult.rows[0];
-
-        // Берём фото в наилучшем качестве (последний элемент массива)
-        const photo = ctx.message.photo[ctx.message.photo.length - 1];
-        const fileId = photo.file_id;
-
-        // Получаем путь к файлу через Telegram API
-        const fileInfo = await ctx.api.getFile(fileId);
-        const filePath = fileInfo.file_path;
-        const telegramFileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`;
-
-        // Скачиваем и сохраняем файл на сервер
-        const filename = `${Date.now()}_user${user.id}_task${taskId}.jpg`;
-        const localPath = path.join(UPLOADS_DIR, filename);
-        const publicUrl = `/uploads/reviews/${filename}`;
-
-        // Скачиваем файл
-        await new Promise((resolve, reject) => {
-            const file = fs.createWriteStream(localPath);
-            https.get(telegramFileUrl, (response) => {
-                response.pipe(file);
-                file.on("finish", () => { file.close(); resolve(); });
-                file.on("error", reject);
-            }).on("error", reject);
-        });
-
-        // Сохраняем заявку в БД
-        await pool.query(`
-            INSERT INTO review_submissions (user_id, task_id, photo_file_id, photo_url, status)
-            VALUES ($1, $2, $3, $4, 'pending')
-        `, [user.id, taskId, fileId, publicUrl]);
-
-        // Убираем из ожидания
-        awaitingReviewPhoto.delete(telegramId);
-
-        console.log(`📸 Review screenshot received from user ${user.id}, task ${taskId}, saved as ${filename}`);
-
-        await ctx.reply(
-            "✅ Скриншот получен! Мы проверим ваш отзыв в течение 24 часов.\n\n" +
-            "После одобрения монеты будут начислены автоматически. 🪙"
-        );
-    } catch (e) {
-        console.error("❌ Error saving review photo:", e.message);
-        await ctx.reply("❌ Ошибка при сохранении фото. Попробуйте ещё раз.");
-    }
-});
 
 
 const app = express();
@@ -1037,41 +955,52 @@ app.get("/admin/api/referrals", checkAdminAuth, async (req, res) => {
 
 // ==================== REVIEW SUBMISSIONS API ====================
 
-// API для запроса скриншота от пользователя (вызывается из Mini App)
-// Устанавливает ожидание фото от пользователя и просит его открыть бот
-app.post("/api/request-review", async (req, res) => {
+// Multer — сохраняем загруженные фото в /uploads/reviews/
+const upload = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+        filename: (req, file, cb) => cb(null, `${Date.now()}_${file.originalname}`)
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith("image/")) cb(null, true);
+        else cb(new Error("Only images allowed"));
+    }
+});
+
+// Загрузка скриншота отзыва из мини-приложения
+app.post("/api/upload-review", upload.single("photo"), async (req, res) => {
     try {
         const { telegramId, taskId } = req.body;
+        if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
         const userResult = await pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
-        if (userResult.rows.length === 0) return res.json({ error: "User not found" });
+        if (userResult.rows.length === 0) return res.status(404).json({ error: "User not found" });
+        const user = userResult.rows[0];
+
+        const taskResult = await pool.query("SELECT * FROM tasks WHERE day_number = $1", [taskId]);
+        if (taskResult.rows.length === 0) return res.status(404).json({ error: "Task not found" });
+        const task = taskResult.rows[0];
 
         // Проверяем, не подавал ли уже заявку
-        const existingSubmission = await pool.query(
+        const existing = await pool.query(
             "SELECT * FROM review_submissions WHERE user_id = $1 AND task_id = $2 AND status IN ('pending', 'approved')",
-            [userResult.rows[0].id, taskId]
+            [user.id, task.id]
         );
-        if (existingSubmission.rows.length > 0) {
-            return res.json({ error: "Заявка уже подана" });
-        }
+        if (existing.rows.length > 0) return res.json({ error: "Заявка уже подана" });
 
-        // Регистрируем ожидание фото
-        awaitingReviewPhoto.set(parseInt(telegramId), parseInt(taskId));
+        const publicUrl = `/uploads/reviews/${req.file.filename}`;
 
-        console.log(`⏳ Awaiting review photo from telegramId=${telegramId} for taskId=${taskId}`);
+        await pool.query(`
+            INSERT INTO review_submissions (user_id, task_id, photo_file_id, photo_url, status)
+            VALUES ($1, $2, $3, $4, 'pending')
+        `, [user.id, task.id, req.file.filename, publicUrl]);
 
-        // Отправляем сообщение пользователю прямо в бот
-        try {
-            await bot.api.sendMessage(parseInt(telegramId),
-                "📸 Пришлите скриншот вашего отзыва на Яндекс.Картах.\n\n" +
-                "Убедитесь, что на скриншоте виден текст отзыва и ваше имя."
-            );
-        } catch (sendErr) {
-            console.error("❌ Failed to send message to user:", sendErr.message);
-        }
+        console.log(`📸 Review screenshot uploaded by telegramId=${telegramId}, task=${taskId}, file=${req.file.filename}`);
 
-        res.json({ success: true, message: "Отправьте скриншот боту" });
+        res.json({ success: true });
     } catch (e) {
+        console.error("❌ Error uploading review:", e.message);
         res.status(500).json({ error: e.message });
     }
 });
