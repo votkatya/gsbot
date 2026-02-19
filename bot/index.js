@@ -379,6 +379,11 @@ app.post("/api/complete-task", async (req, res) => {
             await pool.query("UPDATE staff_codes SET used_count = used_count + 1 WHERE id = $1", [codeResult.rows[0].id]);
         }
 
+        // Задания с ручной проверкой скриншота нельзя засчитать через этот эндпоинт
+        if (task.verification_type === "review") {
+            return res.status(400).json({ error: "Это задание проверяется вручную. Отправьте скриншот боту." });
+        }
+
         // Обработка реферала (Подарить купон другу)
         if (verificationType === "referral_form" && verificationData) {
             try {
