@@ -45,7 +45,7 @@ bot.command("start", async (ctx) => {
     const tgUser = ctx.from;
     const param = ctx.match || "";
 
-    console.log("📱 /start command from:", tgUser.id, tgUser.first_name);
+    console.log("📱 /start command from:", tgUser.id, tgUser.first_name, "param:", param);
 
     // Создаём пользователя в базе (без phone и membership - их заполним при регистрации)
     try {
@@ -62,24 +62,19 @@ bot.command("start", async (ctx) => {
         console.error("❌ Failed to create/update user:", err.message);
     }
 
-    // Сообщения отправляются через сторонний сервис
-    // if (param.startsWith("qr_")) {
-    //     await ctx.reply("QR-код найден! Открой приложение:", {
-    //         reply_markup: {
-    //             inline_keyboard: [[
-    //                 { text: "Получить награду", web_app: { url: WEBAPP_URL + "?tgWebAppStartParam=" + param } }
-    //             ]]
-    //         }
-    //     });
-    // } else {
-    //     await ctx.reply("Привет, " + tgUser.first_name + "! Добро пожаловать в Город Спорта!", {
-    //         reply_markup: {
-    //             inline_keyboard: [[
-    //                 { text: "Начать", web_app: { url: WEBAPP_URL } }
-    //             ]]
-    //         }
-    //     });
-    // }
+    // Обработка deeplink для задания с отзывом: ?start=review_11
+    if (param.startsWith("review_")) {
+        const taskId = parseInt(param.replace("review_", ""));
+        if (!isNaN(taskId)) {
+            awaitingReviewPhoto.set(tgUser.id, taskId);
+            console.log(`⏳ Awaiting review photo from telegramId=${tgUser.id} for taskId=${taskId}`);
+            await ctx.reply(
+                "📸 Пришлите скриншот вашего отзыва на Яндекс.Картах.\n\n" +
+                "Убедитесь, что на скриншоте виден текст отзыва и ваше имя."
+            );
+            return;
+        }
+    }
 });
 
 // Обработчик фото — пользователь присылает скриншот отзыва
@@ -147,25 +142,6 @@ bot.on("message:photo", async (ctx) => {
     }
 });
 
-// Команда /review_task_ID — запросить скриншот для конкретного задания
-// Вызывается из Mini App через deeplink: https://t.me/bot?start=review_14
-bot.command("start", async (ctx) => {
-    // Обработка deeplink для задания с отзывом
-    const param = ctx.match || "";
-    if (param.startsWith("review_")) {
-        const taskId = parseInt(param.replace("review_", ""));
-        const telegramId = ctx.from.id;
-
-        if (!isNaN(taskId)) {
-            awaitingReviewPhoto.set(telegramId, taskId);
-            await ctx.reply(
-                "📸 Пришлите скриншот вашего отзыва на Яндекс.Картах.\n\n" +
-                "Убедитесь, что на скриншоте виден текст отзыва и ваше имя."
-            );
-            return;
-        }
-    }
-});
 
 const app = express();
 
