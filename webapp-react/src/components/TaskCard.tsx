@@ -69,7 +69,7 @@ export const TaskCard = ({ task, onScan, onOpenTask }: TaskCardProps) => {
       case 2:
         return "Квест";
       case 3:
-        return "Лояльность";
+        return "Заминка";
       default:
         return "Этап";
     }
