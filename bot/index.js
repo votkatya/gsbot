@@ -170,22 +170,34 @@ app.post("/api/complete-task", async (req, res) => {
         // Проверка QR кода
         if (task.verification_type === "qr" && verificationData) {
             const taskData = task.verification_data;
-            const inputCode = verificationData.toLowerCase().trim();
+            const inputCode = verificationData.toUpperCase().trim();
             let isValid = false;
 
-            // Сначала проверяем тестовый код
-            if (taskData?.test_code && inputCode === taskData.test_code.toLowerCase()) {
+            console.log('🔍 qr check:', {
+                inputCode,
+                test_code: taskData?.test_code,
+                manual_code: taskData?.manual_code,
+                qr_code: taskData?.qr_code
+            });
+
+            // 1. Тестовый код
+            if (taskData?.test_code && inputCode === taskData.test_code.toUpperCase()) {
                 console.log('✅ Test code accepted for QR task:', inputCode);
                 isValid = true;
             }
-            // Проверяем основной QR-код
-            else if (taskData?.qr_code && inputCode === taskData.qr_code.toLowerCase()) {
+            // 2. Ручной код
+            else if (taskData?.manual_code && inputCode === taskData.manual_code.toUpperCase()) {
+                console.log('✅ Manual code accepted for QR task:', inputCode);
+                isValid = true;
+            }
+            // 3. QR-код
+            else if (taskData?.qr_code && inputCode === taskData.qr_code.toUpperCase()) {
                 console.log('✅ QR code accepted:', inputCode);
                 isValid = true;
             }
 
-            // Если ни один код не подошёл
             if (!isValid) {
+                console.log('❌ qr validation failed for:', inputCode);
                 return res.json({ error: "Неверный код. Попробуйте ещё раз." });
             }
         }
@@ -275,53 +287,6 @@ app.post("/api/complete-task", async (req, res) => {
             }
         }
 
-        // УДАЛЯЕМ дублирующий блок ниже
-        if (false && verificationType === "qr_or_manual" && verificationData) {
-            // Этот блок больше не нужен, логика выше
-            const inputCode = verificationData.toUpperCase().trim();
-            const taskData = task.verification_data;
-
-            // Проверяем тестовый код
-            if (taskData?.test_code && inputCode === taskData.test_code.toUpperCase()) {
-                console.log('✅ Test code accepted for qr_or_manual:', inputCode);
-            }
-            // Проверяем основной код (main_code)
-            else if (taskData?.main_code && inputCode === taskData.main_code.toUpperCase()) {
-                console.log('✅ Main code accepted for qr_or_manual:', inputCode);
-            }
-            else {
-                console.log('🔍 QR/Manual code check:', {
-                    inputCode,
-                    inputLength: inputCode.length,
-                    taskData,
-                    manualCodeUpper: taskData?.manual_code?.toUpperCase(),
-                    qrCodeUpper: taskData?.qr_code?.toUpperCase(),
-                    mainCodeUpper: taskData?.main_code?.toUpperCase()
-                });
-
-                if (!taskData || (!taskData.qr_code && !taskData.manual_code && !taskData.main_code)) {
-                    return res.json({ error: "Задание не настроено" });
-                }
-
-                let isValid = false;
-
-                // Если введен короткий код (5 символов) - это ручной код
-                if (inputCode.length === 5 && taskData.manual_code) {
-                    isValid = (inputCode === taskData.manual_code.toUpperCase());
-                    console.log('✅ Manual code check:', { inputCode, expected: taskData.manual_code.toUpperCase(), isValid });
-                }
-                // Если длинный код - это QR-код
-                else if (taskData.qr_code) {
-                    isValid = (inputCode === taskData.qr_code.toUpperCase());
-                    console.log('✅ QR code check:', { inputCode, expected: taskData.qr_code.toUpperCase(), isValid });
-                }
-
-                if (!isValid) {
-                    console.log('❌ Code validation failed');
-                    return res.json({ error: "Неверный код. Попробуй ещё раз." });
-                }
-            }
-        }
 
         // Проверка кода от сотрудника
         if (task.verification_type === "code" && verificationData) {
