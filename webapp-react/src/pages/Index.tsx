@@ -569,16 +569,12 @@ const Index = () => {
   const handleReviewSubmit = () => {
     if (!selectedTask || !telegramId) return;
 
-    // Register that we're expecting a photo from this user
+    // Register that we're expecting a photo — сервер сам напишет пользователю в бот
     fetch("/api/request-review", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: telegramId, taskId: selectedTask.dayNumber }),
+      body: JSON.stringify({ telegramId, taskId: selectedTask.dayNumber }),
     }).catch(() => {});
-
-    // Open bot via Telegram deep link
-    const botUrl = `https://t.me/gsvtk_bot?start=review_${selectedTask.dayNumber}`;
-    window.Telegram?.WebApp?.openTelegramLink?.(botUrl);
 
     // Mark task locally as pending (waiting for review)
     setTasks((prev) =>

@@ -1059,6 +1059,16 @@ app.post("/api/request-review", async (req, res) => {
 
         console.log(`⏳ Awaiting review photo from telegramId=${telegramId} for taskId=${taskId}`);
 
+        // Отправляем сообщение пользователю прямо в бот
+        try {
+            await bot.api.sendMessage(parseInt(telegramId),
+                "📸 Пришлите скриншот вашего отзыва на Яндекс.Картах.\n\n" +
+                "Убедитесь, что на скриншоте виден текст отзыва и ваше имя."
+            );
+        } catch (sendErr) {
+            console.error("❌ Failed to send message to user:", sendErr.message);
+        }
+
         res.json({ success: true, message: "Отправьте скриншот боту" });
     } catch (e) {
         res.status(500).json({ error: e.message });
