@@ -696,13 +696,21 @@ app.get("/admin/api/users/:id", checkAdminAuth, async (req, res) => {
 
         const user = userResult.rows[0];
 
-        // Получаем выполненные задания
+        // Получаем ВСЕ задания с их статусом для данного пользователя
         const tasksResult = await pool.query(`
-            SELECT t.*, ut.status, ut.completed_at, ut.verified_by
-            FROM user_tasks ut
-            JOIN tasks t ON t.id = ut.task_id
-            WHERE ut.user_id = $1
-            ORDER BY ut.completed_at DESC
+            SELECT
+                t.id as task_id,
+                t.day_number,
+                t.title as task_title,
+                t.coins_reward,
+                t.verification_type,
+                ut.id as user_task_id,
+                ut.status,
+                ut.completed_at,
+                ut.verified_by
+            FROM tasks t
+            LEFT JOIN user_tasks ut ON ut.task_id = t.id AND ut.user_id = $1
+            ORDER BY t.day_number ASC
         `, [id]);
 
         // Получаем покупки
@@ -755,6 +763,84 @@ app.post("/admin/api/users/:id/update", checkAdminAuth, checkAdminRole, async (r
         res.json({ success: true, user: updateResult.rows[0] });
     } catch (e) {
         console.error("❌ Failed to update user:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Переключить статус задания пользователя (выполнено ↔ не выполнено) — только для админа
+app.post("/admin/api/users/:id/toggle-task", checkAdminAuth, checkAdminRole, async (req, res) => {
+    try {
+        const { id } = req.params;           // user id
+        const { taskId, action } = req.body;  // action: 'complete' | 'uncomplete'
+
+        console.log(`🔄 Admin toggle task: user=${id}, taskId=${taskId}, action=${action}`);
+
+        // Проверяем пользователя
+        const userCheck = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+        if (userCheck.rows.length === 0) return res.status(404).json({ error: "User not found" });
+        const user = userCheck.rows[0];
+
+        // Проверяем задание
+        const taskCheck = await pool.query("SELECT * FROM tasks WHERE id = $1", [taskId]);
+        if (taskCheck.rows.length === 0) return res.status(404).json({ error: "Task not found" });
+        const task = taskCheck.rows[0];
+
+        if (action === 'complete') {
+            // Проверяем, не выполнено ли уже
+            const existing = await pool.query(
+                "SELECT * FROM user_tasks WHERE user_id = $1 AND task_id = $2 AND status = 'completed'",
+                [id, taskId]
+            );
+            if (existing.rows.length > 0) {
+                return res.json({ error: "Задание уже выполнено" });
+            }
+
+            // Засчитываем задание
+            await pool.query(`
+                INSERT INTO user_tasks (user_id, task_id, status, completed_at, verified_by)
+                VALUES ($1, $2, 'completed', now(), 'admin')
+                ON CONFLICT (user_id, task_id) DO UPDATE SET status = 'completed', completed_at = now(), verified_by = 'admin'
+            `, [id, taskId]);
+
+            // Начисляем монеты и XP
+            await pool.query(
+                "UPDATE users SET coins = coins + $1, xp = xp + $1, last_activity_at = now() WHERE id = $2",
+                [task.coins_reward, id]
+            );
+
+            console.log(`✅ Task ${taskId} marked complete for user ${id}, +${task.coins_reward} coins`);
+            res.json({ success: true, action: 'completed', coins_change: +task.coins_reward });
+
+        } else if (action === 'uncomplete') {
+            // Проверяем, было ли задание выполнено
+            const existing = await pool.query(
+                "SELECT * FROM user_tasks WHERE user_id = $1 AND task_id = $2 AND status = 'completed'",
+                [id, taskId]
+            );
+            if (existing.rows.length === 0) {
+                return res.json({ error: "Задание не было выполнено" });
+            }
+
+            // Удаляем запись о выполнении
+            await pool.query(
+                "DELETE FROM user_tasks WHERE user_id = $1 AND task_id = $2",
+                [id, taskId]
+            );
+
+            // Списываем монеты и XP (не уходим в минус)
+            await pool.query(
+                "UPDATE users SET coins = GREATEST(0, coins - $1), xp = GREATEST(0, xp - $1), last_activity_at = now() WHERE id = $2",
+                [task.coins_reward, id]
+            );
+
+            console.log(`↩️ Task ${taskId} unmarked for user ${id}, -${task.coins_reward} coins`);
+            res.json({ success: true, action: 'uncompleted', coins_change: -task.coins_reward });
+
+        } else {
+            res.status(400).json({ error: "Invalid action. Use 'complete' or 'uncomplete'" });
+        }
+    } catch (e) {
+        console.error("❌ Failed to toggle task:", e.message);
         res.status(500).json({ error: e.message });
     }
 });

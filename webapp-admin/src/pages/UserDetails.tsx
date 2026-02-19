@@ -37,6 +37,22 @@ export default function UserDetails() {
     },
   });
 
+  const toggleTaskMutation = useMutation({
+    mutationFn: ({ taskId, action }: { taskId: number; action: 'complete' | 'uncomplete' }) =>
+      api.toggleUserTask(id!, taskId, action),
+    onSuccess: (data: any, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['user', id] });
+      if (variables.action === 'complete') {
+        toast.success(`Задание засчитано! +${data.coins_change} 🪙`);
+      } else {
+        toast.success(`Выполнение отменено. ${data.coins_change} 🪙`);
+      }
+    },
+    onError: (error: any) => {
+      toast.error(`Ошибка: ${error.message}`);
+    },
+  });
+
   const handleDelete = () => {
     if (showDeleteConfirm) {
       deleteMutation.mutate();
@@ -254,51 +270,126 @@ export default function UserDetails() {
         </div>
       )}
 
-      {/* История заданий */}
+      {/* Все задания с управлением статусом */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-xl font-bold mb-4">История выполненных заданий</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">Задания</h2>
+          <div className="flex gap-3 text-sm text-gray-500">
+            <span>
+              ✅ Выполнено:{' '}
+              <span className="font-semibold text-gray-900">
+                {userTasks?.filter((t: any) => t.status === 'completed').length || 0}
+              </span>
+            </span>
+            <span>
+              из{' '}
+              <span className="font-semibold text-gray-900">{userTasks?.length || 0}</span>
+            </span>
+          </div>
+        </div>
         {userTasks && userTasks.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-16">
                     День
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Задание
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-24">
                     Награда
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">
+                    Статус
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-40">
                     Выполнено
                   </th>
+                  {canEdit() && (
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-36">
+                      Действие
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {userTasks.map((task: any) => (
-                  <tr key={task.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      День {task.day_number}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{task.task_title}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {task.coins_reward} 🪙
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {formatDistanceToNow(new Date(task.completed_at), {
-                        addSuffix: true,
-                        locale: ru,
-                      })}
-                    </td>
-                  </tr>
-                ))}
+                {userTasks.map((task: any) => {
+                  const isCompleted = task.status === 'completed';
+                  const isToggling =
+                    toggleTaskMutation.isPending &&
+                    toggleTaskMutation.variables?.taskId === task.task_id;
+                  return (
+                    <tr
+                      key={task.task_id}
+                      className={`hover:bg-gray-50 ${isCompleted ? '' : 'opacity-60'}`}
+                    >
+                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                        {task.day_number}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{task.task_title}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {task.coins_reward} 🪙
+                      </td>
+                      <td className="px-4 py-3">
+                        {isCompleted ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            ✅ Выполнено
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                            — Не выполнено
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500">
+                        {isCompleted && task.completed_at
+                          ? formatDistanceToNow(new Date(task.completed_at), {
+                              addSuffix: true,
+                              locale: ru,
+                            })
+                          : '—'}
+                      </td>
+                      {canEdit() && (
+                        <td className="px-4 py-3">
+                          {isCompleted ? (
+                            <button
+                              onClick={() =>
+                                toggleTaskMutation.mutate({
+                                  taskId: task.task_id,
+                                  action: 'uncomplete',
+                                })
+                              }
+                              disabled={isToggling}
+                              className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 disabled:opacity-50 transition-colors"
+                            >
+                              {isToggling ? '...' : '↩ Отменить'}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() =>
+                                toggleTaskMutation.mutate({
+                                  taskId: task.task_id,
+                                  action: 'complete',
+                                })
+                              }
+                              disabled={isToggling}
+                              className="px-3 py-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-md hover:bg-green-100 disabled:opacity-50 transition-colors"
+                            >
+                              {isToggling ? '...' : '✓ Засчитать'}
+                            </button>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-8">Пользователь ещё не выполнил ни одного задания</p>
+          <p className="text-gray-500 text-center py-8">Нет заданий</p>
         )}
       </div>
 

@@ -110,6 +110,13 @@ class ApiClient {
     });
   }
 
+  async toggleUserTask(userId: string, taskId: number, action: 'complete' | 'uncomplete') {
+    return this.request(`/admin/api/users/${userId}/toggle-task`, {
+      method: 'POST',
+      body: JSON.stringify({ taskId, action }),
+    });
+  }
+
   // Tasks
   async getTasks() {
     return this.request('/admin/api/tasks');
