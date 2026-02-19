@@ -196,17 +196,30 @@ app.post("/api/complete-task", async (req, res) => {
             const taskData = task.verification_data;
             let isValid = false;
 
-            // Проверяем тестовый код для всех заданий с app_code
+            console.log('🔍 app_code check:', {
+                inputCode,
+                test_code: taskData?.test_code,
+                qr_code: taskData?.qr_code,
+                manual_code: taskData?.manual_code,
+                main_code: taskData?.main_code
+            });
+
+            // 1. Проверяем тестовый код
             if (taskData?.test_code && inputCode === taskData.test_code.toUpperCase()) {
                 console.log('✅ Test code accepted:', inputCode);
                 isValid = true;
             }
-            // Проверяем QR-код (для app_code может быть qr_code вместо main_code)
+            // 2. Проверяем ручной код (manual_code)
+            else if (taskData?.manual_code && inputCode === taskData.manual_code.toUpperCase()) {
+                console.log('✅ Manual code accepted:', inputCode);
+                isValid = true;
+            }
+            // 3. Проверяем QR-код
             else if (taskData?.qr_code && inputCode === taskData.qr_code.toUpperCase()) {
                 console.log('✅ QR code accepted:', inputCode);
                 isValid = true;
             }
-            // Проверяем основной код (main_code - для совместимости)
+            // 4. Проверяем main_code (для совместимости)
             else if (taskData?.main_code && inputCode === taskData.main_code.toUpperCase()) {
                 console.log('✅ Main code accepted:', inputCode);
                 isValid = true;
@@ -214,6 +227,7 @@ app.post("/api/complete-task", async (req, res) => {
 
             // Если ни один код не подошёл - ошибка
             if (!isValid) {
+                console.log('❌ app_code validation failed for:', inputCode);
                 return res.json({ error: "Неверный код. Попробуй ещё раз." });
             }
         }
