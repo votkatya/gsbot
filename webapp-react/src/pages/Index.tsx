@@ -565,6 +565,32 @@ const Index = () => {
     }
   };
 
+  // Handle review screenshot submission (task 11 - Оставь отзыв)
+  const handleReviewSubmit = () => {
+    if (!selectedTask || !telegramId) return;
+
+    // Register that we're expecting a photo from this user
+    fetch("/api/request-review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: telegramId, taskId: selectedTask.dayNumber }),
+    }).catch(() => {});
+
+    // Open bot via Telegram deep link
+    const botUrl = `https://t.me/gsvtk_bot?start=review_${selectedTask.dayNumber}`;
+    window.Telegram?.WebApp?.openTelegramLink?.(botUrl);
+
+    // Mark task locally as pending (waiting for review)
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.dayNumber === selectedTask.dayNumber ? { ...t, reviewPending: true } : t
+      )
+    );
+
+    setIsModalOpen(false);
+    window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
+  };
+
   // Handle quiz submission (task 14 - Пройди тест)
   const handleQuizSubmit = async (score: number) => {
     if (!selectedTask || !telegramId) return;
@@ -918,6 +944,7 @@ const Index = () => {
         onComplete={() => {
           if (selectedTask) handleCompleteTask(selectedTask);
         }}
+        onReviewSubmit={handleReviewSubmit}
         onSurveySubmit={handleSurveySubmit}
         isSurveyLoading={isSurveyLoading}
         onCodeSubmit={handleAppCodeSubmit}

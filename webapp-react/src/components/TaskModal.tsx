@@ -18,6 +18,7 @@ interface Task {
   rewardCoins?: number;
   zone: string;
   completed: boolean;
+  reviewPending?: boolean;
   locked: boolean;
   iconName: string;
   verificationType?: string;
@@ -30,6 +31,7 @@ interface TaskModalProps {
   onClose: () => void;
   onScan?: () => void;
   onComplete?: () => void;
+  onReviewSubmit?: () => void;
   onSurveySubmit?: (answers: Record<string, string | string[]>) => void;
   isSurveyLoading?: boolean;
   onCodeSubmit?: (code: string) => void;
@@ -109,6 +111,7 @@ export const TaskModal = ({
   onClose,
   onScan,
   onComplete,
+  onReviewSubmit,
   onSurveySubmit,
   isSurveyLoading,
   onCodeSubmit,
@@ -317,6 +320,13 @@ export const TaskModal = ({
                 {/* Description */}
                 <p className="text-foreground whitespace-pre-line">{renderDescriptionWithLinks(task.description)}</p>
 
+                {/* Instruction */}
+                <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
+                  <p className="text-sm text-foreground">
+                    📸 Сделай скриншот отзыва и нажми кнопку ниже. Отправь скриншот боту — мы его проверим и начислим бонусы!
+                  </p>
+                </div>
+
                 {/* Review link */}
                 {task.verificationData?.url && (
                   <a
@@ -330,14 +340,21 @@ export const TaskModal = ({
                   </a>
                 )}
 
-                {/* Complete button */}
-                <Button
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                  size="lg"
-                  onClick={onComplete}
-                >
-                  Выполнить
-                </Button>
+                {/* Pending / Submit button */}
+                {task.reviewPending ? (
+                  <div className="flex items-center justify-center gap-2 rounded-xl bg-yellow-500/10 border border-yellow-500/30 p-4">
+                    <span className="text-lg">⏳</span>
+                    <span className="font-semibold text-yellow-600 dark:text-yellow-400">Скриншот на проверке</span>
+                  </div>
+                ) : (
+                  <Button
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                    size="lg"
+                    onClick={onReviewSubmit}
+                  >
+                    Отправить скриншот
+                  </Button>
+                )}
               </div>
             ) : isReferralTask ? (
               /* REFERRAL TASK (Day 13) - Refer a friend */
