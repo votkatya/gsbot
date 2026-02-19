@@ -224,17 +224,25 @@ app.post("/api/complete-task", async (req, res) => {
             const taskData = task.verification_data;
             let isValid = false;
 
+            console.log('🔍 qr_or_manual check:', {
+                inputCode,
+                inputLength: inputCode.length,
+                test_code: taskData?.test_code,
+                manual_code: taskData?.manual_code,
+                qr_code: taskData?.qr_code
+            });
+
             // 1. Сначала проверяем тестовый код (работает всегда, любая длина)
             if (taskData?.test_code && inputCode === taskData.test_code.toUpperCase()) {
                 console.log('✅ Test code accepted for qr_or_manual:', inputCode);
                 isValid = true;
             }
-            // 2. Проверяем короткий ручной код (5 символов)
-            else if (inputCode.length === 5 && taskData?.manual_code && inputCode === taskData.manual_code.toUpperCase()) {
+            // 2. Проверяем ручной код (любая длина)
+            else if (taskData?.manual_code && inputCode === taskData.manual_code.toUpperCase()) {
                 console.log('✅ Manual code accepted:', { inputCode, expected: taskData.manual_code.toUpperCase() });
                 isValid = true;
             }
-            // 3. Проверяем длинный QR-код
+            // 3. Проверяем QR-код
             else if (taskData?.qr_code && inputCode === taskData.qr_code.toUpperCase()) {
                 console.log('✅ QR code accepted:', { inputCode, expected: taskData.qr_code.toUpperCase() });
                 isValid = true;
