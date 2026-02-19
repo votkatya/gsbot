@@ -80,6 +80,7 @@ bot.command("start", async (ctx) => {
 // Обработчик фото — пользователь присылает скриншот отзыва
 bot.on("message:photo", async (ctx) => {
     const telegramId = ctx.from.id;
+    console.log(`📷 Photo received from telegramId=${telegramId}, awaiting=${awaitingReviewPhoto.has(telegramId)}, mapSize=${awaitingReviewPhoto.size}`);
 
     // Проверяем, ожидаем ли мы фото от этого пользователя
     if (!awaitingReviewPhoto.has(telegramId)) {
