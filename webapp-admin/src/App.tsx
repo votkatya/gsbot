@@ -8,6 +8,7 @@ import Tasks from './pages/Tasks'
 import Prizes from './pages/Prizes'
 import Purchases from './pages/Purchases'
 import Referrals from './pages/Referrals'
+import Reviews from './pages/Reviews'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -33,6 +34,7 @@ function App() {
                   <Route path="/prizes" element={<Prizes />} />
                   <Route path="/purchases" element={<Purchases />} />
                   <Route path="/referrals" element={<Referrals />} />
+                  <Route path="/reviews" element={<Reviews />} />
                 </Routes>
               </Layout>
             </PrivateRoute>

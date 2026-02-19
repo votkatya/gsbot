@@ -1,6 +1,9 @@
 const { Bot, webhookCallback } = require("grammy");
 const express = require("express");
 const { Pool } = require("pg");
+const fs = require("fs");
+const path = require("path");
+const https = require("https");
 
 const BOT_TOKEN = "8091797199:AAHAhjl7ooj4ajYdoxZwl-B4AtRlrj_WZqI";
 const WEBAPP_URL = "https://gsbot18.ru";
@@ -14,6 +17,20 @@ const pool = new Pool({
 });
 
 const bot = new Bot(BOT_TOKEN);
+
+// Папка для хранения скриншотов отзывов
+const UPLOADS_DIR = "/var/www/gorodsporta/uploads/reviews";
+try {
+    if (!fs.existsSync(UPLOADS_DIR)) {
+        fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    }
+} catch (e) {
+    console.log("⚠️ Could not create uploads dir (ok in dev):", e.message);
+}
+
+// Map для отслеживания пользователей, ожидающих отправки скриншота
+// { telegramId: taskId }
+const awaitingReviewPhoto = new Map();
 
 // Установить Menu Button для Web App
 bot.api.setChatMenuButton({
@@ -65,13 +82,98 @@ bot.command("start", async (ctx) => {
     // }
 });
 
+// Обработчик фото — пользователь присылает скриншот отзыва
+bot.on("message:photo", async (ctx) => {
+    const telegramId = ctx.from.id;
+
+    // Проверяем, ожидаем ли мы фото от этого пользователя
+    if (!awaitingReviewPhoto.has(telegramId)) {
+        return; // Не ждём фото — игнорируем
+    }
+
+    const taskId = awaitingReviewPhoto.get(telegramId);
+
+    try {
+        // Находим пользователя в БД
+        const userResult = await pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
+        if (userResult.rows.length === 0) {
+            await ctx.reply("❌ Пользователь не найден. Зарегистрируйтесь через приложение.");
+            return;
+        }
+        const user = userResult.rows[0];
+
+        // Берём фото в наилучшем качестве (последний элемент массива)
+        const photo = ctx.message.photo[ctx.message.photo.length - 1];
+        const fileId = photo.file_id;
+
+        // Получаем путь к файлу через Telegram API
+        const fileInfo = await ctx.api.getFile(fileId);
+        const filePath = fileInfo.file_path;
+        const telegramFileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`;
+
+        // Скачиваем и сохраняем файл на сервер
+        const filename = `${Date.now()}_user${user.id}_task${taskId}.jpg`;
+        const localPath = path.join(UPLOADS_DIR, filename);
+        const publicUrl = `/uploads/reviews/${filename}`;
+
+        // Скачиваем файл
+        await new Promise((resolve, reject) => {
+            const file = fs.createWriteStream(localPath);
+            https.get(telegramFileUrl, (response) => {
+                response.pipe(file);
+                file.on("finish", () => { file.close(); resolve(); });
+                file.on("error", reject);
+            }).on("error", reject);
+        });
+
+        // Сохраняем заявку в БД
+        await pool.query(`
+            INSERT INTO review_submissions (user_id, task_id, photo_file_id, photo_url, status)
+            VALUES ($1, $2, $3, $4, 'pending')
+        `, [user.id, taskId, fileId, publicUrl]);
+
+        // Убираем из ожидания
+        awaitingReviewPhoto.delete(telegramId);
+
+        console.log(`📸 Review screenshot received from user ${user.id}, task ${taskId}, saved as ${filename}`);
+
+        await ctx.reply(
+            "✅ Скриншот получен! Мы проверим ваш отзыв в течение 24 часов.\n\n" +
+            "После одобрения монеты будут начислены автоматически. 🪙"
+        );
+    } catch (e) {
+        console.error("❌ Error saving review photo:", e.message);
+        await ctx.reply("❌ Ошибка при сохранении фото. Попробуйте ещё раз.");
+    }
+});
+
+// Команда /review_task_ID — запросить скриншот для конкретного задания
+// Вызывается из Mini App через deeplink: https://t.me/bot?start=review_14
+bot.command("start", async (ctx) => {
+    // Обработка deeplink для задания с отзывом
+    const param = ctx.match || "";
+    if (param.startsWith("review_")) {
+        const taskId = parseInt(param.replace("review_", ""));
+        const telegramId = ctx.from.id;
+
+        if (!isNaN(taskId)) {
+            awaitingReviewPhoto.set(telegramId, taskId);
+            await ctx.reply(
+                "📸 Пришлите скриншот вашего отзыва на Яндекс.Картах.\n\n" +
+                "Убедитесь, что на скриншоте виден текст отзыва и ваше имя."
+            );
+            return;
+        }
+    }
+});
+
 const app = express();
 
 // CORS middleware
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
@@ -79,6 +181,9 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
+
+// Раздача загруженных фото как статику
+app.use("/uploads", express.static("/var/www/gorodsporta/uploads"));
 
 // Простая авторизация для админки с ролями
 const ADMIN_PASSWORD = "GorodSporta2025Admin!"; // Полный доступ
@@ -857,6 +962,195 @@ app.get("/admin/api/referrals", checkAdminAuth, async (req, res) => {
             ORDER BY r.created_at DESC
         `);
         res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ==================== REVIEW SUBMISSIONS API ====================
+
+// API для запроса скриншота от пользователя (вызывается из Mini App)
+// Устанавливает ожидание фото от пользователя и просит его открыть бот
+app.post("/api/request-review", async (req, res) => {
+    try {
+        const { telegramId, taskId } = req.body;
+
+        const userResult = await pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
+        if (userResult.rows.length === 0) return res.json({ error: "User not found" });
+
+        // Проверяем, не подавал ли уже заявку
+        const existingSubmission = await pool.query(
+            "SELECT * FROM review_submissions WHERE user_id = $1 AND task_id = $2 AND status IN ('pending', 'approved')",
+            [userResult.rows[0].id, taskId]
+        );
+        if (existingSubmission.rows.length > 0) {
+            return res.json({ error: "Заявка уже подана" });
+        }
+
+        // Регистрируем ожидание фото
+        awaitingReviewPhoto.set(parseInt(telegramId), parseInt(taskId));
+
+        console.log(`⏳ Awaiting review photo from telegramId=${telegramId} for taskId=${taskId}`);
+
+        res.json({ success: true, message: "Отправьте скриншот боту" });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Список заявок на проверку (для админки)
+app.get("/admin/api/reviews", checkAdminAuth, async (req, res) => {
+    try {
+        const { status } = req.query; // pending | approved | rejected | all
+        const statusFilter = status && status !== 'all' ? `WHERE rs.status = '${status}'` : "WHERE rs.status = 'pending'";
+
+        const result = await pool.query(`
+            SELECT
+                rs.id,
+                rs.user_id,
+                rs.task_id,
+                rs.photo_file_id,
+                rs.photo_url,
+                rs.status,
+                rs.admin_comment,
+                rs.submitted_at,
+                rs.reviewed_at,
+                rs.reviewed_by,
+                u.first_name,
+                u.last_name,
+                u.telegram_id,
+                t.title as task_title,
+                t.coins_reward,
+                t.day_number
+            FROM review_submissions rs
+            JOIN users u ON u.id = rs.user_id
+            JOIN tasks t ON t.id = rs.task_id
+            ${statusFilter}
+            ORDER BY rs.submitted_at ASC
+        `);
+        res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Одобрить отзыв — только для админа
+app.post("/admin/api/reviews/:id/approve", checkAdminAuth, checkAdminRole, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Получаем заявку
+        const subResult = await pool.query("SELECT * FROM review_submissions WHERE id = $1", [id]);
+        if (subResult.rows.length === 0) return res.status(404).json({ error: "Submission not found" });
+        const sub = subResult.rows[0];
+
+        if (sub.status !== 'pending') {
+            return res.json({ error: "Заявка уже обработана" });
+        }
+
+        // Получаем задание для суммы монет
+        const taskResult = await pool.query("SELECT * FROM tasks WHERE id = $1", [sub.task_id]);
+        if (taskResult.rows.length === 0) return res.status(404).json({ error: "Task not found" });
+        const task = taskResult.rows[0];
+
+        // Проверяем, не выполнено ли уже задание
+        const existingTask = await pool.query(
+            "SELECT * FROM user_tasks WHERE user_id = $1 AND task_id = $2 AND status = 'completed'",
+            [sub.user_id, sub.task_id]
+        );
+
+        if (existingTask.rows.length === 0) {
+            // Засчитываем задание
+            await pool.query(`
+                INSERT INTO user_tasks (user_id, task_id, status, completed_at, verified_by)
+                VALUES ($1, $2, 'completed', now(), 'review')
+                ON CONFLICT (user_id, task_id) DO UPDATE SET status = 'completed', completed_at = now()
+            `, [sub.user_id, sub.task_id]);
+
+            // Начисляем монеты
+            await pool.query(
+                "UPDATE users SET coins = coins + $1, xp = xp + $1, last_activity_at = now() WHERE id = $2",
+                [task.coins_reward, sub.user_id]
+            );
+
+            console.log(`✅ Review approved: user ${sub.user_id} gets ${task.coins_reward} coins for task ${sub.task_id}`);
+        }
+
+        // Обновляем статус заявки
+        await pool.query(`
+            UPDATE review_submissions
+            SET status = 'approved', reviewed_at = now(), reviewed_by = $1
+            WHERE id = $2
+        `, [req.userName || req.userRole, id]);
+
+        // Уведомляем пользователя в Telegram
+        try {
+            const userResult = await pool.query("SELECT telegram_id FROM users WHERE id = $1", [sub.user_id]);
+            if (userResult.rows.length > 0) {
+                await bot.api.sendMessage(
+                    userResult.rows[0].telegram_id,
+                    `🎉 Ваш отзыв одобрен!\n\nНачислено ${task.coins_reward} 🪙 спорткоинов. Спасибо!`
+                );
+            }
+        } catch (e) {
+            console.log("⚠️ Could not send Telegram notification:", e.message);
+        }
+
+        res.json({ success: true });
+    } catch (e) {
+        console.error("❌ Failed to approve review:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Отклонить отзыв — только для админа
+app.post("/admin/api/reviews/:id/reject", checkAdminAuth, checkAdminRole, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { comment } = req.body;
+
+        const subResult = await pool.query("SELECT * FROM review_submissions WHERE id = $1", [id]);
+        if (subResult.rows.length === 0) return res.status(404).json({ error: "Submission not found" });
+        const sub = subResult.rows[0];
+
+        if (sub.status !== 'pending') {
+            return res.json({ error: "Заявка уже обработана" });
+        }
+
+        await pool.query(`
+            UPDATE review_submissions
+            SET status = 'rejected', admin_comment = $1, reviewed_at = now(), reviewed_by = $2
+            WHERE id = $3
+        `, [comment || '', req.userName || req.userRole, id]);
+
+        console.log(`❌ Review rejected: submission ${id}, comment: ${comment}`);
+
+        // Уведомляем пользователя в Telegram
+        try {
+            const userResult = await pool.query("SELECT telegram_id FROM users WHERE id = $1", [sub.user_id]);
+            if (userResult.rows.length > 0) {
+                const reason = comment ? `\n\nПричина: ${comment}` : '';
+                await bot.api.sendMessage(
+                    userResult.rows[0].telegram_id,
+                    `❌ Ваш отзыв не принят.${reason}\n\nПожалуйста, пришлите новый скриншот.`
+                );
+            }
+        } catch (e) {
+            console.log("⚠️ Could not send Telegram notification:", e.message);
+        }
+
+        res.json({ success: true });
+    } catch (e) {
+        console.error("❌ Failed to reject review:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Счётчик pending заявок (для бейджа в меню)
+app.get("/admin/api/reviews/count", checkAdminAuth, async (req, res) => {
+    try {
+        const result = await pool.query("SELECT COUNT(*) FROM review_submissions WHERE status = 'pending'");
+        res.json({ count: parseInt(result.rows[0].count) });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }

@@ -1,11 +1,21 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Users, ListChecks, Gift, ShoppingCart, UserPlus, LogOut } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { LayoutDashboard, Users, ListChecks, Gift, ShoppingCart, UserPlus, LogOut, Star } from 'lucide-react'
+import { api } from '../lib/api'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
   const userName = localStorage.getItem('admin_name') || 'Пользователь'
   const userRole = localStorage.getItem('admin_role') || 'staff'
+
+  // Счётчик pending отзывов для бейджа
+  const { data: reviewsCount } = useQuery({
+    queryKey: ['reviewsCount'],
+    queryFn: () => api.getReviewsCount(),
+    refetchInterval: 60000, // обновляем раз в минуту
+  })
+  const pendingCount = reviewsCount?.count || 0
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token')
@@ -21,6 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { path: '/prizes', icon: Gift, label: 'Призы' },
     { path: '/purchases', icon: ShoppingCart, label: 'Покупки' },
     { path: '/referrals', icon: UserPlus, label: 'Рефералы' },
+    { path: '/reviews', icon: Star, label: 'Отзывы', badge: pendingCount },
   ]
 
   return (
@@ -47,7 +58,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 }`}
               >
                 <Icon size={20} />
-                <span>{item.label}</span>
+                <span className="flex-1">{item.label}</span>
+                {item.badge != null && item.badge > 0 && (
+                  <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-orange-500 text-white rounded-full">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
               </Link>
             )
           })}

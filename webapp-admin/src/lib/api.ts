@@ -143,6 +143,28 @@ class ApiClient {
   async getReferrals() {
     return this.request('/admin/api/referrals');
   }
+
+  // Reviews (отзывы на Яндекс.Картах)
+  async getReviews(status: string = 'pending') {
+    return this.request(`/admin/api/reviews?status=${status}`);
+  }
+
+  async getReviewsCount() {
+    return this.request('/admin/api/reviews/count');
+  }
+
+  async approveReview(id: number) {
+    return this.request(`/admin/api/reviews/${id}/approve`, {
+      method: 'POST',
+    });
+  }
+
+  async rejectReview(id: number, comment: string) {
+    return this.request(`/admin/api/reviews/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ comment }),
+    });
+  }
 }
 
 export const api = new ApiClient();
