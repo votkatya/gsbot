@@ -133,7 +133,20 @@ app.get("/api/user/:telegramId", async (req, res) => {
              ORDER BY t.day_number`, [user.id]
         );
 
-        res.json({ user, tasks: tasksResult.rows });
+        // Получаем pending заявки на отзывы для этого пользователя
+        const reviewResult = await pool.query(
+            `SELECT task_id FROM review_submissions WHERE user_id = $1 AND status = 'pending'`,
+            [user.id]
+        );
+        const pendingReviewTaskIds = reviewResult.rows.map(r => r.task_id);
+
+        // Добавляем reviewPending к заданиям
+        const tasks = tasksResult.rows.map(t => ({
+            ...t,
+            reviewPending: pendingReviewTaskIds.includes(t.id)
+        }));
+
+        res.json({ user, tasks });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -984,7 +997,7 @@ app.post("/api/upload-review", upload.single("photo"), async (req, res) => {
 
         // Проверяем, не подавал ли уже заявку
         const existing = await pool.query(
-            "SELECT * FROM review_submissions WHERE user_id = $1 AND task_id = $2 AND status IN ('pending', 'approved')",
+            "SELECT * FROM review_submissions WHERE user_id = $1 AND task_id = $2 AND status IN ('pending', 'approved') ORDER BY submitted_at DESC LIMIT 1",
             [user.id, task.id]
         );
         if (existing.rows.length > 0) return res.json({ error: "Заявка уже подана" });

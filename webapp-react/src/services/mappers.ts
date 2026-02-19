@@ -96,7 +96,7 @@ export function mapApiTasks(apiTasks: ApiTask[]): Task[] {
   return apiTasks.map((apiTask) => {
     const ui = TASK_UI[apiTask.day_number] || DEFAULT_TASK_UI;
     const isCompleted = apiTask.status === "completed";
-    const isReviewPending = apiTask.status === "pending";
+    const isReviewPending = apiTask.reviewPending === true;
 
     // Lock logic:
     // - All stages: always unlocked (visibility controlled by UI with "Continue" buttons)
