@@ -1236,4 +1236,8 @@ app.get("/admin/api/reviews/count", checkAdminAuth, async (req, res) => {
 
 app.get("/", (req, res) => res.send("Bot is running"));
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+app.listen(3000, async () => {
+    console.log("Server running on port 3000");
+    // Запускаем получение сообщений от Telegram через long polling
+    bot.start().catch((err) => console.error("❌ Bot polling error:", err));
+});
