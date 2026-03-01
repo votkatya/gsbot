@@ -30,7 +30,7 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        ПОЛЬЗОВАТЕЛЬ                          │
-│                     (Telegram Mini App)                      │
+│             (Telegram Mini App  /  VK Mini App)              │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
@@ -300,12 +300,15 @@ const pool = new Pool({
 
 | Метод | Путь | Описание |
 |-------|------|----------|
-| GET | `/api/user/:telegramId` | Получить пользователя и его задания |
-| POST | `/api/complete-task` | Выполнить задание |
+| GET | `/api/user/:telegramId` | Получить пользователя по Telegram ID |
+| GET | `/api/user/vk/:vkId` | Получить пользователя по VK ID |
+| POST | `/api/register` | Регистрация (TG или VK, с кросс-привязкой по телефону) |
+| POST | `/api/complete-task` | Выполнить задание (принимает `telegramId` или `vkId`) |
 | POST | `/api/survey` | Отправить анкету (задание 1) |
 | GET | `/api/shop` | Получить список товаров |
 | POST | `/api/purchase` | Купить товар |
 | GET | `/api/leaderboard` | Получить рейтинг |
+| POST | `/api/upload-review` | Загрузить скриншот (принимает `telegramId` или `vkId`) |
 | POST | `/webhook` | Webhook для Telegram бота |
 
 #### Верификация заданий Блока 2 (QR коды + ручные коды)
@@ -444,10 +447,13 @@ Password: GorodSporta2025!
 ```sql
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    telegram_id BIGINT UNIQUE NOT NULL,
+    telegram_id BIGINT UNIQUE,          -- NULL для VK-пользователей
+    vk_id BIGINT UNIQUE,                -- NULL для TG-пользователей
     first_name VARCHAR(255),
     last_name VARCHAR(255),
     username VARCHAR(255),
+    phone VARCHAR(20),                  -- Используется для кросс-платформенной привязки
+    membership_type VARCHAR(50),
     coins INT DEFAULT 0,
     xp INT DEFAULT 0,
     survey_data JSONB,
@@ -455,6 +461,10 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT NOW()
 );
 ```
+
+> **Кросс-платформенная логика:** пользователь может войти через ТГ и ВК.
+> При первом входе вводит телефон. Если телефон уже есть в БД (другая платформа) —
+> аккаунты автоматически связываются. Повторные входы с той же платформы не требуют ввода данных.
 
 #### 2. `tasks` - Задания
 
@@ -1007,6 +1017,7 @@ psql -U gsadmin -d gorodsporta
 |------|--------|-----------|
 | 12.02.2026 | 1.0 | Первая версия документации |
 | 13.02.2026 | 1.1 | Добавлена информация о QR-кодах и ручных кодах для Блока 2 (дни 4-9) |
+| 01.03.2026 | 2.0 | Добавлена поддержка VK Mini App: новый эндпоинт `/api/user/vk/:vkId`, обновлена таблица `users` (vk_id, nullable telegram_id), кросс-платформенная привязка по номеру телефона |
 
 ---
 
