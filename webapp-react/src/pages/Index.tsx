@@ -534,45 +534,50 @@ const Index = () => {
   }) => {
     console.log("Registration data:", data);
 
+    // Если платформа не определена — сообщить пользователю
+    if (!telegramId && !vkId) {
+      console.error("❌ Registration failed: no platform ID (telegramId and vkId are both null)");
+      toast.error("Откройте приложение через Telegram или VK");
+      return;
+    }
+
     // Save to backend
-    if (telegramId || vkId) {
-      try {
-        const result = await api.submitRegistration(
-          telegramId,
-          data.fullName,
-          data.phone,
-          data.membership,
-          lastName,
-          username,
-          vkId
-        );
+    try {
+      const result = await api.submitRegistration(
+        telegramId,
+        data.fullName,
+        data.phone,
+        data.membership,
+        lastName,
+        username,
+        vkId
+      );
 
-        if (result.success) {
-          console.log("✅ Registration saved to database");
-          // Update local user name
-          setUserName(data.fullName.split(" ")[0] || "Атлет");
+      if (result.success) {
+        console.log("✅ Registration saved to database");
+        // Update local user name
+        setUserName(data.fullName.split(" ")[0] || "Атлет");
 
-          // Save to localStorage
-          localStorage.setItem("registration_completed", "true");
-          localStorage.setItem("registration_data", JSON.stringify(data));
+        // Save to localStorage
+        localStorage.setItem("registration_completed", "true");
+        localStorage.setItem("registration_data", JSON.stringify(data));
 
-          // Close registration and show onboarding
-          setIsRegistrationOpen(false);
-          setIsOnboardingOpen(true);
+        // Close registration and show onboarding
+        setIsRegistrationOpen(false);
+        setIsOnboardingOpen(true);
 
-          // Haptic feedback
-          window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
+        // Haptic feedback
+        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
 
-          // Reload data to get tasks and leaderboard
-          await loadData();
-        } else {
-          console.error("❌ Registration failed:", result.error);
-          toast.error(result.error || "Ошибка регистрации");
-        }
-      } catch (error) {
-        console.error("❌ Registration network error:", error);
-        toast.error("Ошибка сети");
+        // Reload data to get tasks and leaderboard
+        await loadData();
+      } else {
+        console.error("❌ Registration failed:", result.error);
+        toast.error(result.error || "Ошибка регистрации");
       }
+    } catch (error) {
+      console.error("❌ Registration network error:", error);
+      toast.error("Ошибка сети. Попробуйте позже.");
     }
   };
 
