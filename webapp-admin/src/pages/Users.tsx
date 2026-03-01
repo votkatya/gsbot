@@ -24,7 +24,8 @@ export default function Users() {
       user.last_name?.toLowerCase().includes(query) ||
       user.username?.toLowerCase().includes(query) ||
       user.phone?.includes(query) ||
-      user.telegram_id?.toString().includes(query)
+      user.telegram_id?.toString().includes(query) ||
+      user.vk_id?.toString().includes(query)
     )
   })
 
@@ -59,7 +60,8 @@ export default function Users() {
 
       return {
         'ID': user.id,
-        'Telegram ID': user.telegram_id,
+        'Telegram ID': user.telegram_id || '',
+        'VK ID': user.vk_id || '',
         'Имя': user.first_name || '',
         'Фамилия': user.last_name || '',
         'Username': user.username || '',
@@ -134,7 +136,10 @@ export default function Users() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ID
+                  TG ID
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  VK ID
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Имя
@@ -168,8 +173,11 @@ export default function Users() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredUsers?.map((user: any) => (
                 <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.telegram_id}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">
+                    {user.telegram_id || '—'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">
+                    {user.vk_id || '—'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">

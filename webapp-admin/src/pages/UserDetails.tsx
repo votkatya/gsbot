@@ -135,8 +135,22 @@ export default function UserDetails() {
       {/* Основная информация */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="text-sm text-gray-500 mb-1">Telegram ID</div>
-          <div className="text-2xl font-bold text-gray-900">{user.telegram_id}</div>
+          <div className="text-sm text-gray-500 mb-1">Платформы</div>
+          {user.telegram_id && (
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-gray-400 w-6">TG</span>
+              <span className="text-sm font-bold text-gray-900 font-mono">{user.telegram_id}</span>
+            </div>
+          )}
+          {user.vk_id && (
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-gray-400 w-6">VK</span>
+              <span className="text-sm font-bold text-blue-600 font-mono">{user.vk_id}</span>
+            </div>
+          )}
+          {!user.telegram_id && !user.vk_id && (
+            <div className="text-2xl font-bold text-gray-400">—</div>
+          )}
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="text-sm text-gray-500 mb-1">Спорткоины</div>
@@ -157,6 +171,14 @@ export default function UserDetails() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-bold mb-4">Информация</h2>
           <div className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Telegram ID:</span>
+              <span className="font-medium font-mono text-sm">{user.telegram_id || '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">VK ID:</span>
+              <span className="font-medium font-mono text-sm">{user.vk_id || '—'}</span>
+            </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Телефон:</span>
               <span className="font-medium">{user.phone || '—'}</span>
