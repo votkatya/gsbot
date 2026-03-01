@@ -27,7 +27,7 @@ import {
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
-  const { telegramId, firstName, lastName, username, isReady, startParam } = useTelegram();
+  const { telegramId, vkId, firstName, lastName, username, isReady, startParam } = useTelegram();
 
   const [activeTab, setActiveTab] = useState("home");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -86,10 +86,10 @@ const Index = () => {
 
   // --- Reload leaderboard ---
   const reloadLeaderboard = async () => {
-    if (!telegramId) return;
+    if (!telegramId && !vkId) return;
     try {
       const lbData = await api.fetchLeaderboard();
-      setLeaderboard(mapLeaderboard(lbData, telegramId));
+      setLeaderboard(mapLeaderboard(lbData, telegramId, vkId));
     } catch (err) {
       console.error("Failed to reload leaderboard:", err);
     }
@@ -97,9 +97,9 @@ const Index = () => {
 
   // --- Reload tasks ---
   const reloadTasks = async () => {
-    if (!telegramId) return;
+    if (!telegramId && !vkId) return;
     try {
-      const userData = await api.fetchUser(telegramId);
+      const userData = await api.fetchUser(telegramId, vkId);
       if (userData && userData.tasks) {
         const newTasks = mapApiTasks(userData.tasks);
         setTasks(newTasks);
@@ -111,8 +111,8 @@ const Index = () => {
 
   // --- Load all data ---
   const loadData = async () => {
-    if (!isReady || !telegramId) {
-      console.log("Index: Waiting for Telegram context to be ready");
+    if (!isReady || (!telegramId && !vkId)) {
+      console.log("Index: Waiting for platform context to be ready");
       return;
     }
 
@@ -121,14 +121,14 @@ const Index = () => {
     setServerError(false);
     try {
       // Load user + tasks
-      const userData = await api.fetchUser(telegramId!);
+      const userData = await api.fetchUser(telegramId, vkId);
 
       // Always load shop and leaderboard regardless of user status
       const shopData = await api.fetchShop();
       setShopItems(shopData.map(mapApiShopItem));
 
       const lbData = await api.fetchLeaderboard();
-      setLeaderboard(mapLeaderboard(lbData, telegramId!));
+      setLeaderboard(mapLeaderboard(lbData, telegramId, vkId));
 
       if (userData && userData.user) {
         // User exists in database
@@ -164,13 +164,13 @@ const Index = () => {
   };
 
   useEffect(() => {
-    console.log("Index: loadData effect triggered", { isReady, telegramId });
+    console.log("Index: loadData effect triggered", { isReady, telegramId, vkId });
     loadData();
-  }, [isReady, telegramId]);
+  }, [isReady, telegramId, vkId]);
 
   // --- Handle QR deep link from startParam ---
   useEffect(() => {
-    if (!startParam || !tasks.length || !telegramId) return;
+    if (!startParam || !tasks.length || (!telegramId && !vkId)) return;
 
     if (startParam.startsWith("qr_")) {
       const qrCode = startParam.substring(3);
@@ -182,7 +182,7 @@ const Index = () => {
       if (task) {
         // Auto-complete via API
         api
-          .completeTask(telegramId, task.dayNumber, "qr", qrCode)
+          .completeTask(telegramId, task.dayNumber, "qr", qrCode, vkId)
           .then((result) => {
             if (result.success) {
               setTasks((prev) =>
@@ -213,7 +213,7 @@ const Index = () => {
           });
       }
     }
-  }, [startParam, tasks, telegramId]);
+  }, [startParam, tasks, telegramId, vkId]);
 
   // Tasks grouped by stage
   const stage1Tasks = tasks.filter((t) => t.stage === 1);
@@ -287,7 +287,7 @@ const Index = () => {
   };
 
   const handleCodeSubmit = async (code: string) => {
-    if (!scanningTask || !telegramId) return;
+    if (!scanningTask || (!telegramId && !vkId)) return;
     setIsCodeChecking(true);
 
     try {
@@ -295,7 +295,8 @@ const Index = () => {
         telegramId,
         scanningTask.dayNumber,
         scanningTask.verificationType,
-        code
+        code,
+        vkId
       );
 
       if (result.success) {
@@ -337,13 +338,15 @@ const Index = () => {
 
   // Handle self-verification tasks (stage 1 and some stage 3)
   const handleCompleteTask = async (task: Task) => {
-    if (!telegramId) return;
+    if (!telegramId && !vkId) return;
 
     try {
       const result = await api.completeTask(
         telegramId,
         task.dayNumber,
-        "self"
+        "self",
+        undefined,
+        vkId
       );
 
       if (result.success) {
@@ -365,7 +368,7 @@ const Index = () => {
 
         // Reload leaderboard to update ranking
         api.fetchLeaderboard().then(lbData => {
-          setLeaderboard(mapLeaderboard(lbData, telegramId!));
+          setLeaderboard(mapLeaderboard(lbData, telegramId, vkId));
         });
 
         window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred(
@@ -381,14 +384,15 @@ const Index = () => {
 
   // Handle survey submission (task 1)
   const handleSurveySubmit = async (answers: Record<string, string | string[]>) => {
-    if (!selectedTask || !telegramId) return;
+    if (!selectedTask || (!telegramId && !vkId)) return;
     setIsSurveyLoading(true);
 
     try {
       const result = await api.submitSurvey(
         telegramId,
         selectedTask.dayNumber,
-        answers
+        answers,
+        vkId
       );
 
       if (result.success) {
@@ -424,7 +428,7 @@ const Index = () => {
 
   // Handle app code submission (task 2 - Будь в курсе)
   const handleAppCodeSubmit = async (code: string) => {
-    if (!selectedTask || !telegramId) return;
+    if (!selectedTask || (!telegramId && !vkId)) return;
     setIsAppCodeLoading(true);
 
     try {
@@ -432,7 +436,8 @@ const Index = () => {
         telegramId,
         selectedTask.dayNumber,
         "app_code",
-        code
+        code,
+        vkId
       );
 
       if (result.success) {
@@ -472,7 +477,7 @@ const Index = () => {
 
   // Handle referral form submission (task 13 - Подарить купон другу)
   const handleReferralSubmit = async (data: { friendName: string; friendPhone: string }) => {
-    if (!selectedTask || !telegramId) return;
+    if (!selectedTask || (!telegramId && !vkId)) return;
     setIsReferralLoading(true);
 
     try {
@@ -480,7 +485,8 @@ const Index = () => {
         telegramId,
         selectedTask.dayNumber,
         "referral_form",
-        JSON.stringify(data)
+        JSON.stringify(data),
+        vkId
       );
 
       if (result.success) {
@@ -525,7 +531,7 @@ const Index = () => {
     console.log("Registration data:", data);
 
     // Save to backend
-    if (telegramId) {
+    if (telegramId || vkId) {
       try {
         const result = await api.submitRegistration(
           telegramId,
@@ -533,7 +539,8 @@ const Index = () => {
           data.phone,
           data.membership,
           lastName,
-          username
+          username,
+          vkId
         );
 
         if (result.success) {
@@ -567,11 +574,12 @@ const Index = () => {
 
   // Handle review screenshot submission (task 11 - Оставь отзыв)
   const handleReviewSubmit = async (file: File) => {
-    if (!selectedTask || !telegramId) return;
+    if (!selectedTask || (!telegramId && !vkId)) return;
 
     const formData = new FormData();
     formData.append("photo", file);
-    formData.append("telegramId", String(telegramId));
+    if (telegramId) formData.append("telegramId", String(telegramId));
+    if (vkId) formData.append("vkId", String(vkId));
     formData.append("taskId", String(selectedTask.dayNumber));
 
     try {
@@ -593,7 +601,7 @@ const Index = () => {
 
   // Handle quiz submission (task 14 - Пройди тест)
   const handleQuizSubmit = async (score: number) => {
-    if (!selectedTask || !telegramId) return;
+    if (!selectedTask || (!telegramId && !vkId)) return;
     setIsQuizLoading(true);
 
     try {
@@ -601,7 +609,8 @@ const Index = () => {
         telegramId,
         selectedTask.dayNumber,
         "quiz",
-        JSON.stringify({ score })
+        JSON.stringify({ score }),
+        vkId
       );
 
       if (result.success) {
@@ -639,7 +648,7 @@ const Index = () => {
 
   // Handle QR code scanned via native Telegram scanner
   const handleQRScanned = async (scannedText: string) => {
-    if (!scanningTask || !telegramId) return;
+    if (!scanningTask || (!telegramId && !vkId)) return;
 
     setIsQRModalOpen(false);
     setIsCodeChecking(true);
@@ -649,7 +658,8 @@ const Index = () => {
         telegramId,
         scanningTask.dayNumber,
         scanningTask.verificationType,
-        scannedText
+        scannedText,
+        vkId
       );
 
       if (result.success) {
@@ -684,7 +694,7 @@ const Index = () => {
   };
 
   const handleBuyItem = async (id: string) => {
-    if (!telegramId) return;
+    if (!telegramId && !vkId) return;
     const item = shopItems.find((i) => i.id === id);
     if (!item || userCoins < item.price) {
       toast.error("Недостаточно монет");
@@ -692,7 +702,7 @@ const Index = () => {
     }
 
     try {
-      const result = await api.purchaseItem(telegramId, Number(id));
+      const result = await api.purchaseItem(telegramId, Number(id), vkId);
       if (result.success) {
         setUserCoins(result.coins ?? userCoins - item.price);
         toast.success(`Вы купили: ${item.title}`);

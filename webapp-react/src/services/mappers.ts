@@ -185,10 +185,14 @@ export interface LeaderboardEntry {
 
 export function mapLeaderboard(
   entries: ApiLeaderboardEntry[],
-  currentTelegramId: number
+  currentTelegramId: number | null,
+  currentVkId?: number | null
 ): LeaderboardEntry[] {
   return entries.map((entry, index) => {
     const rank = index + 1;
+    const isMe =
+      (currentTelegramId != null && entry.telegram_id === currentTelegramId) ||
+      (currentVkId != null && entry.vk_id === currentVkId);
     return {
       rank,
       name: entry.first_name || "Аноним",
@@ -202,7 +206,7 @@ export function mapLeaderboard(
             : rank === 3
               ? ("bronze" as const)
               : undefined,
-      isMe: entry.telegram_id === currentTelegramId,
+      isMe,
     };
   });
 }

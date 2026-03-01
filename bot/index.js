@@ -18,6 +18,16 @@ const pool = new Pool({
 
 const bot = new Bot(BOT_TOKEN);
 
+// Хелпер: найти пользователя по telegram_id или vk_id
+async function getUserByPlatformId(telegramId, vkId) {
+    if (telegramId) {
+        return pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
+    } else if (vkId) {
+        return pool.query("SELECT * FROM users WHERE vk_id = $1", [vkId]);
+    }
+    return { rows: [] };
+}
+
 // Папка для хранения скриншотов отзывов
 const UPLOADS_DIR = "/var/www/gorodsporta/uploads/reviews";
 try {
@@ -119,6 +129,40 @@ function checkAdminRole(req, res, next) {
 app.post("/webhook", webhookCallback(bot, "express"));
 
 // API для Mini App
+
+// Получить пользователя по VK ID
+app.get("/api/user/vk/:vkId", async (req, res) => {
+    try {
+        const { vkId } = req.params;
+        const userResult = await pool.query("SELECT * FROM users WHERE vk_id = $1", [vkId]);
+        if (userResult.rows.length === 0) return res.json({ error: "User not found" });
+
+        const user = userResult.rows[0];
+        const tasksResult = await pool.query(
+            `SELECT t.*, ut.status, ut.completed_at
+             FROM tasks t
+             LEFT JOIN user_tasks ut ON ut.task_id = t.id AND ut.user_id = $1
+             ORDER BY t.day_number`, [user.id]
+        );
+
+        const reviewResult = await pool.query(
+            `SELECT task_id FROM review_submissions WHERE user_id = $1 AND status = 'pending'`,
+            [user.id]
+        );
+        const pendingReviewTaskIds = reviewResult.rows.map(r => r.task_id);
+
+        const tasks = tasksResult.rows.map(t => ({
+            ...t,
+            reviewPending: pendingReviewTaskIds.includes(t.id)
+        }));
+
+        res.json({ user, tasks });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Получить пользователя по Telegram ID
 app.get("/api/user/:telegramId", async (req, res) => {
     try {
         const { telegramId } = req.params;
@@ -154,16 +198,17 @@ app.get("/api/user/:telegramId", async (req, res) => {
 
 app.post("/api/complete-task", async (req, res) => {
     try {
-        const { telegramId, taskDay, verificationType, verificationData } = req.body;
+        const { telegramId, vkId, taskDay, verificationType, verificationData } = req.body;
 
         console.log('📥 Complete task request:', {
             telegramId,
+            vkId,
             taskDay,
             verificationType,
             verificationData: verificationData?.substring?.(0, 50) || verificationData
         });
 
-        const userResult = await pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
+        const userResult = await getUserByPlatformId(telegramId, vkId);
         if (userResult.rows.length === 0) return res.json({ error: "User not found" });
         const user = userResult.rows[0];
 
@@ -372,8 +417,8 @@ app.get("/api/shop", async (req, res) => {
 
 app.post("/api/purchase", async (req, res) => {
     try {
-        const { telegramId, itemId } = req.body;
-        const userResult = await pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
+        const { telegramId, vkId, itemId } = req.body;
+        const userResult = await getUserByPlatformId(telegramId, vkId);
         if (userResult.rows.length === 0) return res.json({ error: "User not found" });
         const user = userResult.rows[0];
 
@@ -395,7 +440,7 @@ app.post("/api/purchase", async (req, res) => {
 
 app.get("/api/leaderboard", async (req, res) => {
     try {
-        const result = await pool.query("SELECT telegram_id, first_name, coins, xp FROM users ORDER BY xp DESC LIMIT 20");
+        const result = await pool.query("SELECT telegram_id, vk_id, first_name, coins, xp FROM users ORDER BY xp DESC LIMIT 20");
         res.json(result.rows);
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -405,9 +450,9 @@ app.get("/api/leaderboard", async (req, res) => {
 // Survey endpoint (task 1 - questionnaire)
 app.post("/api/survey", async (req, res) => {
     try {
-        const { telegramId, taskDay, answers } = req.body;
+        const { telegramId, vkId, taskDay, answers } = req.body;
 
-        const userResult = await pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
+        const userResult = await getUserByPlatformId(telegramId, vkId);
         if (userResult.rows.length === 0) return res.json({ error: "User not found" });
         const user = userResult.rows[0];
 
@@ -454,25 +499,65 @@ app.post("/api/survey", async (req, res) => {
     }
 });
 
-// Registration endpoint - save user registration data
+// Registration endpoint - save user registration data (TG and VK)
 app.post("/api/register", async (req, res) => {
     try {
-        const { telegramId, fullName, phone, membership, lastName, username } = req.body;
+        const { telegramId, vkId, fullName, phone, membership, lastName, username } = req.body;
 
-        console.log("📝 Registration request:", { telegramId, fullName, phone, membership, lastName, username });
+        console.log("📝 Registration request:", { telegramId, vkId, fullName, phone, membership });
 
-        // Create or update user with registration data
-        const result = await pool.query(
-            `INSERT INTO users (telegram_id, first_name, last_name, username, phone, membership_type, coins, xp, last_activity_at, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, 0, 0, now(), now())
-             ON CONFLICT (telegram_id) DO UPDATE SET
-             first_name = $2, last_name = $3, username = $4, phone = $5, membership_type = $6, last_activity_at = now()
-             RETURNING *`,
-            [telegramId, fullName, lastName || "", username || "", phone, membership]
-        );
+        // Кросс-платформенная привязка: проверяем, есть ли уже аккаунт с таким телефоном
+        const existingByPhone = await pool.query("SELECT * FROM users WHERE phone = $1", [phone]);
+        if (existingByPhone.rows.length > 0) {
+            const existing = existingByPhone.rows[0];
 
-        console.log("✅ Registration saved:", result.rows[0]);
-        res.json({ success: true, user: result.rows[0] });
+            // Привязываем новую платформу к существующему аккаунту
+            if (telegramId && !existing.telegram_id) {
+                await pool.query(
+                    "UPDATE users SET telegram_id=$1, first_name=$2, last_name=$3, username=$4, membership_type=$5, last_activity_at=now() WHERE id=$6",
+                    [telegramId, fullName, lastName || "", username || "", membership, existing.id]
+                );
+                console.log("🔗 Linked TG to existing VK user:", existing.id);
+            } else if (vkId && !existing.vk_id) {
+                await pool.query(
+                    "UPDATE users SET vk_id=$1, first_name=$2, last_name=$3, username=$4, membership_type=$5, last_activity_at=now() WHERE id=$6",
+                    [vkId, fullName, lastName || "", username || "", membership, existing.id]
+                );
+                console.log("🔗 Linked VK to existing TG user:", existing.id);
+            }
+
+            const updated = await pool.query("SELECT * FROM users WHERE id = $1", [existing.id]);
+            return res.json({ success: true, user: updated.rows[0] });
+        }
+
+        // Новый пользователь — создаём по платформенному ID
+        if (telegramId) {
+            const result = await pool.query(
+                `INSERT INTO users (telegram_id, first_name, last_name, username, phone, membership_type, coins, xp, last_activity_at, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, 0, 0, now(), now())
+                 ON CONFLICT (telegram_id) DO UPDATE SET
+                 first_name=$2, last_name=$3, username=$4, phone=$5, membership_type=$6, last_activity_at=now()
+                 RETURNING *`,
+                [telegramId, fullName, lastName || "", username || "", phone, membership]
+            );
+            console.log("✅ TG registration saved:", result.rows[0].id);
+            return res.json({ success: true, user: result.rows[0] });
+        }
+
+        if (vkId) {
+            const result = await pool.query(
+                `INSERT INTO users (vk_id, first_name, last_name, username, phone, membership_type, coins, xp, last_activity_at, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, 0, 0, now(), now())
+                 ON CONFLICT (vk_id) DO UPDATE SET
+                 first_name=$2, last_name=$3, username=$4, phone=$5, membership_type=$6, last_activity_at=now()
+                 RETURNING *`,
+                [vkId, fullName, lastName || "", username || "", phone, membership]
+            );
+            console.log("✅ VK registration saved:", result.rows[0].id);
+            return res.json({ success: true, user: result.rows[0] });
+        }
+
+        return res.status(400).json({ error: "telegramId или vkId обязателен" });
     } catch (e) {
         console.error("❌ Registration error:", e);
         res.status(500).json({ error: e.message });
@@ -984,10 +1069,10 @@ const upload = multer({
 // Загрузка скриншота отзыва из мини-приложения
 app.post("/api/upload-review", upload.single("photo"), async (req, res) => {
     try {
-        const { telegramId, taskId } = req.body;
+        const { telegramId, vkId, taskId } = req.body;
         if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
-        const userResult = await pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
+        const userResult = await getUserByPlatformId(telegramId, vkId);
         if (userResult.rows.length === 0) return res.status(404).json({ error: "User not found" });
         const user = userResult.rows[0];
 

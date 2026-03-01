@@ -29,7 +29,8 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout 
 
 export interface ApiUser {
   id: number;
-  telegram_id: number;
+  telegram_id: number | null;
+  vk_id: number | null;
   first_name: string;
   last_name: string | null;
   username: string | null;
@@ -65,7 +66,8 @@ export interface ApiShopItem {
 }
 
 export interface ApiLeaderboardEntry {
-  telegram_id: number;
+  telegram_id: number | null;
+  vk_id: number | null;
   first_name: string;
   coins: number;
   xp: number;
@@ -87,13 +89,17 @@ export interface PurchaseResponse {
 // --- API Functions ---
 
 export async function fetchUser(
-  telegramId: number
+  telegramId: number | null,
+  vkId?: number | null
 ): Promise<{ user: ApiUser; tasks: ApiTask[] } | null> {
   if (USE_MOCK) {
-    return mockApi.fetchUser(telegramId);
+    return mockApi.fetchUser(telegramId ?? 0);
   }
   try {
-    const res = await fetchWithTimeout(`${API_BASE}/api/user/${telegramId}`);
+    const url = vkId
+      ? `${API_BASE}/api/user/vk/${vkId}`
+      : `${API_BASE}/api/user/${telegramId}`;
+    const res = await fetchWithTimeout(url);
     if (!res.ok) {
       console.error(`API error: ${res.status} ${res.statusText}`);
       return null;
@@ -108,13 +114,14 @@ export async function fetchUser(
 }
 
 export async function completeTask(
-  telegramId: number,
+  telegramId: number | null,
   taskDay: number,
   verificationType: string,
-  verificationData?: string
+  verificationData?: string,
+  vkId?: number | null
 ): Promise<CompleteTaskResponse> {
   if (USE_MOCK) {
-    return mockApi.completeTask(telegramId, taskDay, verificationType, verificationData);
+    return mockApi.completeTask(telegramId ?? 0, taskDay, verificationType, verificationData);
   }
   try {
     const res = await fetchWithTimeout(`${API_BASE}/api/complete-task`, {
@@ -122,6 +129,7 @@ export async function completeTask(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         telegramId,
+        vkId,
         taskDay,
         verificationType,
         verificationData,
@@ -148,17 +156,18 @@ export async function fetchShop(): Promise<ApiShopItem[]> {
 }
 
 export async function purchaseItem(
-  telegramId: number,
-  itemId: number
+  telegramId: number | null,
+  itemId: number,
+  vkId?: number | null
 ): Promise<PurchaseResponse> {
   if (USE_MOCK) {
-    return mockApi.purchaseItem(telegramId, itemId);
+    return mockApi.purchaseItem(telegramId ?? 0, itemId);
   }
   try {
     const res = await fetchWithTimeout(`${API_BASE}/api/purchase`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId, itemId }),
+      body: JSON.stringify({ telegramId, vkId, itemId }),
     });
     return res.json();
   } catch (error) {
@@ -181,18 +190,19 @@ export async function fetchLeaderboard(): Promise<ApiLeaderboardEntry[]> {
 }
 
 export async function submitSurvey(
-  telegramId: number,
+  telegramId: number | null,
   taskDay: number,
-  answers: Record<string, string | string[]>
+  answers: Record<string, string | string[]>,
+  vkId?: number | null
 ): Promise<CompleteTaskResponse> {
   if (USE_MOCK) {
-    return mockApi.submitSurvey(telegramId, taskDay, answers);
+    return mockApi.submitSurvey(telegramId ?? 0, taskDay, answers);
   }
   try {
     const res = await fetchWithTimeout(`${API_BASE}/api/survey`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId, taskDay, answers }),
+      body: JSON.stringify({ telegramId, vkId, taskDay, answers }),
     });
     return res.json();
   } catch (error) {
@@ -202,18 +212,19 @@ export async function submitSurvey(
 }
 
 export async function submitRegistration(
-  telegramId: number,
+  telegramId: number | null,
   fullName: string,
   phone: string,
   membership: string,
   lastName?: string,
-  username?: string
+  username?: string,
+  vkId?: number | null
 ): Promise<{ success?: boolean; error?: string; user?: ApiUser }> {
   try {
     const res = await fetchWithTimeout(`${API_BASE}/api/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId, fullName, phone, membership, lastName, username }),
+      body: JSON.stringify({ telegramId, vkId, fullName, phone, membership, lastName, username }),
     });
     return res.json();
   } catch (error) {
