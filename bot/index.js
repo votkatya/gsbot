@@ -1,4 +1,4 @@
-const { Bot } = require("grammy");
+const { Bot, webhookCallback } = require("grammy");
 const express = require("express");
 const { Pool } = require("pg");
 const fs = require("fs");
