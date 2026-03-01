@@ -1,6 +1,16 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import bridge from "@vkontakte/vk-bridge";
+
+// VK Mini App: must be called ASAP, before React renders
+bridge.send("VKWebAppInit")
+  .then((data) => {
+    console.log("[VK Bridge] VKWebAppInit result:", data);
+  })
+  .catch((error) => {
+    console.error("[VK Bridge] VKWebAppInit error:", error);
+  });
 
 // Error boundary для отлова ошибок при инициализации
 try {
