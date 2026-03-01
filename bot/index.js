@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const { Bot, webhookCallback } = require("grammy");
 const express = require("express");
 const { Pool } = require("pg");
@@ -5,15 +7,20 @@ const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
 
-const BOT_TOKEN = "8091797199:AAHAhjl7ooj4ajYdoxZwl-B4AtRlrj_WZqI";
-const WEBAPP_URL = "https://gsbot18.ru";
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const WEBAPP_URL = process.env.WEBAPP_URL || "https://gsbot18.ru";
+
+if (!BOT_TOKEN) {
+    console.error("❌ BOT_TOKEN is not set in environment variables");
+    process.exit(1);
+}
 
 const pool = new Pool({
-    user: "gsadmin",
-    password: "GorodSporta2025!",
-    host: "localhost",
-    port: 5432,
-    database: "gorodsporta"
+    user: process.env.DB_USER || "gsadmin",
+    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST || "localhost",
+    port: parseInt(process.env.DB_PORT || "5432"),
+    database: process.env.DB_NAME || "gorodsporta"
 });
 
 const bot = new Bot(BOT_TOKEN);
@@ -29,7 +36,7 @@ async function getUserByPlatformId(telegramId, vkId) {
 }
 
 // Папка для хранения скриншотов отзывов
-const UPLOADS_DIR = "/var/www/gorodsporta/uploads/reviews";
+const UPLOADS_DIR = process.env.UPLOADS_DIR || "/var/www/gorodsporta/uploads/reviews";
 try {
     if (!fs.existsSync(UPLOADS_DIR)) {
         fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -88,11 +95,11 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 // Раздача загруженных фото как статику
-app.use("/uploads", express.static("/var/www/gorodsporta/uploads"));
+app.use("/uploads", express.static(process.env.UPLOADS_DIR ? path.dirname(process.env.UPLOADS_DIR) : "/var/www/gorodsporta/uploads"));
 
 // Простая авторизация для админки с ролями
-const ADMIN_PASSWORD = "GorodSporta2025Admin!"; // Полный доступ
-const STAFF_PASSWORD = "GorodSporta2025Staff!"; // Только просмотр
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const STAFF_PASSWORD = process.env.STAFF_PASSWORD;
 
 // Учетные записи с ролями
 const ACCOUNTS = {
