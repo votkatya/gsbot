@@ -111,8 +111,12 @@ const Index = () => {
 
   // --- Load all data ---
   const loadData = async () => {
-    if (!isReady || (!telegramId && !vkId)) {
-      console.log("Index: Waiting for platform context to be ready");
+    if (!isReady) return;
+    if (!telegramId && !vkId) {
+      // Платформа определилась, но ID нет — показываем регистрацию
+      console.log("Index: No platform ID, showing registration");
+      setIsLoading(false);
+      setIsRegistrationOpen(true);
       return;
     }
 

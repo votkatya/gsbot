@@ -38,30 +38,42 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     console.log("PlatformContext: initializing...");
 
     const initPlatform = async () => {
-      // 1. Пробуем VK Bridge (VK Mini Apps)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const vkBridge = (window as any).vkBridge;
-      if (vkBridge) {
-        try {
-          console.log("VK Bridge found, initializing...");
-          vkBridge.send("VKWebAppInit");
-          const userData = await vkBridge.send("VKWebAppGetUserInfo");
-          console.log("VK user data:", userData);
+      // 1. Проверяем URL-параметры VK (VK всегда добавляет vk_user_id к URL мини-приложения)
+      const urlParams = new URLSearchParams(window.location.search);
+      const vkUserIdParam = urlParams.get("vk_user_id");
 
-          setValue({
-            telegramId: null,
-            vkId: userData.id,
-            platform: "vk",
-            firstName: userData.first_name || "Атлет",
-            lastName: userData.last_name || "",
-            username: "",
-            isReady: true,
-            startParam: null,
-          });
-          return;
-        } catch (e) {
-          console.error("VK Bridge error:", e);
+      if (vkUserIdParam) {
+        const vkId = parseInt(vkUserIdParam, 10);
+        console.log("VK Mini App detected via URL params, vk_user_id:", vkId);
+
+        // Пробуем получить имя через VK Bridge (если доступен)
+        let firstName = "Атлет";
+        let lastName = "";
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const vkBridge = (window as any).vkBridge;
+        if (vkBridge && typeof vkBridge.send === "function") {
+          try {
+            vkBridge.send("VKWebAppInit");
+            const userData = await vkBridge.send("VKWebAppGetUserInfo");
+            firstName = userData.first_name || "Атлет";
+            lastName = userData.last_name || "";
+            console.log("VK user data from bridge:", userData);
+          } catch (e) {
+            console.log("VK Bridge not available, using URL params only:", e);
+          }
         }
+
+        setValue({
+          telegramId: null,
+          vkId,
+          platform: "vk",
+          firstName,
+          lastName,
+          username: "",
+          isReady: true,
+          startParam: null,
+        });
+        return;
       }
 
       // 2. Пробуем Telegram WebApp
@@ -102,7 +114,6 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
     };
 
     initPlatform();
-    console.log("PlatformContext: initialization complete");
   }, []);
 
   return (
