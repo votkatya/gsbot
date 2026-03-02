@@ -29,17 +29,14 @@ export const QRScannerModal = ({ isOpen, onClose, onManualInput, onQRScanned }: 
   const handleOpenCamera = async () => {
     if (platform === "vk") {
       // Use VK Bridge native QR scanner
-      alert("[VK QR] supports: " + bridge.supports("VKWebAppOpenCodeReader"));
       try {
         const result = await bridge.send("VKWebAppOpenCodeReader");
-        alert("[VK QR] result: " + JSON.stringify(result));
         if (result.code_data && onQRScanned) {
           onQRScanned(result.code_data);
         }
         onClose();
-      } catch (e) {
+      } catch {
         // User cancelled or camera access denied — fall back to manual
-        alert("[VK QR] error: " + JSON.stringify(e));
         onManualInput();
       }
     } else if (isTelegramScanAvailable()) {
