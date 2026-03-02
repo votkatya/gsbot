@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, QrCode, Camera, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import bridge from "@vkontakte/vk-bridge";
+import { useTelegram } from "@/contexts/TelegramContext";
 
 interface QRScannerModalProps {
   isOpen: boolean;
@@ -10,6 +12,7 @@ interface QRScannerModalProps {
 }
 
 export const QRScannerModal = ({ isOpen, onClose, onManualInput, onQRScanned }: QRScannerModalProps) => {
+  const { platform } = useTelegram();
 
   const isTelegramScanAvailable = () => {
     try {
@@ -23,8 +26,24 @@ export const QRScannerModal = ({ isOpen, onClose, onManualInput, onQRScanned }: 
     }
   };
 
-  const handleOpenCamera = () => {
-    if (isTelegramScanAvailable()) {
+  const handleOpenCamera = async () => {
+    if (platform === "vk") {
+      // Use VK Bridge native QR scanner
+      console.log("[VK QR] attempting bridge.send VKWebAppOpenCodeReader");
+      console.log("[VK QR] bridge.supports:", bridge.supports("VKWebAppOpenCodeReader"));
+      try {
+        const result = await bridge.send("VKWebAppOpenCodeReader");
+        console.log("[VK QR] result:", result);
+        if (result.code_data && onQRScanned) {
+          onQRScanned(result.code_data);
+        }
+        onClose();
+      } catch (e) {
+        // User cancelled or camera access denied — fall back to manual
+        console.error("[VK QR] error:", e);
+        onManualInput();
+      }
+    } else if (isTelegramScanAvailable()) {
       // Use native Telegram QR scanner
       const tg = window.Telegram.WebApp;
       tg.showScanQrPopup(
