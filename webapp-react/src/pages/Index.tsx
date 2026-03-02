@@ -655,9 +655,19 @@ const Index = () => {
     }
   };
 
-  // Handle QR code scanned via native Telegram scanner
+  // Handle QR code scanned via native Telegram/VK scanner
   const handleQRScanned = async (scannedText: string) => {
     if (!scanningTask || (!telegramId && !vkId)) return;
+
+    // Extract code from URL if QR contains a link (e.g. https://gsbot18.ru/qr.html?qr=TNT45)
+    let code = scannedText;
+    try {
+      const url = new URL(scannedText);
+      const qrParam = url.searchParams.get("qr");
+      if (qrParam) code = qrParam;
+    } catch {
+      // Not a URL — use as-is
+    }
 
     setIsQRModalOpen(false);
     setIsCodeChecking(true);
@@ -667,7 +677,7 @@ const Index = () => {
         telegramId,
         scanningTask.dayNumber,
         scanningTask.verificationType,
-        scannedText,
+        code,
         vkId
       );
 
