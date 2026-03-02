@@ -50,12 +50,20 @@ export default function Users() {
         ? surveyData.goals.join(', ')
         : surveyData.goals || ''
 
-      // Process hasKids (it's "yes" or "no" string)
+      // Process hasKids
       let hasKidsText = ''
-      if (surveyData.hasKids === 'yes' || surveyData.hasKids === true) {
+      if (surveyData.hasKids === 'Да' || surveyData.hasKids === 'yes' || surveyData.hasKids === true) {
         hasKidsText = 'Да'
-      } else if (surveyData.hasKids === 'no' || surveyData.hasKids === false) {
+      } else if (surveyData.hasKids === 'Нет' || surveyData.hasKids === 'no' || surveyData.hasKids === false) {
         hasKidsText = 'Нет'
+      }
+
+      // Process hasCar
+      let hasCarText = ''
+      if (surveyData.hasCar === 'Да' || surveyData.hasCar === true) {
+        hasCarText = 'Да'
+      } else if (surveyData.hasCar === 'Нет' || surveyData.hasCar === false) {
+        hasCarText = 'Нет'
       }
 
       return {
@@ -75,6 +83,7 @@ export default function Users() {
         'Дата рождения': surveyData.birthDate || '',
         'Цели': goalsText,
         'Есть дети': hasKidsText,
+        'Есть автомобиль': hasCarText,
         'Дата регистрации': user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : '',
         'Последняя активность': user.last_activity_at ? new Date(user.last_activity_at).toLocaleDateString('ru-RU') : '',
       }

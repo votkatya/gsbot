@@ -279,7 +279,13 @@ export default function UserDetails() {
                     {survey.hasKids !== undefined && (
                       <div>
                         <span className="text-gray-600 text-sm">Есть дети:</span>
-                        <p className="font-medium">{survey.hasKids ? 'Да' : 'Нет'}</p>
+                        <p className="font-medium">{survey.hasKids === 'Да' || survey.hasKids === true ? 'Да' : 'Нет'}</p>
+                      </div>
+                    )}
+                    {survey.hasCar !== undefined && (
+                      <div>
+                        <span className="text-gray-600 text-sm">Есть автомобиль:</span>
+                        <p className="font-medium">{survey.hasCar === 'Да' || survey.hasCar === true ? 'Да' : 'Нет'}</p>
                       </div>
                     )}
                   </>

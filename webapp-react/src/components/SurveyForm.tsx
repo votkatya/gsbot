@@ -12,6 +12,7 @@ export const SurveyForm = ({ onSubmit, isLoading }: SurveyFormProps) => {
   const [birthDate, setBirthDate] = useState("");
   const [goals, setGoals] = useState<string[]>([]);
   const [hasKids, setHasKids] = useState<string>("");
+  const [hasCar, setHasCar] = useState<string>("");
 
   // Handle birth date input with mask DD.MM.YYYY
   const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,7 +45,7 @@ export const SurveyForm = ({ onSubmit, isLoading }: SurveyFormProps) => {
     );
   };
 
-  const isValid = fullName.trim().length > 0 && birthDate.trim().length > 0 && goals.length > 0 && hasKids !== "";
+  const isValid = fullName.trim().length > 0 && birthDate.trim().length > 0 && goals.length > 0 && hasKids !== "" && hasCar !== "";
 
   const handleSubmit = () => {
     if (!isValid) return;
@@ -53,6 +54,7 @@ export const SurveyForm = ({ onSubmit, isLoading }: SurveyFormProps) => {
       birthDate: birthDate.trim(),
       goals,
       hasKids,
+      hasCar,
     });
   };
 
@@ -129,6 +131,29 @@ export const SurveyForm = ({ onSubmit, isLoading }: SurveyFormProps) => {
               onClick={() => setHasKids(option)}
               className={`flex-1 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                 hasKids === option
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-foreground hover:bg-muted/80"
+              }`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Автомобиль */}
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-foreground">
+          Есть ли у вас автомобиль?
+        </label>
+        <div className="flex gap-3">
+          {["Да", "Нет"].map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setHasCar(option)}
+              className={`flex-1 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                hasCar === option
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-foreground hover:bg-muted/80"
               }`}
