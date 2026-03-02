@@ -571,6 +571,32 @@ app.post("/api/register", async (req, res) => {
     }
 });
 
+// Check if phone number exists in DB (for 2-stage registration)
+app.post("/api/check-phone", async (req, res) => {
+    try {
+        const { phone } = req.body;
+        if (!phone) return res.json({ exists: false });
+
+        // Normalize: keep only digits, take last 10 (strip country code)
+        const digits = phone.replace(/\D/g, "");
+        const normalized = digits.slice(-10);
+
+        if (normalized.length < 10) return res.json({ exists: false });
+
+        // Match any stored format by comparing digits
+        const result = await pool.query(
+            `SELECT id FROM users WHERE regexp_replace(phone, '[^0-9]', '', 'g') LIKE $1`,
+            [`%${normalized}`]
+        );
+
+        console.log(`📱 Check phone: ${phone} → digits ${normalized} → exists: ${result.rows.length > 0}`);
+        return res.json({ exists: result.rows.length > 0 });
+    } catch (e) {
+        console.error("❌ Check phone error:", e);
+        res.status(500).json({ exists: false });
+    }
+});
+
 // ==================== ADMIN API ENDPOINTS ====================
 
 // Логин для админки

@@ -562,9 +562,13 @@ const Index = () => {
         localStorage.setItem("registration_completed", "true");
         localStorage.setItem("registration_data", JSON.stringify(data));
 
-        // Close registration and show onboarding
+        // Close registration modal
         setIsRegistrationOpen(false);
-        setIsOnboardingOpen(true);
+
+        // Show onboarding only for brand-new users (not returning users found by phone)
+        if (data.membership !== "existing") {
+          setIsOnboardingOpen(true);
+        }
 
         // Haptic feedback
         window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
@@ -1023,6 +1027,7 @@ const Index = () => {
       {/* Registration Modal */}
       <RegistrationModal
         isOpen={isRegistrationOpen}
+        isLoading={isLoading}
         onComplete={handleRegistrationComplete}
       />
 

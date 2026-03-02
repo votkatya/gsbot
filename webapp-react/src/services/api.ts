@@ -232,3 +232,17 @@ export async function submitRegistration(
     return { error: 'Network error. Please try again.' };
   }
 }
+
+export async function checkPhone(phone: string): Promise<{ exists: boolean }> {
+  try {
+    const res = await fetchWithTimeout(`${API_BASE}/api/check-phone`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone }),
+    });
+    return res.json();
+  } catch (error) {
+    console.error('Failed to check phone:', error);
+    return { exists: false };
+  }
+}
