@@ -284,7 +284,9 @@ ssh root@91.198.220.52
 │   └── node_modules/          # Установленные библиотеки
 │
 ├── deploy/                     # Frontend (Production файлы) ← Nginx отдает эти файлы
-│   ├── index.html             # Главная страница
+│   ├── index.html             # Главная страница (React Mini App)
+│   ├── qr.html                # Лендинг для новичков, сканирующих QR камерой телефона
+│   ├── logo.png               # Логотип клуба (для qr.html)
 │   ├── debug.html             # Диагностическая страница
 │   └── assets/                # JS и CSS
 │       ├── index-*.js
@@ -292,6 +294,9 @@ ssh root@91.198.220.52
 │
 ├── webapp-react/               # Frontend (Исходники React)
 │   ├── src/                   # Исходный код
+│   ├── public/                # Статические файлы (копируются в dist/ при сборке)
+│   │   ├── qr.html            # Лендинг-заглушка
+│   │   └── logo.png           # Логотип клуба
 │   ├── dist/                  # Собранный билд (→ копируется в deploy/)
 │   ├── package.json
 │   └── vite.config.ts
@@ -538,22 +543,12 @@ pm2 start index.js --name gorodsporta-bot
 
 **Причина:** На сервере недостаточно RAM для `npm run build`
 
-**Решение:** Собираем локально и пушим в Git (Claude делает это автоматически)
-
+**Решение:** Сборка делается **на сервере** (512MB+ RAM справляется). Команда деплоя:
 ```bash
-# Локально (Claude делает):
-cd webapp-react
-npm run build
-cp -r dist/* ../deploy/
-git add deploy/
-git commit -m "Deploy: обновить production билд"
-git push
-
-# На сервере (вы делаете):
-cd /var/www/gorodsporta
-git pull origin main
-systemctl reload nginx
+cd /var/www/gorodsporta/webapp-react && git pull && npm install && npm run build && cp -r dist/* /var/www/gorodsporta/deploy/
 ```
+
+> ⚠️ Файлы из `webapp-react/public/` (например `qr.html`, `logo.png`) автоматически попадают в `dist/` при сборке и затем в `deploy/`.
 
 ---
 
@@ -669,6 +664,8 @@ pm2 restart gorodsporta-bot && systemctl restart nginx && systemctl restart post
 
 | Дата | Версия | Изменения |
 |------|--------|-----------|
+| 02.03.2026 | 1.3 | VK QR-сканер (`VKWebAppOpenCodeReader`), лендинг `qr.html`, унификация QR-кодов (URL + ручной код одинаковые), парсер URL в `handleQRScanned` |
+| 01.03.2026 | 1.2 | Исправлена ошибка VK "Приложение не инициализировано" (двойной VKWebAppInit), добавлена поддержка VK Mini App |
 | 16.02.2026 | 1.1 | Добавлено автооткрытие блоков, исправления админки, страница рефералов |
 | 13.02.2026 | 1.0 | Первая версия документа |
 
