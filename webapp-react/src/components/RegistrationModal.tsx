@@ -138,6 +138,18 @@ export const RegistrationModal = ({ isOpen, isLoading, onComplete }: Registratio
                 >
                   {isChecking ? "Проверяем..." : "Продолжить"}
                 </Button>
+
+                <p className="text-center text-xs text-muted-foreground">
+                  Нажимая «Продолжить», вы соглашаетесь с{" "}
+                  <a
+                    href="https://gsbot18.ru/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-foreground"
+                  >
+                    политикой конфиденциальности
+                  </a>
+                </p>
               </div>
             </>
           )}
