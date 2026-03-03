@@ -1252,7 +1252,7 @@ const Index = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed left-1/2 top-1/2 z-[81] w-[85%] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-card p-6 shadow-xl"
+            className="fixed left-4 right-4 top-1/2 z-[81] -translate-y-1/2 rounded-2xl bg-card p-6 shadow-xl"
           >
             <div className="text-center space-y-4">
               <div className="text-4xl">❌</div>
