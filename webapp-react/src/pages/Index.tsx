@@ -44,6 +44,8 @@ const Index = () => {
   const [isReferralLoading, setIsReferralLoading] = useState(false);
   const [isReviewLoading, setIsReviewLoading] = useState(false);
   const rejectionToastShown = useRef(false);
+  const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+  const [rejectionModalComment, setRejectionModalComment] = useState<string | null>(null);
   const [isQuizLoading, setIsQuizLoading] = useState(false);
 
   // Celebration state
@@ -158,12 +160,13 @@ const Index = () => {
         const mappedTasks = mapApiTasks(userData.tasks);
         setTasks(mappedTasks);
 
-        // Показываем уведомление если скриншот отклонён (только один раз за сессию)
+        // Показываем попап если скриншот отклонён (только один раз за сессию)
         if (!rejectionToastShown.current) {
-          const hasRejected = mappedTasks.some(t => t.reviewRejected);
-          if (hasRejected) {
+          const rejectedTask = mappedTasks.find(t => t.reviewRejected);
+          if (rejectedTask) {
             rejectionToastShown.current = true;
-            toast.error("Скриншот отзыва не принят — открой задание и загрузи новый 📸");
+            setRejectionModalComment(rejectedTask.reviewComment || null);
+            setIsRejectionModalOpen(true);
           }
         }
 
@@ -1226,6 +1229,41 @@ const Index = () => {
         isOpen={isOnboardingOpen}
         onClose={() => setIsOnboardingOpen(false)}
       />
+
+      {/* Review Rejection Modal */}
+      {isRejectionModalOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsRejectionModalOpen(false)}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed left-1/2 top-1/2 z-[81] w-[85%] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-card p-6 shadow-xl"
+          >
+            <div className="text-center space-y-4">
+              <div className="text-4xl">❌</div>
+              <h3 className="text-lg font-bold text-foreground">Скриншот не принят</h3>
+              {rejectionModalComment && (
+                <p className="text-sm text-muted-foreground bg-muted/50 rounded-xl px-4 py-3">
+                  {rejectionModalComment}
+                </p>
+              )}
+              <p className="text-sm text-muted-foreground">
+                Открой задание «Оставь отзыв» и загрузи новый скриншот 📸
+              </p>
+              <button
+                onClick={() => setIsRejectionModalOpen(false)}
+                className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                Понятно
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
 
       {/* Hide bottom nav during registration and onboarding */}
       {!isRegistrationOpen && !isOnboardingOpen && (
