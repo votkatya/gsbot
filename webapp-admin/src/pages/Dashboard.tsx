@@ -28,6 +28,9 @@ export default function Dashboard() {
   }
 
   const totalUsers = stats?.users?.total || 0
+  const membership = stats?.membership || { yes: 0, trial: 0, no: 0, unknown: 0 }
+  const neverStarted = stats?.neverStarted || 0
+  const avgTasks = stats?.avgTasksPerUser || 0
 
   return (
     <div className="space-y-6">
@@ -86,6 +89,67 @@ export default function Dashboard() {
           <h3 className="text-gray-600 text-sm font-medium mb-1">Призов к выдаче</h3>
           <div className="text-3xl font-bold text-gray-900 mb-1">{stats?.pendingPurchases || 0}</div>
           <p className="text-purple-600 text-sm font-medium">Нажми чтобы выдать →</p>
+        </div>
+      </div>
+
+      {/* Аналитика: абонементы, не начали, вовлечённость */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        {/* Разбивка по абонементам */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">Разбивка по абонементам</h3>
+          <div className="space-y-3">
+            {[
+              { label: 'С абонементом', key: 'yes', emoji: '✅', color: 'bg-green-500' },
+              { label: 'Пробная неделя', key: 'trial', emoji: '🎁', color: 'bg-blue-400' },
+              { label: 'Без абонемента', key: 'no', emoji: '❌', color: 'bg-gray-300' },
+            ].map(({ label, key, emoji, color }) => {
+              const count = membership[key] || 0
+              const pct = totalUsers > 0 ? Math.round((count / totalUsers) * 100) : 0
+              return (
+                <div key={key}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-gray-600">{emoji} {label}</span>
+                    <span className="text-sm font-semibold text-gray-900">{count} <span className="text-gray-400 font-normal text-xs">({pct}%)</span></span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-1.5">
+                    <div className={`${color} h-1.5 rounded-full`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Не начали */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 mb-1">Не начали</h3>
+            <p className="text-xs text-gray-400 mb-4">Зарегистрировались, но не выполнили ни одного задания</p>
+          </div>
+          <div>
+            <div className="text-4xl font-bold text-gray-900 mb-1">{neverStarted}</div>
+            <p className="text-sm text-gray-500">
+              из {totalUsers} участников
+              {totalUsers > 0 && (
+                <span className="ml-1 font-semibold text-orange-500">
+                  ({Math.round((neverStarted / totalUsers) * 100)}%)
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* Средняя вовлечённость */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 mb-1">Средняя вовлечённость</h3>
+            <p className="text-xs text-gray-400 mb-4">Среднее кол-во выполненных заданий на участника</p>
+          </div>
+          <div>
+            <div className="text-4xl font-bold text-gray-900 mb-1">{avgTasks}</div>
+            <p className="text-sm text-gray-500">заданий на человека</p>
+          </div>
         </div>
       </div>
 

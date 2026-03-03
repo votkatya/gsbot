@@ -703,6 +703,38 @@ app.get("/admin/api/stats", checkAdminAuth, async (req, res) => {
         const pendingReviews = await pool.query("SELECT COUNT(*) FROM review_submissions WHERE status = 'pending'");
         const pendingPurchases = await pool.query("SELECT COUNT(*) FROM purchases WHERE is_redeemed = false");
 
+        // Разбивка по абонементам
+        const membershipBreakdown = await pool.query(`
+            SELECT
+                COALESCE(membership_type, 'unknown') as type,
+                COUNT(*) as count
+            FROM users
+            GROUP BY membership_type
+        `);
+
+        // Не начали — зарегистрировались, но 0 выполненных заданий
+        const neverStarted = await pool.query(`
+            SELECT COUNT(*) FROM users u
+            WHERE u.id NOT IN (
+                SELECT DISTINCT user_id FROM user_tasks WHERE status = 'completed'
+            )
+        `);
+
+        // Средняя вовлечённость — среднее кол-во выполненных заданий на пользователя
+        const avgEngagement = await pool.query(`
+            SELECT ROUND(AVG(cnt)::numeric, 1) as avg_tasks FROM (
+                SELECT u.id, COUNT(ut.id) as cnt
+                FROM users u
+                LEFT JOIN user_tasks ut ON ut.user_id = u.id AND ut.status = 'completed'
+                GROUP BY u.id
+            ) sub
+        `);
+
+        const membership = { yes: 0, trial: 0, no: 0, unknown: 0 };
+        membershipBreakdown.rows.forEach(r => {
+            if (r.type in membership) membership[r.type] = parseInt(r.count);
+        });
+
         res.json({
             users: {
                 total: parseInt(totalUsers.rows[0].count),
@@ -710,6 +742,9 @@ app.get("/admin/api/stats", checkAdminAuth, async (req, res) => {
             },
             pendingReviews: parseInt(pendingReviews.rows[0].count),
             pendingPurchases: parseInt(pendingPurchases.rows[0].count),
+            membership,
+            neverStarted: parseInt(neverStarted.rows[0].count),
+            avgTasksPerUser: parseFloat(avgEngagement.rows[0].avg_tasks) || 0,
         });
     } catch (e) {
         res.status(500).json({ error: e.message });
