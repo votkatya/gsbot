@@ -606,14 +606,25 @@ const Index = () => {
 
     setIsReviewLoading(true);
 
-    const formData = new FormData();
-    formData.append("photo", file);
-    if (telegramId) formData.append("telegramId", String(telegramId));
-    if (vkId) formData.append("vkId", String(vkId));
-    formData.append("taskId", String(selectedTask.dayNumber));
-
     try {
-      const res = await fetch("/api/upload-review", { method: "POST", body: formData });
+      // Конвертируем файл в base64 — единственный надёжный способ в Telegram Mobile
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const res = await fetch("/api/upload-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          photo: base64,
+          telegramId: telegramId ? String(telegramId) : undefined,
+          vkId: vkId ? String(vkId) : undefined,
+          taskId: String(selectedTask.dayNumber),
+        }),
+      });
       const data = await res.json();
       if (data.error) {
         toast.error(data.error === "Заявка уже подана" ? "Скриншот уже отправлен на проверку" : "Ошибка при отправке. Попробуй ещё раз.");

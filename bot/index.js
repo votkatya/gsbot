@@ -105,7 +105,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.json());
+app.use(express.json({ limit: "20mb" }));
 
 // Раздача загруженных фото как статику
 app.use("/uploads", express.static(process.env.UPLOADS_DIR ? path.dirname(process.env.UPLOADS_DIR) : "/var/www/gorodsporta/uploads"));
@@ -1172,11 +1172,11 @@ const upload = multer({
     }
 });
 
-// Загрузка скриншота отзыва из мини-приложения
-app.post("/api/upload-review", upload.single("photo"), async (req, res) => {
+// Загрузка скриншота отзыва из мини-приложения (base64 JSON — работает в Telegram Mobile)
+app.post("/api/upload-review", async (req, res) => {
     try {
-        const { telegramId, vkId, taskId } = req.body;
-        if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+        const { telegramId, vkId, taskId, photo } = req.body;
+        if (!photo) return res.status(400).json({ error: "No photo provided" });
 
         const userResult = await getUserByPlatformId(telegramId, vkId);
         if (userResult.rows.length === 0) return res.status(404).json({ error: "User not found" });
@@ -1193,14 +1193,26 @@ app.post("/api/upload-review", upload.single("photo"), async (req, res) => {
         );
         if (existing.rows.length > 0) return res.json({ error: "Заявка уже подана" });
 
-        const publicUrl = `/uploads/reviews/${req.file.filename}`;
+        // Декодируем base64 и сохраняем файл
+        const matches = photo.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (!matches) return res.status(400).json({ error: "Invalid photo format" });
+
+        const mimeType = matches[1];
+        const base64Data = matches[2];
+        const ext = mimeType.includes("png") ? "png" : mimeType.includes("gif") ? "gif" : mimeType.includes("webp") ? "webp" : "jpg";
+        const filename = `${Date.now()}_review.${ext}`;
+        const filepath = path.join(UPLOADS_DIR, filename);
+
+        fs.writeFileSync(filepath, Buffer.from(base64Data, "base64"));
+
+        const publicUrl = `/uploads/reviews/${filename}`;
 
         await pool.query(`
             INSERT INTO review_submissions (user_id, task_id, photo_file_id, photo_url, status)
             VALUES ($1, $2, $3, $4, 'pending')
-        `, [user.id, task.id, req.file.filename, publicUrl]);
+        `, [user.id, task.id, filename, publicUrl]);
 
-        console.log(`📸 Review screenshot uploaded by telegramId=${telegramId}, task=${taskId}, file=${req.file.filename}`);
+        console.log(`📸 Review screenshot uploaded by telegramId=${telegramId}, task=${taskId}, file=${filename}`);
 
         res.json({ success: true });
     } catch (e) {
