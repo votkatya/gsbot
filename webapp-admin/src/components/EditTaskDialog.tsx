@@ -165,41 +165,42 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
                 </p>
               </div>
 
-              {/* QR-код */}
-              <div>
-                <label className="block text-sm font-medium mb-1 text-green-700">
-                  📱 QR-код (длинный код в QR)
-                </label>
-                <input
-                  type="text"
-                  value={qrCode}
-                  onChange={(e) => setQrCode(e.target.value)}
-                  className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 font-mono bg-green-50"
-                  placeholder="GORODSPORTA_DAY4"
-                />
-                <p className="text-xs text-gray-600 mt-1">
-                  {task?.verification_type === 'qr' && 'Код, зашитый в QR-коде'}
-                  {task?.verification_type === 'app_code' && 'Код из мобильного приложения'}
-                  {task?.verification_type === 'qr_or_manual' && 'Длинный код, который зашит в QR-код'}
-                </p>
-              </div>
-
-              {/* Ручной код - только для qr_or_manual */}
-              {task?.verification_type === 'qr_or_manual' && (
+              {/* Для qr_or_manual — один код для обоих способов */}
+              {task?.verification_type === 'qr_or_manual' ? (
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-purple-700">
-                    ⌨️ Ручной код (короткий код для ввода)
+                  <label className="block text-sm font-medium mb-1 text-green-700">
+                    📱⌨️ Код (QR и ручной ввод — одно и то же)
                   </label>
                   <input
                     type="text"
                     value={manualCode}
-                    onChange={(e) => setManualCode(e.target.value)}
-                    className="w-full px-3 py-2 border border-purple-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono bg-purple-50"
+                    onChange={(e) => {
+                      setManualCode(e.target.value);
+                      setQrCode(e.target.value);
+                    }}
+                    className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 font-mono bg-green-50"
                     placeholder="TNT45"
-                    maxLength={5}
                   />
                   <p className="text-xs text-gray-600 mt-1">
-                    Короткий 5-символьный код для ручного ввода (когда нет возможности отсканировать QR)
+                    Один код — используется и в QR, и для ручного ввода
+                  </p>
+                </div>
+              ) : (
+                /* Только QR или app_code */
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-green-700">
+                    📱 Код
+                  </label>
+                  <input
+                    type="text"
+                    value={qrCode}
+                    onChange={(e) => setQrCode(e.target.value)}
+                    className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 font-mono bg-green-50"
+                    placeholder="GORODSPORTA_DAY4"
+                  />
+                  <p className="text-xs text-gray-600 mt-1">
+                    {task?.verification_type === 'qr' && 'Код, зашитый в QR-коде'}
+                    {task?.verification_type === 'app_code' && 'Код из мобильного приложения'}
                   </p>
                 </div>
               )}
@@ -222,16 +223,17 @@ export function EditTaskDialog({ task, isOpen, onClose }: EditTaskDialogProps) {
                 );
               })()}
               {(() => {
-                const oldQrCode = task?.verification_data?.qr_code || task?.verification_data?.main_code || '';
-                return qrCode !== oldQrCode && (
-                  <li>• QR-код: "{oldQrCode}" → "{qrCode}"</li>
-                );
-              })()}
-              {(() => {
-                const oldManualCode = task?.verification_data?.manual_code || '';
-                return manualCode !== oldManualCode && task?.verification_type === 'qr_or_manual' && (
-                  <li>• Ручной код: "{oldManualCode}" → "{manualCode}"</li>
-                );
+                if (task?.verification_type === 'qr_or_manual') {
+                  const oldCode = task?.verification_data?.manual_code || task?.verification_data?.qr_code || '';
+                  return manualCode !== oldCode && (
+                    <li>• Код: "{oldCode}" → "{manualCode}"</li>
+                  );
+                } else {
+                  const oldQrCode = task?.verification_data?.qr_code || task?.verification_data?.main_code || '';
+                  return qrCode !== oldQrCode && (
+                    <li>• Код: "{oldQrCode}" → "{qrCode}"</li>
+                  );
+                }
               })()}
             </ul>
           </div>
