@@ -438,15 +438,25 @@ app.get("/api/shop", async (req, res) => {
 app.post("/api/purchase", async (req, res) => {
     try {
         const { telegramId, vkId, itemId } = req.body;
+        console.log(`🛒 Purchase request: telegramId=${telegramId}, vkId=${vkId}, itemId=${itemId}`);
         const userResult = await getUserByPlatformId(telegramId, vkId);
-        if (userResult.rows.length === 0) return res.json({ error: "User not found" });
+        if (userResult.rows.length === 0) {
+            console.log(`❌ Purchase failed: user not found`);
+            return res.json({ error: "User not found" });
+        }
         const user = userResult.rows[0];
 
         const itemResult = await pool.query("SELECT * FROM shop_items WHERE id = $1", [itemId]);
-        if (itemResult.rows.length === 0) return res.json({ error: "Item not found" });
+        if (itemResult.rows.length === 0) {
+            console.log(`❌ Purchase failed: item ${itemId} not found`);
+            return res.json({ error: "Item not found" });
+        }
         const item = itemResult.rows[0];
 
-        if (user.coins < item.price) return res.json({ error: "Not enough coins" });
+        if (user.coins < item.price) {
+            console.log(`❌ Purchase failed: not enough coins (has ${user.coins}, needs ${item.price})`);
+            return res.json({ error: "Not enough coins" });
+        }
 
         const redemptionCode = generateRedemptionCode();
         await pool.query("UPDATE users SET coins = coins - $1 WHERE id = $2", [item.price, user.id]);
@@ -456,8 +466,10 @@ app.post("/api/purchase", async (req, res) => {
         );
 
         const updated = await pool.query("SELECT * FROM users WHERE id = $1", [user.id]);
+        console.log(`✅ Purchase success: user=${user.id}, item="${item.title}", code=${redemptionCode}`);
         res.json({ success: true, coins: updated.rows[0].coins, redemptionCode });
     } catch (e) {
+        console.log(`❌ Purchase error: ${e.message}`);
         res.status(500).json({ error: e.message });
     }
 });

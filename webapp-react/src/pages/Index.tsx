@@ -767,15 +767,18 @@ const Index = () => {
     let successCount = 0;
     let lastCoins = userCoins;
 
+    let lastError = "";
     for (const id of cart) {
       try {
         const result = await api.purchaseItem(telegramId, Number(id), vkId);
         if (result.success) {
           successCount++;
           lastCoins = result.coins ?? lastCoins;
+        } else {
+          lastError = result.error || "Ошибка покупки";
         }
       } catch {
-        // continue with next item
+        lastError = "Ошибка сети";
       }
     }
 
@@ -787,6 +790,9 @@ const Index = () => {
       toast.success("Покупка оформлена! Для получения приза покажи код сотруднику", { duration: 5000 });
       window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
       loadMyPurchases();
+    } else if (lastError) {
+      toast.error(lastError);
+      window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("error");
     }
   };
 
