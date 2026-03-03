@@ -57,7 +57,7 @@ const TASK_UI: Record<number, TaskUIMetadata> = {
     subtitle: "Посети мероприятие",
     zone: "Клуб",
     iconName: "Star",
-    instruction: "Посети мероприятие и получи код от тренера"
+    instruction: "Посети мероприятие и получи код"
   },
   // Блок 3: Заминка
   11: { stage: 3, subtitle: "Оставь отзыв", zone: "Онлайн", iconName: "MessageSquare" },
