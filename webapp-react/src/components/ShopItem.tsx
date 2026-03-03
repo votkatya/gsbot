@@ -19,7 +19,8 @@ interface ShopItemProps {
   stock: string;
   iconName: string;
   userCoins: number;
-  onBuy: (id: string) => void;
+  inCart: boolean;
+  onToggleCart: (id: string) => void;
 }
 
 export const ShopItem = ({
@@ -28,11 +29,10 @@ export const ShopItem = ({
   price,
   stock,
   iconName,
-  userCoins,
-  onBuy,
+  inCart,
+  onToggleCart,
 }: ShopItemProps) => {
   const Icon = iconMap[iconName] || ShoppingBag;
-  const canAfford = userCoins >= price;
   const inStock = stock !== "0";
 
   return (
@@ -40,10 +40,12 @@ export const ShopItem = ({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ scale: 1.02 }}
-      className="flex flex-col items-center rounded-2xl bg-card p-4 border border-border"
+      className={`flex flex-col items-center rounded-2xl bg-card p-4 border transition-all ${
+        inCart ? "border-primary/50 bg-primary/5" : "border-border"
+      }`}
     >
       {/* Icon */}
-      <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-xl bg-primary/20">
+      <div className={`mb-3 flex h-16 w-16 items-center justify-center rounded-xl ${inCart ? "bg-primary/30" : "bg-primary/20"}`}>
         <Icon className="h-8 w-8 text-primary" />
       </div>
 
@@ -60,15 +62,17 @@ export const ShopItem = ({
         <span className="font-bold text-primary">{price} 🪙</span>
         <Button
           size="sm"
-          disabled={!canAfford || !inStock}
-          onClick={() => onBuy(id)}
+          disabled={!inStock}
+          onClick={() => onToggleCart(id)}
           className={`${
-            canAfford && inStock
+            inCart
+              ? "bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20"
+              : inStock
               ? "bg-primary text-primary-foreground hover:bg-primary/90"
               : "bg-muted text-muted-foreground"
           }`}
         >
-          Купить
+          {inCart ? "✓ В корзине" : "В корзину"}
         </Button>
       </div>
     </motion.div>

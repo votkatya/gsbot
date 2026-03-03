@@ -445,6 +445,29 @@ app.post("/api/purchase", async (req, res) => {
     }
 });
 
+app.get("/api/my-purchases", async (req, res) => {
+    try {
+        const { telegramId, vkId } = req.query;
+        const userResult = await getUserByPlatformId(
+            telegramId ? Number(telegramId) : null,
+            vkId ? Number(vkId) : null
+        );
+        if (userResult.rows.length === 0) return res.json([]);
+        const user = userResult.rows[0];
+
+        const result = await pool.query(`
+            SELECT si.title, p.price_paid, p.created_at
+            FROM purchases p
+            JOIN shop_items si ON si.id = p.item_id
+            WHERE p.user_id = $1
+            ORDER BY p.created_at DESC
+        `, [user.id]);
+        res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get("/api/leaderboard", async (req, res) => {
     try {
         const result = await pool.query("SELECT telegram_id, vk_id, first_name, coins, xp FROM users ORDER BY xp DESC LIMIT 20");

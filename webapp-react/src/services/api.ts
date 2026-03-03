@@ -233,6 +233,28 @@ export async function submitRegistration(
   }
 }
 
+export interface ApiPurchase {
+  title: string;
+  price_paid: number;
+  created_at: string;
+}
+
+export async function fetchMyPurchases(
+  telegramId: number | null,
+  vkId?: number | null
+): Promise<ApiPurchase[]> {
+  try {
+    const params = new URLSearchParams();
+    if (telegramId) params.set("telegramId", String(telegramId));
+    if (vkId) params.set("vkId", String(vkId));
+    const res = await fetchWithTimeout(`${API_BASE}/api/my-purchases?${params}`);
+    return res.json();
+  } catch (error) {
+    console.error('Failed to fetch purchases:', error);
+    return [];
+  }
+}
+
 export async function checkPhone(phone: string): Promise<{ exists: boolean }> {
   try {
     const res = await fetchWithTimeout(`${API_BASE}/api/check-phone`, {

@@ -69,6 +69,12 @@ const Index = () => {
   const [shopItems, setShopItems] = useState<ShopItemView[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
+  // Cart & purchase history
+  const [cart, setCart] = useState<string[]>([]);
+  const [isCartPaying, setIsCartPaying] = useState(false);
+  const [myPurchases, setMyPurchases] = useState<api.ApiPurchase[]>([]);
+  const [isPurchasesLoading, setIsPurchasesLoading] = useState(false);
+
   // Stage visibility
   const [stage2Visible, setStage2Visible] = useState(false);
   const [stage3Visible, setStage3Visible] = useState(false);
@@ -83,6 +89,14 @@ const Index = () => {
       setIsOnboardingOpen(true);
     }
   }, []);
+
+  // --- Load purchases when shop tab opens ---
+  useEffect(() => {
+    if (activeTab === "shop" && (telegramId || vkId)) {
+      loadMyPurchases();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, telegramId, vkId]);
 
   // --- Reload leaderboard ---
   const reloadLeaderboard = async () => {
@@ -716,27 +730,63 @@ const Index = () => {
     }
   };
 
-  const handleBuyItem = async (id: string) => {
+  const handleToggleCart = (id: string) => {
+    setCart((prev) =>
+      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
+    );
+  };
+
+  const loadMyPurchases = async () => {
     if (!telegramId && !vkId) return;
-    const item = shopItems.find((i) => i.id === id);
-    if (!item || userCoins < item.price) {
+    setIsPurchasesLoading(true);
+    try {
+      const data = await api.fetchMyPurchases(telegramId, vkId);
+      setMyPurchases(data);
+    } catch {
+      // silently fail
+    } finally {
+      setIsPurchasesLoading(false);
+    }
+  };
+
+  const handlePayCart = async () => {
+    if (!telegramId && !vkId) return;
+    if (cart.length === 0) return;
+
+    const cartTotal = cart.reduce((sum, id) => {
+      const item = shopItems.find((i) => i.id === id);
+      return sum + (item?.price || 0);
+    }, 0);
+
+    if (userCoins < cartTotal) {
       toast.error("Недостаточно монет");
       return;
     }
 
-    try {
-      const result = await api.purchaseItem(telegramId, Number(id), vkId);
-      if (result.success) {
-        setUserCoins(result.coins ?? userCoins - item.price);
-        toast.success(`Вы купили: ${item.title}`);
-        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred(
-          "success"
-        );
-      } else {
-        toast.error(result.error || "Ошибка покупки");
+    setIsCartPaying(true);
+    let successCount = 0;
+    let lastCoins = userCoins;
+
+    for (const id of cart) {
+      try {
+        const result = await api.purchaseItem(telegramId, Number(id), vkId);
+        if (result.success) {
+          successCount++;
+          lastCoins = result.coins ?? lastCoins;
+        }
+      } catch {
+        // continue with next item
       }
-    } catch {
-      toast.error("Ошибка сети");
+    }
+
+    setUserCoins(lastCoins);
+    setCart([]);
+    setIsCartPaying(false);
+
+    if (successCount > 0) {
+      toast.success(`Куплено товаров: ${successCount}`);
+      window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
+      loadMyPurchases();
     }
   };
 
@@ -956,7 +1006,8 @@ const Index = () => {
                 stock={item.stock}
                 iconName={item.iconName}
                 userCoins={userCoins}
-                onBuy={handleBuyItem}
+                inCart={cart.includes(item.id)}
+                onToggleCart={handleToggleCart}
               />
             ))}
           </div>
@@ -966,8 +1017,71 @@ const Index = () => {
               Магазин пока пуст
             </p>
           )}
+
+          {/* Purchase history */}
+          <div className="pt-2">
+            <h3 className="mb-3 text-lg font-bold text-foreground">📋 История покупок</h3>
+            {isPurchasesLoading ? (
+              <p className="text-center text-muted-foreground py-4">Загрузка...</p>
+            ) : myPurchases.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4">Покупок пока нет</p>
+            ) : (
+              <div className="space-y-2">
+                {myPurchases.map((purchase, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between rounded-xl bg-card border border-border px-4 py-3"
+                  >
+                    <div>
+                      <p className="font-medium text-foreground">{purchase.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(purchase.created_at).toLocaleDateString("ru-RU")}
+                      </p>
+                    </div>
+                    <span className="text-sm font-bold text-yellow-500">
+                      -{purchase.price_paid} 🪙
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </motion.div>
       )}
+
+      {/* Cart bar */}
+      {activeTab === "shop" && cart.length > 0 && (() => {
+        const cartTotal = cart.reduce((sum, id) => {
+          const item = shopItems.find((i) => i.id === id);
+          return sum + (item?.price || 0);
+        }, 0);
+        const canAfford = userCoins >= cartTotal;
+        return (
+          <div className="fixed bottom-20 left-0 right-0 z-40 px-4">
+            <div className="flex items-center justify-between rounded-2xl bg-primary px-4 py-3 shadow-lg">
+              <div>
+                <p className="text-sm font-semibold text-primary-foreground">
+                  {cart.length} {cart.length === 1 ? "товар" : cart.length < 5 ? "товара" : "товаров"}
+                </p>
+                <p className="text-xs text-primary-foreground/80">
+                  Итого: {cartTotal} 🪙
+                </p>
+              </div>
+              <button
+                onClick={handlePayCart}
+                disabled={isCartPaying || !canAfford}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
+                  canAfford && !isCartPaying
+                    ? "bg-white text-primary hover:bg-white/90"
+                    : "bg-white/40 text-primary/50 cursor-not-allowed"
+                }`}
+              >
+                {isCartPaying ? "Оплата..." : "Оплатить"}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       <TaskModal
         task={selectedTask}
