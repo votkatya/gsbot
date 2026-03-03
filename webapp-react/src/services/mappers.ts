@@ -40,10 +40,10 @@ const TASK_UI: Record<number, TaskUIMetadata> = {
   },
   7: {
     stage: 2,
-    subtitle: "Посети коммерческий класс",
+    subtitle: "Посети групповое занятие",
     zone: "Групповые",
     iconName: "Users",
-    instruction: "Посети коммерческий класс и получи код от тренера"
+    instruction: "Получи код от тренера"
   },
   8: {
     stage: 2,
