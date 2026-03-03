@@ -614,14 +614,14 @@ const Index = () => {
     }
   };
 
-  // Сжимаем фото через canvas — до ~300 КБ, чтобы влезало в Telegram Mobile WebView
+  // Сжимаем фото — max 1280px, JPEG 70% → ~150 КБ, укладывается в Nginx лимит
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const url = URL.createObjectURL(file);
       img.onload = () => {
         URL.revokeObjectURL(url);
-        const MAX_WIDTH = 1920;
+        const MAX_WIDTH = 1280;
         let { width, height } = img;
         if (width > MAX_WIDTH) {
           height = Math.round((height * MAX_WIDTH) / width);
@@ -633,7 +633,7 @@ const Index = () => {
         const ctx = canvas.getContext("2d");
         if (!ctx) return reject(new Error("No canvas context"));
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.8));
+        resolve(canvas.toDataURL("image/jpeg", 0.7));
       };
       img.onerror = reject;
       img.src = url;
@@ -660,6 +660,17 @@ const Index = () => {
           taskId: String(selectedTask.dayNumber),
         }),
       });
+
+      // Проверяем HTTP-статус до парсинга — Nginx может вернуть HTML при 413
+      if (!res.ok) {
+        const msg = res.status === 413
+          ? "Фото слишком большое. Попробуй другой скриншот."
+          : `Ошибка сервера (${res.status}). Попробуй ещё раз.`;
+        toast.error(msg);
+        setIsReviewLoading(false);
+        return;
+      }
+
       const data = await res.json();
       if (data.error) {
         toast.error(data.error === "Заявка уже подана" ? "Скриншот уже отправлен на проверку" : "Ошибка при отправке. Попробуй ещё раз.");
