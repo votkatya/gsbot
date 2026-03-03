@@ -224,6 +224,14 @@ export const TaskModal = ({
                 {/* Description */}
                 <p className="text-foreground whitespace-pre-line">{renderDescriptionWithLinks(task.description)}</p>
 
+                {/* Instruction block (if present) */}
+                {task.instruction && (
+                  <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
+                    <h3 className="text-sm font-semibold text-primary mb-2">📋 Инструкция:</h3>
+                    <p className="text-sm text-foreground whitespace-pre-line">{task.instruction}</p>
+                  </div>
+                )}
+
                 {/* Completed badge */}
                 <div className="flex items-center justify-center gap-2 rounded-xl bg-success/10 p-4">
                   <CheckCircle2 className="h-6 w-6 text-success" />
