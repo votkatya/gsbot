@@ -250,7 +250,9 @@ export async function fetchMyPurchases(
     if (telegramId) params.set("telegramId", String(telegramId));
     if (vkId) params.set("vkId", String(vkId));
     const res = await fetchWithTimeout(`${API_BASE}/api/my-purchases?${params}`);
-    return res.json();
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('Failed to fetch purchases:', error);
     return [];
