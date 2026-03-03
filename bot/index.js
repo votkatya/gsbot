@@ -477,11 +477,15 @@ app.post("/api/purchase", async (req, res) => {
 app.get("/api/my-purchases", async (req, res) => {
     try {
         const { telegramId, vkId } = req.query;
+        console.log(`📋 My purchases request: telegramId=${telegramId}, vkId=${vkId}`);
         const userResult = await getUserByPlatformId(
             telegramId ? Number(telegramId) : null,
             vkId ? Number(vkId) : null
         );
-        if (userResult.rows.length === 0) return res.json([]);
+        if (userResult.rows.length === 0) {
+            console.log(`📋 My purchases: user not found`);
+            return res.json([]);
+        }
         const user = userResult.rows[0];
 
         const result = await pool.query(`
@@ -491,8 +495,10 @@ app.get("/api/my-purchases", async (req, res) => {
             WHERE p.user_id = $1
             ORDER BY p.purchased_at DESC
         `, [user.id]);
+        console.log(`📋 My purchases: user=${user.id}, found ${result.rows.length} purchases`);
         res.json(result.rows);
     } catch (e) {
+        console.log(`📋 My purchases error: ${e.message}`);
         res.status(500).json({ error: e.message });
     }
 });
