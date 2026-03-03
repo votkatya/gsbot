@@ -1071,7 +1071,7 @@ const Index = () => {
         }, 0);
         const canAfford = userCoins >= cartTotal;
         return (
-          <div className="fixed bottom-20 left-0 right-0 z-40 px-4">
+          <div className="fixed bottom-24 left-0 right-0 z-40 px-4">
             <div className="flex items-center justify-between rounded-2xl bg-primary px-4 py-3 shadow-lg">
               <div>
                 <p className="text-sm font-semibold text-primary-foreground">
