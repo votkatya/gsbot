@@ -19,6 +19,8 @@ interface Task {
   zone: string;
   completed: boolean;
   reviewPending?: boolean;
+  reviewRejected?: boolean;
+  reviewComment?: string | null;
   locked: boolean;
   iconName: string;
   verificationType?: string;
@@ -366,6 +368,20 @@ export const TaskModal = ({
                   </div>
                 ) : (
                   <>
+                    {/* Rejection banner */}
+                    {task.reviewRejected && (
+                      <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-4 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">❌</span>
+                          <span className="font-semibold text-red-600 dark:text-red-400">Скриншот не принят</span>
+                        </div>
+                        {task.reviewComment && (
+                          <p className="text-sm text-red-600/80 dark:text-red-400/80 pl-7">{task.reviewComment}</p>
+                        )}
+                        <p className="text-sm text-muted-foreground pl-7">Загрузи новый скриншот 👇</p>
+                      </div>
+                    )}
+
                     {/* File picker */}
                     <input
                       ref={fileInputRef}

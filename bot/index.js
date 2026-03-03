@@ -166,15 +166,24 @@ app.get("/api/user/vk/:vkId", async (req, res) => {
         );
 
         const reviewResult = await pool.query(
-            `SELECT task_id FROM review_submissions WHERE user_id = $1 AND status = 'pending'`,
+            `SELECT task_id, status, admin_comment FROM review_submissions
+             WHERE user_id = $1 AND status IN ('pending', 'rejected')
+             ORDER BY submitted_at DESC`,
             [user.id]
         );
-        const pendingReviewTaskIds = reviewResult.rows.map(r => r.task_id);
 
-        const tasks = tasksResult.rows.map(t => ({
-            ...t,
-            reviewPending: pendingReviewTaskIds.includes(t.id)
-        }));
+        const pendingReviewTaskIds = reviewResult.rows.filter(r => r.status === 'pending').map(r => r.task_id);
+        const rejectedReviews = reviewResult.rows.filter(r => r.status === 'rejected');
+
+        const tasks = tasksResult.rows.map(t => {
+            const rejected = rejectedReviews.find(r => r.task_id === t.id);
+            return {
+                ...t,
+                reviewPending: pendingReviewTaskIds.includes(t.id),
+                reviewRejected: !!rejected,
+                reviewComment: rejected?.admin_comment || null,
+            };
+        });
 
         res.json({ user, tasks });
     } catch (e) {
@@ -197,18 +206,27 @@ app.get("/api/user/:telegramId", async (req, res) => {
              ORDER BY t.day_number`, [user.id]
         );
 
-        // Получаем pending заявки на отзывы для этого пользователя
+        // Получаем pending и rejected заявки на отзывы для этого пользователя
         const reviewResult = await pool.query(
-            `SELECT task_id FROM review_submissions WHERE user_id = $1 AND status = 'pending'`,
+            `SELECT task_id, status, admin_comment FROM review_submissions
+             WHERE user_id = $1 AND status IN ('pending', 'rejected')
+             ORDER BY submitted_at DESC`,
             [user.id]
         );
-        const pendingReviewTaskIds = reviewResult.rows.map(r => r.task_id);
 
-        // Добавляем reviewPending к заданиям
-        const tasks = tasksResult.rows.map(t => ({
-            ...t,
-            reviewPending: pendingReviewTaskIds.includes(t.id)
-        }));
+        const pendingReviewTaskIds = reviewResult.rows.filter(r => r.status === 'pending').map(r => r.task_id);
+        const rejectedReviews = reviewResult.rows.filter(r => r.status === 'rejected');
+
+        // Добавляем reviewPending / reviewRejected к заданиям
+        const tasks = tasksResult.rows.map(t => {
+            const rejected = rejectedReviews.find(r => r.task_id === t.id);
+            return {
+                ...t,
+                reviewPending: pendingReviewTaskIds.includes(t.id),
+                reviewRejected: !!rejected,
+                reviewComment: rejected?.admin_comment || null,
+            };
+        });
 
         res.json({ user, tasks });
     } catch (e) {
@@ -1347,20 +1365,7 @@ app.post("/admin/api/reviews/:id/reject", checkAdminAuth, checkAdminRole, async 
         `, [comment || '', req.userName || req.userRole, id]);
 
         console.log(`❌ Review rejected: submission ${id}, comment: ${comment}`);
-
-        // Уведомляем пользователя в Telegram
-        try {
-            const userResult = await pool.query("SELECT telegram_id FROM users WHERE id = $1", [sub.user_id]);
-            if (userResult.rows.length > 0) {
-                const reason = comment ? `\n\nПричина: ${comment}` : '';
-                await bot.api.sendMessage(
-                    userResult.rows[0].telegram_id,
-                    `❌ Ваш отзыв не принят.${reason}\n\nПожалуйста, пришлите новый скриншот.`
-                );
-            }
-        } catch (e) {
-            console.log("⚠️ Could not send Telegram notification:", e.message);
-        }
+        // Уведомление — внутри приложения (reviewRejected в /api/user)
 
         res.json({ success: true });
     } catch (e) {

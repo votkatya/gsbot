@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { ProgressWidget } from "@/components/ProgressWidget";
@@ -43,6 +43,7 @@ const Index = () => {
   const [isAppCodeLoading, setIsAppCodeLoading] = useState(false);
   const [isReferralLoading, setIsReferralLoading] = useState(false);
   const [isReviewLoading, setIsReviewLoading] = useState(false);
+  const rejectionToastShown = useRef(false);
   const [isQuizLoading, setIsQuizLoading] = useState(false);
 
   // Celebration state
@@ -154,7 +155,17 @@ const Index = () => {
         setUserXP(userData.user.xp);
         setUserCoins(userData.user.coins);
         setUserName(userData.user.first_name || "Атлет");
-        setTasks(mapApiTasks(userData.tasks));
+        const mappedTasks = mapApiTasks(userData.tasks);
+        setTasks(mappedTasks);
+
+        // Показываем уведомление если скриншот отклонён (только один раз за сессию)
+        if (!rejectionToastShown.current) {
+          const hasRejected = mappedTasks.some(t => t.reviewRejected);
+          if (hasRejected) {
+            rejectionToastShown.current = true;
+            toast.error("Скриншот отзыва не принят — открой задание и загрузи новый 📸");
+          }
+        }
 
         // Check if user needs to complete registration (no phone)
         if (!userData.user.phone) {

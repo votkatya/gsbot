@@ -49,7 +49,9 @@ export interface ApiTask {
   verification_data: { qr_code?: string } | null;
   status: string | null; // 'completed' or null (from LEFT JOIN)
   completed_at: string | null;
-  reviewPending?: boolean; // true если скриншот отправлен и ждёт проверки
+  reviewPending?: boolean;  // true если скриншот отправлен и ждёт проверки
+  reviewRejected?: boolean; // true если скриншот отклонён — можно загрузить заново
+  reviewComment?: string | null; // причина отклонения от админа
 }
 
 export interface ApiShopItem {

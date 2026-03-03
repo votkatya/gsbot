@@ -85,7 +85,9 @@ export interface Task {
   rewardCoins: number;
   zone: string;
   completed: boolean;
-  reviewPending: boolean; // Скриншот отправлен, ожидает проверки
+  reviewPending: boolean;  // Скриншот отправлен, ожидает проверки
+  reviewRejected: boolean; // Скриншот отклонён — можно загрузить заново
+  reviewComment: string | null; // Причина отклонения
   locked: boolean;
   iconName: string;
   verificationType: string;
@@ -97,6 +99,7 @@ export function mapApiTasks(apiTasks: ApiTask[]): Task[] {
     const ui = TASK_UI[apiTask.day_number] || DEFAULT_TASK_UI;
     const isCompleted = apiTask.status === "completed";
     const isReviewPending = apiTask.reviewPending === true;
+    const isReviewRejected = apiTask.reviewRejected === true;
 
     // Lock logic:
     // - All stages: always unlocked (visibility controlled by UI with "Continue" buttons)
@@ -115,6 +118,8 @@ export function mapApiTasks(apiTasks: ApiTask[]): Task[] {
       zone: ui.zone,
       completed: isCompleted,
       reviewPending: isReviewPending,
+      reviewRejected: isReviewRejected,
+      reviewComment: apiTask.reviewComment || null,
       locked: isLocked,
       iconName: ui.iconName,
       verificationType: apiTask.verification_type,
