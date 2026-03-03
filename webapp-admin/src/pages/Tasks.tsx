@@ -122,16 +122,13 @@ export default function Tasks() {
                                 <span className="font-semibold text-violet-700">{task.verification_data.test_code}</span>
                               </div>
                             )}
-                            {task.verification_data.qr_code && (
-                              <div className="flex items-center gap-1 px-2.5 py-1 bg-green-50 border-r border-gray-200">
-                                <span className="text-gray-400 font-sans">📱</span>
-                                <span className="font-semibold text-green-700">{task.verification_data.qr_code}</span>
-                              </div>
-                            )}
-                            {task.verification_data.manual_code && (
-                              <div className="flex items-center gap-1 px-2.5 py-1 bg-blue-50">
-                                <span className="text-gray-400 font-sans">⌨️</span>
-                                <span className="font-semibold text-blue-700">{task.verification_data.manual_code}</span>
+                            {/* QR и ручной — один и тот же код, показываем один раз */}
+                            {(task.verification_data.manual_code || task.verification_data.qr_code) && (
+                              <div className="flex items-center gap-1 px-2.5 py-1 bg-green-50">
+                                <span className="text-gray-400 font-sans">📱⌨️</span>
+                                <span className="font-semibold text-green-700">
+                                  {task.verification_data.manual_code || task.verification_data.qr_code}
+                                </span>
                               </div>
                             )}
                           </div>
