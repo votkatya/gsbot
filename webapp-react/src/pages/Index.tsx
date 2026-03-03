@@ -784,7 +784,7 @@ const Index = () => {
     setIsCartPaying(false);
 
     if (successCount > 0) {
-      toast.success(`Куплено товаров: ${successCount}`);
+      toast.success("Покупка оформлена! Для получения приза покажи код сотруднику", { duration: 5000 });
       window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
       loadMyPurchases();
     }
@@ -1026,21 +1026,35 @@ const Index = () => {
             ) : myPurchases.length === 0 ? (
               <p className="text-center text-muted-foreground py-4">Покупок пока нет</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {myPurchases.map((purchase, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between rounded-xl bg-card border border-border px-4 py-3"
+                    className={`rounded-xl border px-4 py-3 ${
+                      purchase.is_redeemed
+                        ? "bg-card border-border opacity-60"
+                        : "bg-primary/5 border-primary/30"
+                    }`}
                   >
-                    <div>
+                    <div className="flex items-center justify-between mb-1">
                       <p className="font-medium text-foreground">{purchase.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(purchase.created_at).toLocaleDateString("ru-RU")}
-                      </p>
+                      <span className="text-sm font-bold text-yellow-500">
+                        -{purchase.price_paid} 🪙
+                      </span>
                     </div>
-                    <span className="text-sm font-bold text-yellow-500">
-                      -{purchase.price_paid} 🪙
-                    </span>
+                    {purchase.is_redeemed ? (
+                      <p className="text-xs text-success font-medium">✅ Выдано</p>
+                    ) : purchase.redemption_code ? (
+                      <div className="mt-2">
+                        <p className="text-xs text-muted-foreground mb-1">Покажи код сотруднику:</p>
+                        <p className="text-lg font-bold tracking-widest text-primary">
+                          {purchase.redemption_code}
+                        </p>
+                      </div>
+                    ) : null}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {new Date(purchase.purchased_at).toLocaleDateString("ru-RU")}
+                    </p>
                   </div>
                 ))}
               </div>

@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import bridge from "@vkontakte/vk-bridge";
 
 interface TelegramContextValue {
   telegramId: number | null;
@@ -46,21 +47,16 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         const vkId = parseInt(vkUserIdParam, 10);
         console.log("VK Mini App detected via URL params, vk_user_id:", vkId);
 
-        // Пробуем получить имя через VK Bridge (если доступен)
+        // Пробуем получить имя через VK Bridge
         let firstName = "Атлет";
         let lastName = "";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const vkBridge = (window as any).vkBridge;
-        if (vkBridge && typeof vkBridge.send === "function") {
-          try {
-            vkBridge.send("VKWebAppInit");
-            const userData = await vkBridge.send("VKWebAppGetUserInfo");
-            firstName = userData.first_name || "Атлет";
-            lastName = userData.last_name || "";
-            console.log("VK user data from bridge:", userData);
-          } catch (e) {
-            console.log("VK Bridge not available, using URL params only:", e);
-          }
+        try {
+          const userData = await bridge.send("VKWebAppGetUserInfo");
+          firstName = userData.first_name || "Атлет";
+          lastName = userData.last_name || "";
+          console.log("VK user data from bridge:", userData);
+        } catch (e) {
+          console.log("VK Bridge VKWebAppGetUserInfo failed, using URL params only:", e);
         }
 
         setValue({

@@ -146,6 +146,10 @@ class ApiClient {
     return this.request('/admin/api/purchases');
   }
 
+  async redeemPurchase(id: number) {
+    return this.request(`/admin/api/purchases/${id}/redeem`, { method: 'POST' });
+  }
+
   // Referrals
   async getReferrals() {
     return this.request('/admin/api/referrals');

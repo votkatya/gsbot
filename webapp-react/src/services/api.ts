@@ -236,7 +236,9 @@ export async function submitRegistration(
 export interface ApiPurchase {
   title: string;
   price_paid: number;
-  created_at: string;
+  purchased_at: string;
+  redemption_code: string | null;
+  is_redeemed: boolean;
 }
 
 export async function fetchMyPurchases(

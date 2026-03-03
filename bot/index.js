@@ -7,6 +7,8 @@ const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
 
+const crypto = require("crypto");
+
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const WEBAPP_URL = process.env.WEBAPP_URL || "https://gsbot18.ru";
 
@@ -24,6 +26,17 @@ const pool = new Pool({
 });
 
 const bot = new Bot(BOT_TOKEN);
+
+// Генератор уникального кода выдачи (GS-XXXXXX)
+function generateRedemptionCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const bytes = crypto.randomBytes(6);
+    let code = 'GS-';
+    for (let i = 0; i < 6; i++) {
+        code += chars[bytes[i] % chars.length];
+    }
+    return code;
+}
 
 // Хелпер: найти пользователя по telegram_id или vk_id
 async function getUserByPlatformId(telegramId, vkId) {
@@ -435,11 +448,15 @@ app.post("/api/purchase", async (req, res) => {
 
         if (user.coins < item.price) return res.json({ error: "Not enough coins" });
 
+        const redemptionCode = generateRedemptionCode();
         await pool.query("UPDATE users SET coins = coins - $1 WHERE id = $2", [item.price, user.id]);
-        await pool.query("INSERT INTO purchases (user_id, item_id, price_paid) VALUES ($1, $2, $3)", [user.id, item.id, item.price]);
+        await pool.query(
+            "INSERT INTO purchases (user_id, item_id, price_paid, redemption_code, is_redeemed) VALUES ($1, $2, $3, $4, false)",
+            [user.id, item.id, item.price, redemptionCode]
+        );
 
         const updated = await pool.query("SELECT * FROM users WHERE id = $1", [user.id]);
-        res.json({ success: true, coins: updated.rows[0].coins });
+        res.json({ success: true, coins: updated.rows[0].coins, redemptionCode });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -456,11 +473,11 @@ app.get("/api/my-purchases", async (req, res) => {
         const user = userResult.rows[0];
 
         const result = await pool.query(`
-            SELECT si.title, p.price_paid, p.created_at
+            SELECT si.title, p.price_paid, p.purchased_at, p.redemption_code, p.is_redeemed
             FROM purchases p
             JOIN shop_items si ON si.id = p.item_id
             WHERE p.user_id = $1
-            ORDER BY p.created_at DESC
+            ORDER BY p.purchased_at DESC
         `, [user.id]);
         res.json(result.rows);
     } catch (e) {
@@ -1075,7 +1092,7 @@ app.get("/admin/api/purchases", checkAdminAuth, async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT
-                p.*,
+                p.id, p.price_paid, p.purchased_at, p.redemption_code, p.is_redeemed, p.redeemed_at,
                 u.first_name, u.last_name, u.telegram_id,
                 si.title as item_title
             FROM purchases p
@@ -1085,6 +1102,21 @@ app.get("/admin/api/purchases", checkAdminAuth, async (req, res) => {
             LIMIT 100
         `);
         res.json(result.rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Выдать приз (пометить покупку как выданную)
+app.post("/admin/api/purchases/:id/redeem", checkAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            "UPDATE purchases SET is_redeemed = true, redeemed_at = NOW() WHERE id = $1 AND is_redeemed = false RETURNING *",
+            [id]
+        );
+        if (result.rowCount === 0) return res.json({ error: "Already redeemed or not found" });
+        res.json({ success: true });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
