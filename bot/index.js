@@ -700,26 +700,16 @@ app.get("/admin/api/stats", checkAdminAuth, async (req, res) => {
     try {
         const totalUsers = await pool.query("SELECT COUNT(*) FROM users");
         const activeUsers = await pool.query("SELECT COUNT(*) FROM users WHERE last_activity_at > NOW() - INTERVAL '7 days'");
-        const totalTasks = await pool.query("SELECT COUNT(*) FROM tasks");
-        const completedTasks = await pool.query("SELECT COUNT(*) FROM user_tasks WHERE status = 'completed'");
-        const totalPrizes = await pool.query("SELECT COUNT(*) FROM shop_items WHERE is_active = true");
-        const totalPurchases = await pool.query("SELECT COUNT(*) FROM purchases");
-        const totalCoinsSpent = await pool.query("SELECT COALESCE(SUM(price_paid), 0) as total FROM purchases");
+        const pendingReviews = await pool.query("SELECT COUNT(*) FROM review_submissions WHERE status = 'pending'");
+        const pendingPurchases = await pool.query("SELECT COUNT(*) FROM purchases WHERE is_redeemed = false");
 
         res.json({
             users: {
                 total: parseInt(totalUsers.rows[0].count),
                 active: parseInt(activeUsers.rows[0].count)
             },
-            tasks: {
-                total: parseInt(totalTasks.rows[0].count),
-                completed: parseInt(completedTasks.rows[0].count)
-            },
-            prizes: {
-                total: parseInt(totalPrizes.rows[0].count),
-                purchased: parseInt(totalPurchases.rows[0].count),
-                coinsSpent: parseInt(totalCoinsSpent.rows[0].total)
-            }
+            pendingReviews: parseInt(pendingReviews.rows[0].count),
+            pendingPurchases: parseInt(pendingPurchases.rows[0].count),
         });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -764,10 +754,24 @@ app.get("/admin/api/stats/charts", checkAdminAuth, async (req, res) => {
             LIMIT 5
         `);
 
+        // Воронка заданий — сколько человек выполнили каждое задание
+        const totalUsersCount = await pool.query("SELECT COUNT(*) FROM users");
+        const taskFunnel = await pool.query(`
+            SELECT t.day_number, t.title, COUNT(ut.id) as completions
+            FROM tasks t
+            LEFT JOIN user_tasks ut ON ut.task_id = t.id AND ut.status = 'completed'
+            GROUP BY t.id, t.title, t.day_number
+            ORDER BY t.day_number
+        `);
+
         res.json({
             registrationsByDay: registrationsByDay.rows,
-            taskCompletionsByDay: taskCompletionsByDay.rows,
-            topTasks: topTasks.rows
+            taskFunnel: taskFunnel.rows.map(r => ({
+                day: r.day_number,
+                title: r.title,
+                completions: parseInt(r.completions),
+            })),
+            totalUsers: parseInt(totalUsersCount.rows[0].count),
         });
     } catch (e) {
         console.error("❌ Failed to get chart stats:", e.message);
