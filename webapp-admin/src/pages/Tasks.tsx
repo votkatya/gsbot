@@ -112,35 +112,29 @@ export default function Tasks() {
                         <span className="text-xs text-gray-400">выполнений</span>
                       </div>
 
-                      {/* Коды верификации */}
+                      {/* Коды верификации — единый блок */}
                       {(vtype === 'qr' || vtype === 'app_code' || vtype === 'qr_or_manual') &&
                         task.verification_data && (
-                          <>
+                          <div className="flex items-center gap-0 rounded-lg border border-gray-200 overflow-hidden text-xs font-mono">
                             {task.verification_data.test_code && (
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-xs text-gray-400">🔧 Тест:</span>
-                                <code className="font-mono text-xs font-semibold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-md">
-                                  {task.verification_data.test_code}
-                                </code>
+                              <div className="flex items-center gap-1 px-2.5 py-1 bg-violet-50 border-r border-gray-200">
+                                <span className="text-gray-400 font-sans">🔧</span>
+                                <span className="font-semibold text-violet-700">{task.verification_data.test_code}</span>
                               </div>
                             )}
                             {task.verification_data.qr_code && (
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-xs text-gray-400">📱 QR:</span>
-                                <code className="font-mono text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-md">
-                                  {task.verification_data.qr_code}
-                                </code>
+                              <div className="flex items-center gap-1 px-2.5 py-1 bg-green-50 border-r border-gray-200">
+                                <span className="text-gray-400 font-sans">📱</span>
+                                <span className="font-semibold text-green-700">{task.verification_data.qr_code}</span>
                               </div>
                             )}
                             {task.verification_data.manual_code && (
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-xs text-gray-400">⌨️ Ручной:</span>
-                                <code className="font-mono text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
-                                  {task.verification_data.manual_code}
-                                </code>
+                              <div className="flex items-center gap-1 px-2.5 py-1 bg-blue-50">
+                                <span className="text-gray-400 font-sans">⌨️</span>
+                                <span className="font-semibold text-blue-700">{task.verification_data.manual_code}</span>
                               </div>
                             )}
-                          </>
+                          </div>
                         )}
 
                       {/* Квиз: количество вопросов */}
