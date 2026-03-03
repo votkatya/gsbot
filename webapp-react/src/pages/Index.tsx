@@ -42,6 +42,7 @@ const Index = () => {
   const [isSurveyLoading, setIsSurveyLoading] = useState(false);
   const [isAppCodeLoading, setIsAppCodeLoading] = useState(false);
   const [isReferralLoading, setIsReferralLoading] = useState(false);
+  const [isReviewLoading, setIsReviewLoading] = useState(false);
   const [isQuizLoading, setIsQuizLoading] = useState(false);
 
   // Celebration state
@@ -603,6 +604,8 @@ const Index = () => {
   const handleReviewSubmit = async (file: File) => {
     if (!selectedTask || (!telegramId && !vkId)) return;
 
+    setIsReviewLoading(true);
+
     const formData = new FormData();
     formData.append("photo", file);
     if (telegramId) formData.append("telegramId", String(telegramId));
@@ -612,16 +615,24 @@ const Index = () => {
     try {
       const res = await fetch("/api/upload-review", { method: "POST", body: formData });
       const data = await res.json();
-      if (data.error) return;
+      if (data.error) {
+        toast.error(data.error === "Заявка уже подана" ? "Скриншот уже отправлен на проверку" : "Ошибка при отправке. Попробуй ещё раз.");
+        setIsReviewLoading(false);
+        return;
+      }
     } catch {
+      toast.error("Ошибка сети. Попробуй ещё раз.");
+      setIsReviewLoading(false);
       return;
     }
 
+    setIsReviewLoading(false);
     setTasks((prev) =>
       prev.map((t) =>
         t.dayNumber === selectedTask.dayNumber ? { ...t, reviewPending: true } : t
       )
     );
+    toast.success("Скриншот отправлен! Проверим и начислим бонусы 🎉");
     setIsModalOpen(false);
     window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
   };
@@ -1112,6 +1123,7 @@ const Index = () => {
           if (selectedTask) handleCompleteTask(selectedTask);
         }}
         onReviewSubmit={handleReviewSubmit}
+        isReviewLoading={isReviewLoading}
         onSurveySubmit={handleSurveySubmit}
         isSurveyLoading={isSurveyLoading}
         onCodeSubmit={handleAppCodeSubmit}

@@ -38,6 +38,7 @@ interface TaskModalProps {
   isCodeLoading?: boolean;
   onReferralSubmit?: (data: { friendName: string; friendPhone: string }) => void;
   isReferralLoading?: boolean;
+  isReviewLoading?: boolean;
   onQuizSubmit?: (score: number) => void;
   isQuizLoading?: boolean;
 }
@@ -118,6 +119,7 @@ export const TaskModal = ({
   isCodeLoading,
   onReferralSubmit,
   isReferralLoading,
+  isReviewLoading,
   onQuizSubmit,
   isQuizLoading
 }: TaskModalProps) => {
@@ -398,10 +400,10 @@ export const TaskModal = ({
                     <Button
                       className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                       size="lg"
-                      disabled={!selectedFile}
+                      disabled={!selectedFile || isReviewLoading}
                       onClick={() => { if (selectedFile) onReviewSubmit?.(selectedFile); }}
                     >
-                      Отправить скриншот
+                      {isReviewLoading ? "Отправляем..." : "Отправить скриншот"}
                     </Button>
                   </>
                 )}
