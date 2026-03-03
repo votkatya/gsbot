@@ -600,6 +600,32 @@ const Index = () => {
     }
   };
 
+  // Сжимаем фото через canvas — до ~300 КБ, чтобы влезало в Telegram Mobile WebView
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const MAX_WIDTH = 1920;
+        let { width, height } = img;
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("No canvas context"));
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.8));
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  };
+
   // Handle review screenshot submission (task 11 - Оставь отзыв)
   const handleReviewSubmit = async (file: File) => {
     if (!selectedTask || (!telegramId && !vkId)) return;
@@ -607,13 +633,8 @@ const Index = () => {
     setIsReviewLoading(true);
 
     try {
-      // Конвертируем файл в base64 — единственный надёжный способ в Telegram Mobile
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      // Сжимаем фото → base64 JPEG (~300 КБ), отправляем JSON
+      const base64 = await compressImage(file);
 
       const res = await fetch("/api/upload-review", {
         method: "POST",
@@ -631,8 +652,9 @@ const Index = () => {
         setIsReviewLoading(false);
         return;
       }
-    } catch {
-      toast.error("Ошибка сети. Попробуй ещё раз.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Ошибка: ${msg}`);
       setIsReviewLoading(false);
       return;
     }
