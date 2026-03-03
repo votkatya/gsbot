@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { ProgressWidget } from "@/components/ProgressWidget";
@@ -43,9 +43,9 @@ const Index = () => {
   const [isAppCodeLoading, setIsAppCodeLoading] = useState(false);
   const [isReferralLoading, setIsReferralLoading] = useState(false);
   const [isReviewLoading, setIsReviewLoading] = useState(false);
-  const rejectionToastShown = useRef(false);
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
   const [rejectionModalComment, setRejectionModalComment] = useState<string | null>(null);
+  const [rejectionTaskDay, setRejectionTaskDay] = useState<number | null>(null);
   const [isQuizLoading, setIsQuizLoading] = useState(false);
 
   // Celebration state
@@ -160,11 +160,12 @@ const Index = () => {
         const mappedTasks = mapApiTasks(userData.tasks);
         setTasks(mappedTasks);
 
-        // Показываем попап если скриншот отклонён (только один раз за сессию)
-        if (!rejectionToastShown.current) {
-          const rejectedTask = mappedTasks.find(t => t.reviewRejected);
-          if (rejectedTask) {
-            rejectionToastShown.current = true;
+        // Показываем попап если скриншот отклонён (один раз — пока не нажато «Понятно»)
+        const rejectedTask = mappedTasks.find(t => t.reviewRejected);
+        if (rejectedTask) {
+          const dismissKey = `rejection_dismissed_${rejectedTask.dayNumber}`;
+          if (!localStorage.getItem(dismissKey)) {
+            setRejectionTaskDay(rejectedTask.dayNumber);
             setRejectionModalComment(rejectedTask.reviewComment || null);
             setIsRejectionModalOpen(true);
           }
@@ -690,6 +691,8 @@ const Index = () => {
         t.dayNumber === selectedTask.dayNumber ? { ...t, reviewPending: true } : t
       )
     );
+    // Сбрасываем «видел отклонение» — если снова отклонят, покажем модалку ещё раз
+    if (selectedTask) localStorage.removeItem(`rejection_dismissed_${selectedTask.dayNumber}`);
     toast.success("Скриншот отправлен! Проверим и начислим бонусы 🎉");
     setIsModalOpen(false);
     window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred("success");
@@ -1246,7 +1249,10 @@ const Index = () => {
         <>
           <div
             className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm"
-            onClick={() => setIsRejectionModalOpen(false)}
+            onClick={() => {
+              if (rejectionTaskDay) localStorage.setItem(`rejection_dismissed_${rejectionTaskDay}`, 'true');
+              setIsRejectionModalOpen(false);
+            }}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -1266,7 +1272,10 @@ const Index = () => {
                 Открой задание «Оставь отзыв» и загрузи новый скриншот 📸
               </p>
               <button
-                onClick={() => setIsRejectionModalOpen(false)}
+                onClick={() => {
+                  if (rejectionTaskDay) localStorage.setItem(`rejection_dismissed_${rejectionTaskDay}`, 'true');
+                  setIsRejectionModalOpen(false);
+                }}
                 className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 Понятно
