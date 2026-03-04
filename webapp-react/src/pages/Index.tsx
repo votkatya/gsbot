@@ -160,12 +160,13 @@ const Index = () => {
         const mappedTasks = mapApiTasks(userData.tasks);
         setTasks(mappedTasks);
 
-        // Показываем попап если скриншот отклонён (один раз — пока не нажато «Понятно»)
-        // Ищем первое отклонение среди всех заданий, которое ещё не было скрыто
+        // Показываем попап если скриншот отклонён (один раз — пока не загружен новый скриншот)
+        // Ключ сохраняем СРАЗУ при показе — чтобы при повторном loadData не открылось снова
         const undismissedRejection = mappedTasks
           .filter(t => t.reviewRejected)
           .find(t => !localStorage.getItem(`rejection_dismissed_${t.dayNumber}`));
         if (undismissedRejection) {
+          localStorage.setItem(`rejection_dismissed_${undismissedRejection.dayNumber}`, 'true');
           setRejectionTaskDay(undismissedRejection.dayNumber);
           setRejectionModalComment(undismissedRejection.reviewComment || null);
           setIsRejectionModalOpen(true);
@@ -1249,10 +1250,7 @@ const Index = () => {
         <>
           <div
             className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm"
-            onClick={() => {
-              if (rejectionTaskDay) localStorage.setItem(`rejection_dismissed_${rejectionTaskDay}`, 'true');
-              setIsRejectionModalOpen(false);
-            }}
+            onClick={() => setIsRejectionModalOpen(false)}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -1272,10 +1270,7 @@ const Index = () => {
                 Открой задание «Оставь отзыв» и загрузи новый скриншот 📸
               </p>
               <button
-                onClick={() => {
-                  if (rejectionTaskDay) localStorage.setItem(`rejection_dismissed_${rejectionTaskDay}`, 'true');
-                  setIsRejectionModalOpen(false);
-                }}
+                onClick={() => setIsRejectionModalOpen(false)}
                 className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 Понятно
