@@ -1317,7 +1317,7 @@ app.get("/admin/api/reviews", checkAdminAuth, async (req, res) => {
 });
 
 // Одобрить отзыв — только для админа
-app.post("/admin/api/reviews/:id/approve", checkAdminAuth, checkAdminRole, async (req, res) => {
+app.post("/admin/api/reviews/:id/approve", checkAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -1386,7 +1386,7 @@ app.post("/admin/api/reviews/:id/approve", checkAdminAuth, checkAdminRole, async
 });
 
 // Отклонить отзыв — только для админа
-app.post("/admin/api/reviews/:id/reject", checkAdminAuth, checkAdminRole, async (req, res) => {
+app.post("/admin/api/reviews/:id/reject", checkAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const { comment } = req.body;

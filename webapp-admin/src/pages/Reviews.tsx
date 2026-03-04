@@ -4,7 +4,7 @@ import { api } from '../lib/api'
 import { formatDistanceToNow } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import { toast } from 'sonner'
-import { canEdit } from '../lib/permissions'
+import { canManageReviews } from '../lib/permissions'
 
 const API_BASE = 'https://gsbot18.ru'
 
@@ -169,7 +169,7 @@ export default function Reviews() {
                     </div>
 
                     {/* Кнопки действий — только для admin, только для pending */}
-                    {canEdit() && review.status === 'pending' && (
+                    {canManageReviews() && review.status === 'pending' && (
                       <div className="flex gap-2 ml-4">
                         <button
                           onClick={() => approveMutation.mutate(review.id)}

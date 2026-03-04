@@ -8,6 +8,11 @@ export const canEdit = (): boolean => {
   return isAdmin();
 };
 
+export const canManageReviews = (): boolean => {
+  const role = localStorage.getItem('admin_role');
+  return role === 'admin' || role === 'staff';
+};
+
 export const canDelete = (): boolean => {
   return isAdmin();
 };
