@@ -865,7 +865,7 @@ app.get("/admin/api/users/:id", checkAdminAuth, async (req, res) => {
             FROM purchases p
             JOIN shop_items si ON si.id = p.item_id
             WHERE p.user_id = $1
-            ORDER BY p.created_at DESC
+            ORDER BY p.purchased_at DESC
         `, [id]);
 
         res.json({
@@ -1078,7 +1078,7 @@ app.get("/admin/api/users/:id/purchases", checkAdminAuth, async (req, res) => {
             FROM purchases p
             JOIN shop_items si ON si.id = p.item_id
             WHERE p.user_id = $1
-            ORDER BY p.created_at DESC
+            ORDER BY p.purchased_at DESC
         `, [id]);
         res.json(result.rows);
     } catch (e) {
@@ -1087,6 +1087,7 @@ app.get("/admin/api/users/:id/purchases", checkAdminAuth, async (req, res) => {
 });
 
 // Список заданий
+
 app.get("/admin/api/tasks", checkAdminAuth, async (req, res) => {
     try {
         const result = await pool.query(`
@@ -1282,7 +1283,8 @@ app.post("/api/upload-review", async (req, res) => {
 app.get("/admin/api/reviews", checkAdminAuth, async (req, res) => {
     try {
         const { status } = req.query; // pending | approved | rejected | all
-        const statusFilter = status && status !== 'all' ? `WHERE rs.status = '${status}'` : "WHERE rs.status = 'pending'";
+        const allowedStatuses = ['pending', 'approved', 'rejected'];
+        const useStatus = allowedStatuses.includes(status) ? status : null;
 
         const result = await pool.query(`
             SELECT
@@ -1305,9 +1307,9 @@ app.get("/admin/api/reviews", checkAdminAuth, async (req, res) => {
             FROM review_submissions rs
             JOIN users u ON u.id = rs.user_id
             JOIN tasks t ON t.id = rs.task_id
-            ${statusFilter}
+            WHERE rs.status = $1
             ORDER BY rs.submitted_at ASC
-        `);
+        `, [useStatus || 'pending']);
         res.json(result.rows);
     } catch (e) {
         res.status(500).json({ error: e.message });

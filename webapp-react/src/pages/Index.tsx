@@ -161,14 +161,14 @@ const Index = () => {
         setTasks(mappedTasks);
 
         // Показываем попап если скриншот отклонён (один раз — пока не нажато «Понятно»)
-        const rejectedTask = mappedTasks.find(t => t.reviewRejected);
-        if (rejectedTask) {
-          const dismissKey = `rejection_dismissed_${rejectedTask.dayNumber}`;
-          if (!localStorage.getItem(dismissKey)) {
-            setRejectionTaskDay(rejectedTask.dayNumber);
-            setRejectionModalComment(rejectedTask.reviewComment || null);
-            setIsRejectionModalOpen(true);
-          }
+        // Ищем первое отклонение среди всех заданий, которое ещё не было скрыто
+        const undismissedRejection = mappedTasks
+          .filter(t => t.reviewRejected)
+          .find(t => !localStorage.getItem(`rejection_dismissed_${t.dayNumber}`));
+        if (undismissedRejection) {
+          setRejectionTaskDay(undismissedRejection.dayNumber);
+          setRejectionModalComment(undismissedRejection.reviewComment || null);
+          setIsRejectionModalOpen(true);
         }
 
         // Check if user needs to complete registration (no phone)
