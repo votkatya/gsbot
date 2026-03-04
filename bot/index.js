@@ -1017,7 +1017,11 @@ app.delete("/admin/api/users/:id", checkAdminAuth, checkAdminRole, async (req, r
         const purchasesResult = await pool.query("DELETE FROM purchases WHERE user_id = $1", [id]);
         console.log(`  ✓ Deleted ${purchasesResult.rowCount} purchases`);
 
-        // 3. Удаляем рефералов (если есть таблица referrals)
+        // 3. Удаляем скриншоты/заявки на проверку отзывов
+        const reviewsResult = await pool.query("DELETE FROM review_submissions WHERE user_id = $1", [id]);
+        console.log(`  ✓ Deleted ${reviewsResult.rowCount} review submissions`);
+
+        // 5. Удаляем рефералов (если есть таблица referrals)
         try {
             const referralsResult = await pool.query("DELETE FROM referrals WHERE user_id = $1", [id]);
             console.log(`  ✓ Deleted ${referralsResult.rowCount} referral records`);
@@ -1025,7 +1029,7 @@ app.delete("/admin/api/users/:id", checkAdminAuth, checkAdminRole, async (req, r
             console.log(`  ⚠️ Error deleting referrals: ${e.message}`);
         }
 
-        // 4. Удаляем самого пользователя
+        // 6. Удаляем самого пользователя
         const result = await pool.query("DELETE FROM users WHERE id = $1 RETURNING telegram_id", [id]);
 
         console.log(`✅ User ${id} (${userData.first_name}, telegram_id: ${result.rows[0].telegram_id}) deleted successfully`);
