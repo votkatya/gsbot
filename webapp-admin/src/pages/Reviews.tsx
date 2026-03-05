@@ -73,7 +73,7 @@ export default function Reviews() {
       </div>
 
       {/* Фильтр по статусу */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         {statusTabs.map((tab) => (
           <button
             key={tab.value}
@@ -105,30 +105,31 @@ export default function Reviews() {
               key={review.id}
               className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
             >
-              <div className="flex gap-6">
+              {/* Скриншот + инфо: на мобильном — столбиком, на десктопе — рядом */}
+              <div className="flex flex-col sm:flex-row gap-4">
                 {/* Скриншот */}
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 flex sm:flex-col items-center gap-3 sm:gap-1">
                   <img
                     src={`${API_BASE}${review.photo_url}`}
                     alt="Скриншот отзыва"
-                    className="w-32 h-32 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                    className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => setLightboxUrl(`${API_BASE}${review.photo_url}`)}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src =
                         'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect fill="%23f3f4f6" width="128" height="128"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%239ca3af" font-size="14">Фото</text></svg>'
                     }}
                   />
-                  <p className="text-xs text-blue-600 text-center mt-1 cursor-pointer hover:underline"
+                  <p className="text-xs text-blue-600 cursor-pointer hover:underline"
                     onClick={() => setLightboxUrl(`${API_BASE}${review.photo_url}`)}>
                     Увеличить
                   </p>
                 </div>
 
                 {/* Инфо */}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className="font-semibold text-gray-900">
                           {review.first_name} {review.last_name || ''}
                         </span>
@@ -137,7 +138,7 @@ export default function Reviews() {
                         </span>
                       </div>
                       <div className="text-sm text-gray-600 mb-1">
-                        📋 День {review.day_number}: <span className="font-medium">{review.task_title}</span>
+                        📋 <span className="font-medium">{review.task_title}</span>
                       </div>
                       <div className="text-sm text-gray-500 mb-3">
                         🪙 Награда: <span className="font-semibold text-gray-900">{review.coins_reward}</span>
@@ -168,13 +169,13 @@ export default function Reviews() {
                       )}
                     </div>
 
-                    {/* Кнопки действий — только для admin, только для pending */}
+                    {/* Кнопки действий */}
                     {canManageReviews() && review.status === 'pending' && (
-                      <div className="flex gap-2 ml-4">
+                      <div className="flex gap-2 sm:ml-4 flex-shrink-0">
                         <button
                           onClick={() => approveMutation.mutate(review.id)}
                           disabled={approveMutation.isPending}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+                          className="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
                         >
                           ✅ Одобрить
                         </button>
@@ -184,7 +185,7 @@ export default function Reviews() {
                             setRejectComment('')
                           }}
                           disabled={rejectMutation.isPending}
-                          className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-100 disabled:opacity-50 transition-colors"
+                          className="flex-1 sm:flex-none px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-100 disabled:opacity-50 transition-colors"
                         >
                           ❌ Отклонить
                         </button>

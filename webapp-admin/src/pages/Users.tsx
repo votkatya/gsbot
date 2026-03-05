@@ -107,23 +107,24 @@ export default function Users() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Пользователи</h1>
-        <div className="flex gap-3 items-center">
+      <div className="mb-6">
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Пользователи</h1>
           <button
             onClick={handleExportToExcel}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
           >
-            <Download size={18} />
+            <Download size={16} />
             Экспорт в Excel
           </button>
-          <div className="relative">
+        </div>
+        <div className="relative">
           <input
             type="text"
             placeholder="Поиск по имени, username, телефону..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-80"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
           {searchQuery && (
             <button
@@ -134,70 +135,80 @@ export default function Users() {
             </button>
           )}
         </div>
-        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* Мобильные карточки */}
+      <div className="flex flex-col gap-2 md:hidden">
+        {filteredUsers?.map((user: any) => (
+          <div
+            key={user.id}
+            onClick={() => navigate(`/users/${user.id}`)}
+            className="bg-white rounded-xl border border-gray-200 p-4 cursor-pointer hover:bg-blue-50 transition-colors active:bg-blue-100"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="font-medium text-gray-900 truncate">
+                  {user.first_name} {user.last_name || ''}
+                </div>
+                <div className="text-xs text-gray-400 mt-0.5 flex flex-wrap gap-2">
+                  {user.username && <span>@{user.username}</span>}
+                  {user.phone && <span>{user.phone}</span>}
+                </div>
+              </div>
+              <div className="flex-shrink-0 text-right">
+                <div className="text-sm font-semibold text-gray-800">{user.coins} 🪙</div>
+                <div className="text-xs text-gray-400">{user.completed_tasks} заданий</div>
+              </div>
+            </div>
+            {user.membership_type && (
+              <div className="mt-2 text-xs">
+                {user.membership_type === 'yes' && <span className="text-green-600">✅ Абонемент</span>}
+                {user.membership_type === 'trial' && <span className="text-amber-600">🎁 Пробная</span>}
+                {user.membership_type === 'no' && <span className="text-red-500">❌ Нет абонемента</span>}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Десктопная таблица */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Имя
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Телефон
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Абонемент
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Спорткоины
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  XP
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Заданий
-                </th>
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Имя</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Телефон</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Абонемент</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Спорткоины</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">XP</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Заданий</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {filteredUsers?.map((user: any) => (
+              <tr
+                key={user.id}
+                onClick={() => navigate(`/users/${user.id}`)}
+                className="hover:bg-blue-50 cursor-pointer transition-colors"
+              >
+                <td className="px-4 py-4 whitespace-nowrap">
+                  <div className="text-sm font-medium text-gray-900">{user.first_name} {user.last_name || ''}</div>
+                  {user.username && <div className="text-xs text-gray-400">@{user.username}</div>}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{user.phone || '—'}</td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {user.membership_type === 'yes' && '✅ Да'}
+                  {user.membership_type === 'trial' && '🎁 Пробная'}
+                  {user.membership_type === 'no' && '❌ Нет'}
+                  {!user.membership_type && '—'}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{user.coins} 🪙</td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{user.xp}</td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{user.completed_tasks}</td>
               </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers?.map((user: any) => (
-                <tr
-                  key={user.id}
-                  onClick={() => navigate(`/users/${user.id}`)}
-                  className="hover:bg-blue-50 cursor-pointer transition-colors"
-                >
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {user.first_name} {user.last_name || ''}
-                    </div>
-                    {user.username && (
-                      <div className="text-xs text-gray-400">@{user.username}</div>
-                    )}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.phone || '—'}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.membership_type === 'yes' && '✅ Да'}
-                    {user.membership_type === 'trial' && '🎁 Пробная'}
-                    {user.membership_type === 'no' && '❌ Нет'}
-                    {!user.membership_type && '—'}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.coins} 🪙
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.xp}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.completed_tasks}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <div className="mt-4 text-sm text-gray-600">
