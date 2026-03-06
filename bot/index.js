@@ -585,9 +585,14 @@ app.post("/api/survey", async (req, res) => {
 // Registration endpoint - save user registration data (TG and VK)
 app.post("/api/register", async (req, res) => {
     try {
-        const { telegramId, vkId, fullName, phone, membership, lastName, username } = req.body;
+        const { telegramId, vkId, fullName, phone, membership, username } = req.body;
 
         console.log("📝 Registration request:", { telegramId, vkId, fullName, phone, membership });
+
+        // Разбиваем fullName на имя и фамилию (пользователь вводит всё в одно поле)
+        const nameParts = (fullName || "").trim().split(/\s+/);
+        const firstName = nameParts[0] || fullName || "";
+        const lastName = nameParts.slice(1).join(" ");
 
         // Кросс-платформенная привязка: проверяем, есть ли уже аккаунт с таким телефоном
         const existingByPhone = await pool.query("SELECT * FROM users WHERE phone = $1", [phone]);
@@ -598,13 +603,13 @@ app.post("/api/register", async (req, res) => {
             if (telegramId && !existing.telegram_id) {
                 await pool.query(
                     "UPDATE users SET telegram_id=$1, first_name=$2, last_name=$3, username=$4, membership_type=$5, last_activity_at=now() WHERE id=$6",
-                    [telegramId, fullName, lastName || "", username || "", membership, existing.id]
+                    [telegramId, firstName, lastName, username || "", membership, existing.id]
                 );
                 console.log("🔗 Linked TG to existing VK user:", existing.id);
             } else if (vkId && !existing.vk_id) {
                 await pool.query(
                     "UPDATE users SET vk_id=$1, first_name=$2, last_name=$3, username=$4, membership_type=$5, last_activity_at=now() WHERE id=$6",
-                    [vkId, fullName, lastName || "", username || "", membership, existing.id]
+                    [vkId, firstName, lastName, username || "", membership, existing.id]
                 );
                 console.log("🔗 Linked VK to existing TG user:", existing.id);
             }
@@ -621,7 +626,7 @@ app.post("/api/register", async (req, res) => {
                  ON CONFLICT (telegram_id) DO UPDATE SET
                  first_name=$2, last_name=$3, username=$4, phone=$5, membership_type=$6, last_activity_at=now()
                  RETURNING *`,
-                [telegramId, fullName, lastName || "", username || "", phone, membership]
+                [telegramId, firstName, lastName, username || "", phone, membership]
             );
             console.log("✅ TG registration saved:", result.rows[0].id);
             return res.json({ success: true, user: result.rows[0] });
@@ -634,7 +639,7 @@ app.post("/api/register", async (req, res) => {
                  ON CONFLICT (vk_id) DO UPDATE SET
                  first_name=$2, last_name=$3, username=$4, phone=$5, membership_type=$6, last_activity_at=now()
                  RETURNING *`,
-                [vkId, fullName, lastName || "", username || "", phone, membership]
+                [vkId, firstName, lastName, username || "", phone, membership]
             );
             console.log("✅ VK registration saved:", result.rows[0].id);
             return res.json({ success: true, user: result.rows[0] });
