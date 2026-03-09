@@ -102,6 +102,15 @@ const Index = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, telegramId, vkId]);
 
+  // --- Обновление лидерборда при переключении на вкладку + каждые 30 сек ---
+  useEffect(() => {
+    if (activeTab !== "leaderboard") return;
+    reloadLeaderboard();
+    const interval = setInterval(reloadLeaderboard, 30000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
   // --- Reload leaderboard ---
   const reloadLeaderboard = async () => {
     if (!telegramId && !vkId) return;
