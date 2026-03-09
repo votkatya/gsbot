@@ -189,6 +189,7 @@ export default function UserDetails() {
                 {user.membership_type === 'yes' && '✅ Да'}
                 {user.membership_type === 'trial' && '🎁 Пробная неделя'}
                 {user.membership_type === 'no' && '❌ Нет'}
+                {user.membership_type === 'existing' && '❓ Не указан'}
                 {!user.membership_type && '—'}
               </span>
             </div>

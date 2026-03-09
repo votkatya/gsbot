@@ -600,16 +600,17 @@ app.post("/api/register", async (req, res) => {
             const existing = existingByPhone.rows[0];
 
             // Привязываем новую платформу к существующему аккаунту
+            // membership_type НЕ перезаписываем — сохраняем то, что уже есть в БД
             if (telegramId && !existing.telegram_id) {
                 await pool.query(
-                    "UPDATE users SET telegram_id=$1, first_name=$2, last_name=$3, username=$4, membership_type=$5, last_activity_at=now() WHERE id=$6",
-                    [telegramId, firstName, lastName, username || "", membership, existing.id]
+                    "UPDATE users SET telegram_id=$1, first_name=$2, last_name=$3, username=$4, last_activity_at=now() WHERE id=$5",
+                    [telegramId, firstName, lastName, username || "", existing.id]
                 );
                 console.log("🔗 Linked TG to existing VK user:", existing.id);
             } else if (vkId && !existing.vk_id) {
                 await pool.query(
-                    "UPDATE users SET vk_id=$1, first_name=$2, last_name=$3, username=$4, membership_type=$5, last_activity_at=now() WHERE id=$6",
-                    [vkId, firstName, lastName, username || "", membership, existing.id]
+                    "UPDATE users SET vk_id=$1, first_name=$2, last_name=$3, username=$4, last_activity_at=now() WHERE id=$5",
+                    [vkId, firstName, lastName, username || "", existing.id]
                 );
                 console.log("🔗 Linked VK to existing TG user:", existing.id);
             }
