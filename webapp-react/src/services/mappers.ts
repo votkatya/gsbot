@@ -20,9 +20,9 @@ const TASK_UI: Record<number, TaskUIMetadata> = {
   4: {
     stage: 2,
     subtitle: "Пройди Таниту",
-    zone: "Медкабинет",
+    zone: "Клуб",
     iconName: "Activity",
-    instruction: "Пройди аппарат Танита в медкабинете, отсканируй QR-код и задание будет выполнено"
+    instruction: "Пройди аппарат Танита, отсканируй QR-код и задание будет выполнено"
   },
   5: {
     stage: 2,
