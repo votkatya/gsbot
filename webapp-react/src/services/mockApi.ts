@@ -205,7 +205,7 @@ export const mockApi = {
     }
 
     if (userState.coins < item.price) {
-      return { success: false, error: "Недостаточно монет" };
+      return { success: false, error: "Недостаточно спорткоинов" };
     }
 
     userState.coins -= item.price;

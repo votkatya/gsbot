@@ -104,7 +104,7 @@ export default function Tasks() {
                       <div className="flex items-center gap-1.5">
                         <span className="text-base">🪙</span>
                         <span className="text-sm font-semibold text-gray-800">{task.coins_reward}</span>
-                        <span className="text-xs text-gray-400">монет</span>
+                        <span className="text-xs text-gray-400">спорткоинов</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span className="text-base">✅</span>

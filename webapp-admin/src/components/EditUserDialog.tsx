@@ -86,11 +86,11 @@ export function EditUserDialog({ user, isOpen, onClose }: EditUserDialogProps) {
               value={coins}
               onChange={(e) => setCoins(parseInt(e.target.value) || 0)}
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Количество монет"
+              placeholder="Количество спорткоинов"
             />
             {coinsDelta !== 0 && (
               <p className="text-xs mt-1" style={{ color: coinsDelta > 0 ? '#16a34a' : '#dc2626' }}>
-                {coinsDelta > 0 ? `+${coinsDelta}` : coinsDelta} монет
+                {coinsDelta > 0 ? `+${coinsDelta}` : coinsDelta} спорткоинов
               </p>
             )}
           </div>
@@ -131,7 +131,7 @@ export function EditUserDialog({ user, isOpen, onClose }: EditUserDialogProps) {
               <p className="font-medium mb-2">Изменения:</p>
               {coinsDelta !== 0 && (
                 <p>
-                  🪙 Монеты: {user.coins || 0} → <strong>{coins}</strong>
+                  🪙 Спорткоины: {user.coins || 0} → <strong>{coins}</strong>
                   <span className={coinsDelta > 0 ? 'text-green-600' : 'text-red-600'}>
                     {' '}({coinsDelta > 0 ? `+${coinsDelta}` : coinsDelta})
                   </span>

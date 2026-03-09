@@ -82,7 +82,7 @@ export const LeaderboardItem = ({
       {reward && reward > 0 && (
         <div className="text-right">
           <span className="text-sm font-medium text-primary">+{reward}</span>
-          <p className="text-xs text-muted-foreground">монет</p>
+          <p className="text-xs text-muted-foreground">спорткоинов</p>
         </div>
       )}
     </motion.div>

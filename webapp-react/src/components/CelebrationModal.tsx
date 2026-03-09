@@ -173,7 +173,7 @@ export const CelebrationModal = ({
                     <span className="text-2xl">🪙</span>
                   </motion.div>
                   <span className="text-xl font-bold text-yellow-500">+{coinsReward}</span>
-                  <span className="text-xs text-muted-foreground">Монет</span>
+                  <span className="text-xs text-muted-foreground">Спорткоинов</span>
                 </div>
               </motion.div>
 
@@ -185,7 +185,7 @@ export const CelebrationModal = ({
                 className="mb-6 flex items-center gap-2 rounded-xl bg-muted/50 px-4 py-2 text-sm text-muted-foreground"
               >
                 <Gift className="h-4 w-4" />
-                <span>Монеты можно потратить в магазине!</span>
+                <span>Спорткоины можно потратить в магазине!</span>
               </motion.div>
 
               {/* Continue button */}

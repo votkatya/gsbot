@@ -30,7 +30,7 @@ export const StatsCard = ({ xp, coins, streak }: StatsCardProps) => {
             <Coins className="h-5 w-5 text-primary" />
           </div>
           <span className="text-lg font-bold text-foreground">{coins}</span>
-          <span className="text-xs text-muted-foreground">Монеты</span>
+          <span className="text-xs text-muted-foreground">Спорткоины</span>
         </div>
 
         {/* Streak */}

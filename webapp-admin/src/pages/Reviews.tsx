@@ -28,7 +28,7 @@ export default function Reviews() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reviews'] })
       queryClient.invalidateQueries({ queryKey: ['reviewsCount'] })
-      toast.success('Отзыв одобрен! Монеты начислены.')
+      toast.success('Отзыв одобрен! Спорткоины начислены.')
     },
     onError: (e: any) => toast.error(`Ошибка: ${e.message}`),
   })

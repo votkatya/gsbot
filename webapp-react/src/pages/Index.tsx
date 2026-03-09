@@ -832,7 +832,7 @@ const Index = () => {
     }, 0);
 
     if (userCoins < cartTotal) {
-      toast.error("Недостаточно монет");
+      toast.error("Недостаточно спорткоинов");
       return;
     }
 
@@ -1069,7 +1069,7 @@ const Index = () => {
         >
           <div className="text-center">
             <h2 className="text-2xl font-bold text-foreground">🛒 Магазин</h2>
-            <p className="text-muted-foreground">Трать монеты на призы</p>
+            <p className="text-muted-foreground">Трать спорткоины на призы</p>
             <p className="mt-2 text-lg font-bold text-primary">
               У вас: {userCoins} 🪙
             </p>
