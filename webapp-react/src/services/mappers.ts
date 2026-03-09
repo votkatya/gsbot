@@ -29,7 +29,7 @@ const TASK_UI: Record<number, TaskUIMetadata> = {
     subtitle: "Вводная тренировка",
     zone: "Тренажерный зал",
     iconName: "Dumbbell",
-    instruction: "Пройди вводную тренировку в тренажерном зале с тренером, отсканируй QR-код и задание будет выполнено"
+    instruction: "Пройди бесплатную вводную тренировку в тренажерном зале с тренером, получи код у тренера"
   },
   6: {
     stage: 2,
@@ -43,7 +43,7 @@ const TASK_UI: Record<number, TaskUIMetadata> = {
     subtitle: "Посети групповое занятие",
     zone: "Групповые",
     iconName: "Users",
-    instruction: "Получи код от тренера"
+    instruction: "Получи код у тренера"
   },
   8: {
     stage: 2,
@@ -57,7 +57,7 @@ const TASK_UI: Record<number, TaskUIMetadata> = {
     subtitle: "Посети мероприятие",
     zone: "Клуб",
     iconName: "Star",
-    instruction: "Посети мероприятие и получи код"
+    instruction: "Посети мероприятие и получи код у спикера"
   },
   // Блок 3: Заминка
   11: { stage: 3, subtitle: "Оставь отзыв", zone: "Онлайн", iconName: "MessageSquare" },
