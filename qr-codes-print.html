@@ -79,17 +79,17 @@
             background: #000000;
             color: #FFD33D;
             border-radius: 8px;
-            font-size: 32px;
+            font-size: 52px;
             font-weight: bold;
-            letter-spacing: 3px;
+            letter-spacing: 5px;
             font-family: 'Courier New', monospace;
         }
 
         .code-label {
             color: #000000;
-            font-size: 14px;
-            margin-top: 10px;
-            font-weight: bold;
+            font-size: 11px;
+            margin-top: 8px;
+            font-weight: normal;
         }
 
         .task-info {
@@ -204,12 +204,7 @@
             taskSubtitle.className = 'task-subtitle';
             taskSubtitle.textContent = task.subtitle;
 
-            const taskZone = document.createElement('div');
-            taskZone.className = 'task-zone';
-            taskZone.textContent = `Локация: ${task.zone}`;
-
             taskInfo.appendChild(taskSubtitle);
-            taskInfo.appendChild(taskZone);
 
             card.appendChild(title);
             card.appendChild(qrContainer);
