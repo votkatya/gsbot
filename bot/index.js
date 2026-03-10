@@ -825,7 +825,7 @@ app.get("/admin/api/users", checkAdminAuth, async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT
-                id, telegram_id, first_name, last_name, username,
+                id, telegram_id, vk_id, first_name, last_name, username,
                 phone, membership_type,
                 coins, xp, level, last_activity_at, created_at,
                 survey_data,
