@@ -27,6 +27,13 @@ export default function Users() {
     )
   })
 
+  // Лига по XP (как в приложении)
+  const getLeague = (xp: number) => {
+    if (xp >= 1501) return 'Золото';
+    if (xp >= 501) return 'Серебро';
+    return 'Бронза';
+  }
+
   // Функция экспорта в Excel
   const handleExportToExcel = () => {
     if (!users || users.length === 0) return
@@ -75,7 +82,7 @@ export default function Users() {
         'Абонемент': user.membership_type || '',
         'Спорткоины': user.coins || 0,
         'XP': user.xp || 0,
-        'Уровень': user.level || 0,
+        'Лига': getLeague(user.xp || 0),
         'Заданий выполнено': user.completed_tasks || 0,
         'Полное имя (анкета)': surveyData.fullName || '',
         'Дата рождения': surveyData.birthDate || '',
