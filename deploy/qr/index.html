@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Город Спорта</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: hsl(240, 10%, 3.9%);
+      color: hsl(0, 0%, 98%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 390px;
+      margin: 0 auto;
+      padding-bottom: 32px;
+    }
+
+    /* Hero */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 24px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glow-bg {
+      position: absolute;
+      top: -40px; left: 50%;
+      transform: translateX(-50%);
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, hsla(48, 96%, 53%, 0.13) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .logo-wrap {
+      width: 120px; height: 120px;
+      border-radius: 24px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 32px hsla(48, 96%, 53%, 0.3);
+    }
+
+    .logo-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 5px;
+      background: linear-gradient(135deg, hsl(48, 96%, 58%) 0%, hsl(36, 100%, 55%) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: hsl(240, 5%, 60%);
+      text-align: center;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Card */
+    .card {
+      margin: 0 16px 16px;
+      background: hsl(240, 6%, 10%);
+      border: 1px solid hsl(240, 4%, 17%);
+      border-radius: 20px;
+      padding: 20px;
+    }
+
+    .qr-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: hsla(48, 96%, 53%, 0.1);
+      border: 1px solid hsla(48, 96%, 53%, 0.22);
+      border-radius: 30px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: hsl(48, 96%, 60%);
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .desc {
+      font-size: 15px;
+      line-height: 1.65;
+      color: hsl(0, 0%, 85%);
+    }
+    .desc strong { color: #fff; }
+
+    /* Buttons */
+    .btns-section {
+      padding: 0 16px;
+    }
+
+    .btns-label {
+      text-align: center;
+      font-size: 13px;
+      color: hsl(240, 5%, 50%);
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 16px 20px;
+      border-radius: 16px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .btn-vk {
+      background: linear-gradient(135deg, #2787F5 0%, #1570d4 100%);
+      box-shadow: 0 4px 24px rgba(39, 135, 245, 0.3);
+    }
+
+    .btn-tg {
+      background: linear-gradient(135deg, #2AABEE 0%, #1a8fc7 100%);
+      box-shadow: 0 4px 24px rgba(42, 171, 238, 0.3);
+    }
+
+    .btn-icon-wrap {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .btn-icon-wrap svg { width: 20px; height: 20px; }
+
+    .btn-text-wrap { line-height: 1.2; }
+    .btn-main { font-size: 15px; font-weight: 700; }
+    .btn-sub { font-size: 11px; font-weight: 400; opacity: 0.75; margin-top: 2px; }
+
+    .btn-arrow {
+      margin-left: auto;
+      opacity: 0.6;
+      font-size: 18px;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: hsl(240, 5%, 40%);
+      font-size: 12px;
+      margin: 2px 0 10px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: hsl(240, 4%, 17%);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="glow-bg"></div>
+    <div class="logo-wrap">
+      <img src="logo.png" alt="Город Спорта" />
+    </div>
+    <h1 class="title">Город Спорта</h1>
+    <p class="subtitle">Квест-игра клуба</p>
+  </div>
+
+  <div class="card">
+    <div class="qr-badge">📱 Ты отсканировал QR-код задания</div>
+    <p class="desc">
+      <strong>Участвуй в игре и получай подарки!</strong>
+      Выполняй задания, исследуй клуб, зарабатывай награды и обменивай на призы!
+    </p>
+  </div>
+
+  <div class="btns-section">
+    <p class="btns-label">Выбери, где продолжить:</p>
+
+    <a href="https://vk.com/app5898182_-200393401#s=3602542&force=1" class="btn btn-vk">
+      <div class="btn-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12.785 16.241s.288-.032.436-.194c.136-.148.132-.427.132-.427s-.02-1.304.576-1.496c.588-.189 1.341 1.26 2.14 1.818.605.422 1.064.33 1.064.33l2.137-.03s1.117-.071.587-.964c-.043-.073-.308-.661-1.588-1.87-1.34-1.264-1.16-1.059.453-3.246.983-1.332 1.376-2.145 1.253-2.493-.117-.332-.84-.244-.84-.244l-2.406.015s-.178-.025-.31.056c-.13.079-.212.262-.212.262s-.382 1.03-.89 1.907c-1.07 1.85-1.499 1.948-1.674 1.833-.407-.267-.305-1.075-.305-1.648 0-1.793.267-2.54-.521-2.733-.262-.064-.454-.107-1.123-.114-.858-.009-1.584.003-1.994.208-.274.135-.485.437-.356.454.159.022.519.099.71.364.246.341.237 1.107.237 1.107s.142 2.11-.33 2.371c-.325.18-.77-.187-1.725-1.865-.49-.859-.86-1.81-.86-1.81s-.07-.176-.198-.272c-.154-.115-.37-.151-.37-.151l-2.286.015s-.343.01-.469.161C4.047 7.073 4.144 7.354 4.144 7.354s1.786 4.247 3.807 6.387c1.854 1.963 3.959 1.835 3.959 1.835h.875v-.001l-.001.666z"/>
+        </svg>
+      </div>
+      <div class="btn-text-wrap">
+        <div class="btn-main">ВКонтакте</div>
+        <div class="btn-sub">Открыть мини-приложение</div>
+      </div>
+      <span class="btn-arrow">›</span>
+    </a>
+
+    <div class="divider">или</div>
+
+    <a href="https://t.me/gsvtk_bot" class="btn btn-tg">
+      <div class="btn-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/>
+        </svg>
+      </div>
+      <div class="btn-text-wrap">
+        <div class="btn-main">Telegram</div>
+        <div class="btn-sub">Открыть бота</div>
+      </div>
+      <span class="btn-arrow">›</span>
+    </a>
+  </div>
+
+</body>
+</html>
