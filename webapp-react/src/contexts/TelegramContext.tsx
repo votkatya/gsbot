@@ -47,11 +47,14 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         const vkId = parseInt(vkUserIdParam, 10);
         console.log("VK Mini App detected via URL params, vk_user_id:", vkId);
 
-        // Пробуем получить имя через VK Bridge
+        // Пробуем получить имя через VK Bridge (с таймаутом 3 сек)
         let firstName = "Атлет";
         let lastName = "";
         try {
-          const userData = await bridge.send("VKWebAppGetUserInfo");
+          const timeout = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("VK Bridge timeout")), 3000)
+          );
+          const userData = await Promise.race([bridge.send("VKWebAppGetUserInfo"), timeout]);
           firstName = userData.first_name || "Атлет";
           lastName = userData.last_name || "";
           console.log("VK user data from bridge:", userData);
