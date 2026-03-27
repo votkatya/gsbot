@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Город Спорта</title>
+  <title>Город Спорта — Квест-игра</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -13,99 +13,199 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       max-width: 390px;
       margin: 0 auto;
-      padding-bottom: 32px;
+      padding-bottom: 40px;
     }
 
-    /* Hero */
+    /* ── Hero ── */
     .hero {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 32px 24px 20px;
+      padding: 28px 24px 18px;
       position: relative;
       overflow: hidden;
     }
 
     .glow-bg {
       position: absolute;
-      top: -40px; left: 50%;
+      top: -60px; left: 50%;
       transform: translateX(-50%);
-      width: 300px; height: 300px;
-      background: radial-gradient(circle, hsla(48, 96%, 53%, 0.13) 0%, transparent 70%);
+      width: 360px; height: 360px;
+      background: radial-gradient(circle, hsla(48, 96%, 53%, 0.15) 0%, transparent 65%);
       pointer-events: none;
     }
 
     .logo-wrap {
-      width: 120px; height: 120px;
-      border-radius: 24px;
+      width: 90px; height: 90px;
+      border-radius: 20px;
       overflow: hidden;
       margin-bottom: 14px;
       position: relative;
       z-index: 1;
-      box-shadow: 0 0 32px hsla(48, 96%, 53%, 0.3);
+      box-shadow: 0 0 32px hsla(48, 96%, 53%, 0.35);
+    }
+    .logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: hsl(48, 96%, 58%);
+      margin-bottom: 6px;
+      position: relative;
+      z-index: 1;
     }
 
-    .logo-wrap img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-    }
-
-    .title {
-      font-size: 28px;
-      font-weight: 800;
+    .hero-title {
+      font-size: 26px;
+      font-weight: 900;
       letter-spacing: -0.5px;
       text-align: center;
       position: relative;
       z-index: 1;
-      margin-bottom: 5px;
+      line-height: 1.2;
+    }
+    .hero-title .accent {
       background: linear-gradient(135deg, hsl(48, 96%, 58%) 0%, hsl(36, 100%, 55%) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
-    .subtitle {
-      font-size: 12px;
-      color: hsl(240, 5%, 60%);
+    .hero-sub {
+      font-size: 14px;
+      color: hsl(240, 5%, 58%);
       text-align: center;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      font-weight: 600;
+      margin-top: 8px;
       position: relative;
       z-index: 1;
+      line-height: 1.5;
     }
 
-    /* Card */
-    .card {
-      margin: 0 16px 16px;
-      background: hsl(240, 6%, 10%);
-      border: 1px solid hsl(240, 4%, 17%);
-      border-radius: 20px;
-      padding: 20px;
-    }
-
+    /* ── QR badge ── */
     .qr-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       background: hsla(48, 96%, 53%, 0.1);
-      border: 1px solid hsla(48, 96%, 53%, 0.22);
+      border: 1px solid hsla(48, 96%, 53%, 0.25);
       border-radius: 30px;
-      padding: 5px 12px;
+      padding: 5px 14px;
       font-size: 12px;
-      color: hsl(48, 96%, 60%);
+      color: hsl(48, 96%, 62%);
       font-weight: 600;
+      margin: 4px 16px 14px;
+      align-self: center;
+    }
+
+    /* ── Prizes ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: hsl(240, 5%, 45%);
+      padding: 0 20px;
+      margin-bottom: 10px;
+    }
+
+    .prizes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 0 16px;
+      margin-bottom: 20px;
+    }
+
+    .prize-card {
+      background: hsl(240, 6%, 10%);
+      border: 1px solid hsl(240, 4%, 17%);
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .prize-icon {
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .prize-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.25;
+    }
+
+    .prize-desc {
+      font-size: 11px;
+      color: hsl(240, 5%, 50%);
+      line-height: 1.4;
+    }
+
+    /* ── How it works ── */
+    .steps-card {
+      margin: 0 16px 20px;
+      background: hsl(240, 6%, 10%);
+      border: 1px solid hsl(240, 4%, 17%);
+      border-radius: 20px;
+      padding: 18px 18px 14px;
+    }
+
+    .steps-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
       margin-bottom: 14px;
     }
 
-    .desc {
-      font-size: 15px;
-      line-height: 1.65;
-      color: hsl(0, 0%, 85%);
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
     }
-    .desc strong { color: #fff; }
+    .step:last-child { margin-bottom: 0; }
 
-    /* Buttons */
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: hsla(48, 96%, 53%, 0.12);
+      border: 1px solid hsla(48, 96%, 53%, 0.3);
+      color: hsl(48, 96%, 58%);
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-text { line-height: 1; }
+    .step-main {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .step-sub {
+      font-size: 12px;
+      color: hsl(240, 5%, 52%);
+      line-height: 1.4;
+    }
+
+    .step-divider {
+      height: 1px;
+      background: hsl(240, 4%, 15%);
+      margin: 0 0 12px 40px;
+    }
+
+    /* ── Buttons ── */
     .btns-section {
       padding: 0 16px;
     }
@@ -113,7 +213,7 @@
     .btns-label {
       text-align: center;
       font-size: 13px;
-      color: hsl(240, 5%, 50%);
+      color: hsl(240, 5%, 45%);
       margin-bottom: 12px;
     }
 
@@ -122,7 +222,7 @@
       align-items: center;
       gap: 12px;
       width: 100%;
-      padding: 16px 20px;
+      padding: 15px 18px;
       border-radius: 16px;
       font-size: 15px;
       font-weight: 700;
@@ -137,7 +237,6 @@
       background: linear-gradient(135deg, #2787F5 0%, #1570d4 100%);
       box-shadow: 0 4px 24px rgba(39, 135, 245, 0.3);
     }
-
     .btn-tg {
       background: linear-gradient(135deg, #2AABEE 0%, #1a8fc7 100%);
       box-shadow: 0 4px 24px rgba(42, 171, 238, 0.3);
@@ -152,24 +251,19 @@
       justify-content: center;
       flex-shrink: 0;
     }
-
     .btn-icon-wrap svg { width: 20px; height: 20px; }
 
-    .btn-text-wrap { line-height: 1.2; }
+    .btn-text-wrap { line-height: 1.2; flex: 1; }
     .btn-main { font-size: 15px; font-weight: 700; }
     .btn-sub { font-size: 11px; font-weight: 400; opacity: 0.75; margin-top: 2px; }
 
-    .btn-arrow {
-      margin-left: auto;
-      opacity: 0.6;
-      font-size: 18px;
-    }
+    .btn-arrow { opacity: 0.6; font-size: 20px; }
 
     .divider {
       display: flex;
       align-items: center;
       gap: 10px;
-      color: hsl(240, 5%, 40%);
+      color: hsl(240, 5%, 38%);
       font-size: 12px;
       margin: 2px 0 10px;
     }
@@ -179,29 +273,91 @@
       height: 1px;
       background: hsl(240, 4%, 17%);
     }
+
+    /* ── Footer note ── */
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: hsl(240, 5%, 35%);
+      margin-top: 18px;
+      padding: 0 24px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Hero -->
   <div class="hero">
     <div class="glow-bg"></div>
     <div class="logo-wrap">
       <img src="../logo.png" alt="Город Спорта" />
     </div>
-    <h1 class="title">Город Спорта</h1>
-    <p class="subtitle">Квест-игра клуба</p>
+    <p class="hero-eyebrow">Фитнес-клуб «Город Спорта»</p>
+    <h1 class="hero-title">Выполняй задания —<br><span class="accent">выигрывай призы!</span></h1>
+    <p class="hero-sub">Исследуй клуб, собирай QR-коды<br>и обменивай очки на реальные подарки</p>
   </div>
 
-  <div class="card">
-    <div class="qr-badge">📱 Ты отсканировал QR-код задания</div>
-    <p class="desc">
-      <strong>Участвуй в игре и получай подарки!</strong>
-      Выполняй задания, исследуй клуб, зарабатывай награды и обменивай на призы!
-    </p>
+
+  <!-- Prizes -->
+  <p class="section-label">🏆 Что можно выиграть</p>
+  <div class="prizes-grid">
+    <div class="prize-card">
+      <div class="prize-icon">☀️</div>
+      <div class="prize-name">Солярий</div>
+      <div class="prize-desc">Сеансы загара в подарок</div>
+    </div>
+    <div class="prize-card">
+      <div class="prize-icon">📅</div>
+      <div class="prize-name">Дни к карте</div>
+      <div class="prize-desc">Продление абонемента</div>
+    </div>
+    <div class="prize-card">
+      <div class="prize-icon">💪</div>
+      <div class="prize-name">Персональная тренировка</div>
+      <div class="prize-desc">Занятие с тренером</div>
+    </div>
+    <div class="prize-card">
+      <div class="prize-icon">🤲</div>
+      <div class="prize-name">Массаж</div>
+      <div class="prize-desc">Сеанс расслабляющего массажа</div>
+    </div>
   </div>
 
+  <!-- How it works -->
+  <div class="steps-card">
+    <p class="steps-title">Как это работает?</p>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">
+        <div class="step-main">Регистрируйся в игре</div>
+        <div class="step-sub">Открой приложение ниже — займёт 30 секунд</div>
+      </div>
+    </div>
+    <div class="step-divider"></div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">
+        <div class="step-main">Сканируй QR-коды заданий</div>
+        <div class="step-sub">Они расклеены по всему клубу — ищи на стенах и тренажёрах</div>
+      </div>
+    </div>
+    <div class="step-divider"></div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">
+        <div class="step-main">Получай очки и забирай призы</div>
+        <div class="step-sub">Накопил очки — обменяй на награду у сотрудника клуба</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buttons -->
   <div class="btns-section">
-    <p class="btns-label">Выбери, где продолжить:</p>
+    <p class="btns-label">Выбери, где открыть игру:</p>
 
     <a href="https://vk.com/app5898182_-200393401#s=3602542&force=1" class="btn btn-vk">
       <div class="btn-icon-wrap">
@@ -210,8 +366,8 @@
         </svg>
       </div>
       <div class="btn-text-wrap">
-        <div class="btn-main">ВКонтакте</div>
-        <div class="btn-sub">Открыть мини-приложение</div>
+        <div class="btn-main">Открыть в ВКонтакте</div>
+        <div class="btn-sub">Мини-приложение VK</div>
       </div>
       <span class="btn-arrow">›</span>
     </a>
@@ -225,12 +381,14 @@
         </svg>
       </div>
       <div class="btn-text-wrap">
-        <div class="btn-main">Telegram</div>
-        <div class="btn-sub">Открыть бота</div>
+        <div class="btn-main">Открыть в Telegram</div>
+        <div class="btn-sub">Бот @gsvtk_bot</div>
       </div>
       <span class="btn-arrow">›</span>
     </a>
   </div>
+
+  <p class="footer-note">Игра проходит в фитнес-клубе «Город Спорта», г. Воткинск</p>
 
 </body>
 </html>
