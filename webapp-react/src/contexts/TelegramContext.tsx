@@ -47,31 +47,35 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         const vkId = parseInt(vkUserIdParam, 10);
         console.log("VK Mini App detected via URL params, vk_user_id:", vkId);
 
-        // Пробуем получить имя через VK Bridge (с таймаутом 3 сек)
-        let firstName = "Атлет";
-        let lastName = "";
-        try {
-          const timeout = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("VK Bridge timeout")), 3000)
-          );
-          const userData = await Promise.race([bridge.send("VKWebAppGetUserInfo"), timeout]);
-          firstName = userData.first_name || "Атлет";
-          lastName = userData.last_name || "";
-          console.log("VK user data from bridge:", userData);
-        } catch (e) {
-          console.log("VK Bridge VKWebAppGetUserInfo failed, using URL params only:", e);
-        }
-
+        // Сразу ставим isReady — vk_user_id уже есть, данные можно грузить
         setValue({
           telegramId: null,
           vkId,
           platform: "vk",
-          firstName,
-          lastName,
+          firstName: "Атлет",
+          lastName: "",
           username: "",
           isReady: true,
           startParam: null,
         });
+
+        // Имя подтягиваем в фоне через VK Bridge (не блокируем загрузку)
+        const timeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("VK Bridge timeout")), 3000)
+        );
+        Promise.race([bridge.send("VKWebAppGetUserInfo"), timeout])
+          .then((userData) => {
+            console.log("VK user data from bridge:", userData);
+            setValue((prev) => ({
+              ...prev,
+              firstName: userData.first_name || prev.firstName,
+              lastName: userData.last_name || prev.lastName,
+            }));
+          })
+          .catch((e) => {
+            console.log("VK Bridge VKWebAppGetUserInfo failed, using URL params only:", e);
+          });
+
         return;
       }
 
