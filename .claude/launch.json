@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "qr-landing",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "4000", "."],
+      "port": 4000
+    },
+    {
+      "name": "webapp-react",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "webapp-react"],
+      "port": 5173
+    }
+    ,{
+      "name": "webapp-admin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "webapp-admin"],
+      "port": 5174
+    }
+  ]
+}

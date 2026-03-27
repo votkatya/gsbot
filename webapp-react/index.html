@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Город Спорта</title>
     <meta name="description" content="Город Спорта — квест-система онбординга" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+      // Загружаем Telegram SDK только если НЕ VK (чтобы не блокировать загрузку в ВК)
+      if (!window.location.search.includes('vk_user_id')) {
+        document.write('<script src="https://telegram.org/js/telegram-web-app.js"><\/script>');
+      }
+    </script>
   </head>
 
   <body>
