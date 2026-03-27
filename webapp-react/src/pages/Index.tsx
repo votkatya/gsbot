@@ -68,6 +68,7 @@ const Index = () => {
   // Data loading
   const [isLoading, setIsLoading] = useState(true);
   const [serverError, setServerError] = useState(false);
+  const [debugTimings, setDebugTimings] = useState<string[]>([]);
 
   // Shop & Leaderboard
   const [shopItems, setShopItems] = useState<ShopItemView[]>([]);
@@ -148,15 +149,18 @@ const Index = () => {
     }
 
     console.log("Index: Starting data load...");
+    (window as any).__addTiming?.("loadData начат");
     setIsLoading(true);
     setServerError(false);
     try {
       // Загружаем всё параллельно — вызовы независимы друг от друга
+      (window as any).__addTiming?.("API запросы отправлены");
       const [userData, shopData, lbData] = await Promise.all([
         api.fetchUser(telegramId, vkId),
         api.fetchShop(),
         api.fetchLeaderboard(),
       ]);
+      (window as any).__addTiming?.("API ответили");
 
       setShopItems(shopData.map(mapApiShopItem));
       setLeaderboard(mapLeaderboard(lbData, telegramId, vkId));
@@ -885,6 +889,15 @@ const Index = () => {
         <div className="text-center space-y-4">
           <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">Загрузка...</p>
+          <div
+            className="text-left text-xs text-muted-foreground font-mono px-4 max-w-xs mx-auto cursor-pointer"
+            onClick={() => setDebugTimings([...(window as any).__timings ?? []])}
+          >
+            {debugTimings.length === 0
+              ? <span className="opacity-50">нажми чтобы увидеть тайминги</span>
+              : debugTimings.map((t, i) => <div key={i}>{t}</div>)
+            }
+          </div>
         </div>
       </div>
     );
