@@ -151,14 +151,14 @@ const Index = () => {
     setIsLoading(true);
     setServerError(false);
     try {
-      // Load all data in parallel
-      const [userData, shopData, lbData] = await Promise.all([
-        api.fetchUser(telegramId, vkId),
-        api.fetchShop(),
-        api.fetchLeaderboard(),
-      ]);
+      // Load user + tasks
+      const userData = await api.fetchUser(telegramId, vkId);
 
+      // Always load shop and leaderboard regardless of user status
+      const shopData = await api.fetchShop();
       setShopItems(shopData.map(mapApiShopItem));
+
+      const lbData = await api.fetchLeaderboard();
       setLeaderboard(mapLeaderboard(lbData, telegramId, vkId));
 
       if (userData && userData.user) {
